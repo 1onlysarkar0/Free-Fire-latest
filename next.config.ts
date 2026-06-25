@@ -21,7 +21,7 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
       allowedOrigins: [
-        ...(process.env.REPLIT_DEV_DOMAIN ? [process.env.REPLIT_DEV_DOMAIN] : []),
+        ...(process.env.ONESARKAR_DEV_DOMAIN ? [process.env.ONESARKAR_DEV_DOMAIN] : []),
         ...(process.env.ALLOWED_DEV_ORIGINS
           ? process.env.ALLOWED_DEV_ORIGINS.split(",").map((o) => o.trim())
           : []),

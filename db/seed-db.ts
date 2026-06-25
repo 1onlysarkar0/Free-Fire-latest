@@ -618,14 +618,14 @@ async function seedTopPlayers() {
   console.log("💾 Seeding mock top players...");
 
   const mockPlayers = [
-    { name: "PAHALWAN", points: 8540, avatar: "https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&q=80&w=200&h=200" },
-    { name: "SARKAR", points: 7920, avatar: "https://images.unsplash.com/photo-1511367461989-f85a21fda167?auto=format&fit=crop&q=80&w=200&h=200" },
-    { name: "NINJA", points: 7450, avatar: "https://images.unsplash.com/photo-1542204165-65bf26472b9b?auto=format&fit=crop&q=80&w=200&h=200" },
-    { name: "VIPER", points: 7100, avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200&h=200" },
-    { name: "RAVEN", points: 6890, avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200" },
-    { name: "GHOST", points: 6540, avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=200&h=200" },
-    { name: "STRIKER", points: 6200, avatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?auto=format&fit=crop&q=80&w=200&h=200" },
-    { name: "PHANTOM", points: 5900, avatar: "https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?auto=format&fit=crop&q=80&w=200&h=200" },
+    { name: "PAHALWAN", points: 8540, avatar: "avatar:1" },
+    { name: "SARKAR", points: 7920, avatar: "avatar:2" },
+    { name: "NINJA", points: 7450, avatar: "avatar:3" },
+    { name: "VIPER", points: 7100, avatar: "avatar:4" },
+    { name: "RAVEN", points: 6890, avatar: "avatar:1" },
+    { name: "GHOST", points: 6540, avatar: "avatar:2" },
+    { name: "STRIKER", points: 6200, avatar: "avatar:3" },
+    { name: "PHANTOM", points: 5900, avatar: "avatar:4" },
   ];
 
   for (let i = 0; i < mockPlayers.length; i++) {
@@ -640,7 +640,10 @@ async function seedTopPlayers() {
       emailVerified: true,
       createdAt: new Date(),
       updatedAt: new Date(),
-    }).onConflictDoNothing();
+    }).onConflictDoUpdate({
+      target: user.id,
+      set: { image: player.avatar }
+    });
   }
 
   console.log("✅ Mock top players seeded.");
