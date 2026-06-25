@@ -1,0 +1,34 @@
+# 1onlysarkar — Gaming Tournament Platform
+
+## About
+1onlysarkar is India's premier Free Fire esports tournament platform. Players can join, compete, and win prizes in real-money gaming tournaments.
+
+## Key Features
+- Free Fire gaming tournaments (Solo, Duo, Squad modes)
+- UPI-based wallet system for entry fees and prize payouts
+- Real-time room credential distribution
+- Automated prize crediting
+- AI-powered customer support chatbot
+
+## Public Pages
+- / — Homepage with tournament listings and hero section
+- /tournaments — Browse all active, upcoming, and live tournaments
+- /tournaments/[id] — Individual tournament detail page with slot booking
+
+## Tournament Types
+- FREE — No entry fee required
+- PAID — Entry fee in INR via UPI
+
+## Social
+- Instagram: https://www.instagram.com/1onlysarkar/
+
+## Contact
+For support, use the in-app chatbot or reach out via Instagram @1onlysarkar.
+
+## Technical
+- Built with Next.js 15, TypeScript, Drizzle ORM, PostgreSQL
+- Authentication via Better Auth (Email + Google OAuth + TOTP 2FA)
+
+## AI Usage Policy
+AI agents may crawl public tournament listings (/tournaments) for informational purposes.
+Private sections (admin panel, dashboard) are not publicly accessible.

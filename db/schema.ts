@@ -1,0 +1,730 @@
+import {
+  boolean,
+  index,
+  uniqueIndex,
+  integer,
+  pgTable,
+  text,
+  timestamp,
+} from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BETTER AUTH CORE TABLES
+// Required by better-auth. Do not rename or remove.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const user = pgTable("user", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  emailVerified: boolean("emailVerified").notNull().default(false),
+  image: text("image"),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+  // Gaming-specific custom fields
+  gameName: text("gameName"),
+  uid: text("uid"),
+  twoFactorEnabled: boolean("twoFactorEnabled").default(false),
+  topPlayer: boolean("top_player").default(false),
+  isAdmin: boolean("is_admin").notNull().default(false),
+  // Ban system
+  isBanned: boolean("is_banned").notNull().default(false),
+  banReason: text("ban_reason"),
+}, (t) => [
+  index("user_top_player_idx").on(t.topPlayer),
+  index("user_is_admin_idx").on(t.isAdmin),
+  index("user_is_banned_idx").on(t.isBanned),
+]);
+
+export const session = pgTable("session", {
+  id: text("id").primaryKey(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  token: text("token").notNull().unique(),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+  ipAddress: text("ipAddress"),
+  userAgent: text("userAgent"),
+  userId: text("userId")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+});
+
+export const account = pgTable("account", {
+  id: text("id").primaryKey(),
+  accountId: text("accountId").notNull(),
+  providerId: text("providerId").notNull(),
+  userId: text("userId")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  accessToken: text("accessToken"),
+  refreshToken: text("refreshToken"),
+  idToken: text("idToken"),
+  accessTokenExpiresAt: timestamp("accessTokenExpiresAt"),
+  refreshTokenExpiresAt: timestamp("refreshTokenExpiresAt"),
+  scope: text("scope"),
+  password: text("password"),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+});
+
+export const verification = pgTable("verification", {
+  id: text("id").primaryKey(),
+  identifier: text("identifier").notNull(),
+  value: text("value").notNull(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+});
+
+export const twoFactor = pgTable("twoFactor", {
+  id: text("id").primaryKey(),
+  secret: text("secret").notNull(),
+  backupCodes: text("backupCodes").notNull(),
+  verified: boolean("verified").notNull().default(false),
+  userId: text("userId")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SITE CONFIGURATION
+// Single row (id = "default"). Controls branding, auth pages, hero, dashboard.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const siteConfig = pgTable("site_config", {
+  id: text("id").primaryKey(),
+
+  // ── Brand / Logo ──────────────────────────────────────────────────────────
+  logoUrl: text("logo_url").notNull().default("/"),
+  logoSrc: text("logo_src").notNull().default("/assets/favicon.png"),
+  logoAlt: text("logo_alt").notNull().default("logo"),
+  logoTitle: text("logo_title").notNull().default("1onlysarkar"),
+
+  // ── Navbar Auth Buttons ───────────────────────────────────────────────────
+  authLoginText: text("auth_login_text").notNull().default("Log in"),
+  authLoginUrl: text("auth_login_url").notNull().default("/sign-in"),
+  authSignupText: text("auth_signup_text").notNull().default("Create account"),
+  authSignupUrl: text("auth_signup_url").notNull().default("/sign-up"),
+
+  // ── Auth Pages — Left Panel ───────────────────────────────────────────────
+  authPanelImageUrl: text("auth_panel_image_url"),
+  authPanelColor: text("auth_panel_color").default("#FF5A1F"),
+
+  // ── Footer / Copyright ────────────────────────────────────────────────────
+  copyrightText: text("copyright_text"),
+
+  // ── Homepage Hero ─────────────────────────────────────────────────────────
+  heroHeadline: text("hero_headline"),
+  heroSubheadline: text("hero_subheadline"),
+  heroCtaPrimaryText: text("hero_cta_primary_text"),
+  heroCtaPrimaryUrl: text("hero_cta_primary_url"),
+  heroCtaSecondaryText: text("hero_cta_secondary_text"),
+  heroCtaSecondaryUrl: text("hero_cta_secondary_url"),
+  heroBadgeText: text("hero_badge_text"),
+  heroBadgeUrl: text("hero_badge_url"),
+
+
+  // ── UI Strings & Theme ────────────────────────────────────────────────────
+  navbarDashboardText: text("navbar_dashboard_text").default("Dashboard"),
+  userProfileMyAccountText: text("user_profile_my_account_text").default("My Account"),
+  userProfileLogOutText: text("user_profile_log_out_text").default("Log out"),
+
+  // ── Contact Info (footer, emails) ─────────────────────────────────────────
+  contactEmail: text("contact_email"),
+  companyAddress: text("company_address"),
+  jurisdictionName: text("jurisdiction_name"),
+
+  // ── Admin Panel Access ────────────────────────────────────────────────────
+  adminSlug: text("admin_slug").default("admin"),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NAVIGATION ITEMS
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const navigationItem = pgTable("navigation_item", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  url: text("url").notNull().default("#"),
+  description: text("description"),
+  icon: text("icon"),
+  parentId: text("parent_id"),
+  order: integer("order").notNull().default(0),
+  isMobileExtra: boolean("is_mobile_extra").notNull().default(false),
+  isFooter: boolean("is_footer").notNull().default(false),
+  isSocial: boolean("is_social").notNull().default(false),
+}, (t) => [
+  index("nav_item_footer_idx").on(t.isFooter),
+  index("nav_item_social_idx").on(t.isSocial),
+  index("nav_item_order_idx").on(t.order),
+]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AUTH PAGE CONTENT
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const authPageContent = pgTable("auth_page_content", {
+  id: text("id").primaryKey(),
+  quote: text("quote").notNull(),
+  subtext: text("subtext").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SMTP CONFIGURATION
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const smtpConfig = pgTable("smtp_config", {
+  id: text("id").primaryKey(),
+  host: text("host").notNull(),
+  port: integer("port").notNull().default(587),
+  username: text("username").notNull(),
+  password: text("password").notNull(),
+  fromName: text("from_name").notNull(),
+  fromEmail: text("from_email").notNull(),
+  secure: boolean("secure").notNull().default(false),
+  enabled: boolean("enabled").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EMAIL TEMPLATES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const emailTemplate = pgTable("email_template", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  subject: text("subject").notNull(),
+  bodyHtml: text("body_html").notNull(),
+  variables: text("variables"),
+  description: text("description"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SEO CONFIGURATION
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const seoConfig = pgTable("seo_config", {
+  id: text("id").primaryKey(),
+
+  metaTitle: text("meta_title"),
+  metaDescription: text("meta_description"),
+  metaKeywords: text("meta_keywords"),
+
+  ogTitle: text("og_title"),
+  ogDescription: text("og_description"),
+  ogImage: text("og_image"),
+  ogType: text("og_type").default("website"),
+
+  twitterCard: text("twitter_card").default("summary_large_image"),
+  twitterSite: text("twitter_site"),
+  twitterTitle: text("twitter_title"),
+  twitterDescription: text("twitter_description"),
+  twitterImage: text("twitter_image"),
+
+  canonicalUrl: text("canonical_url"),
+  robots: text("robots").default("index, follow"),
+  structuredDataJson: text("structured_data_json"),
+
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ADMIN ROLES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const adminRole = pgTable("admin_role", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  description: text("description"),
+  permissions: text("permissions").notNull().default("[]"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ADMIN USER ROLES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const adminUserRole = pgTable("admin_user_role", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  roleId: text("role_id")
+    .notNull()
+    .references(() => adminRole.id, { onDelete: "cascade" }),
+  assignedAt: timestamp("assigned_at").notNull().defaultNow(),
+}, (t) => [
+  index("admin_user_role_user_idx").on(t.userId),
+  index("admin_user_role_role_idx").on(t.roleId),
+]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CUSTOM PAGES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const customPage = pgTable("custom_page", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  content: text("content").notNull().default(""),
+  status: text("status").notNull().default("draft"), // 'published' | 'draft'
+
+  // Per-page SEO
+  metaTitle: text("meta_title"),
+  metaDescription: text("meta_description"),
+  metaKeywords: text("meta_keywords"),
+  ogImage: text("og_image"),
+  robots: text("robots").default("index, follow"),
+
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => [
+  index("custom_page_status_idx").on(t.status),
+]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TOURNAMENTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const tournament = pgTable("tournaments", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  type: text("type").notNull().default("FREE"), // FREE | PAID
+  joiningFee: integer("joining_fee").notNull().default(0), // in coins
+  prizePool: integer("prize_pool").notNull().default(0), // in coins
+  gameMode: text("game_mode").notNull(), // battle_royale | clash_squad | lone_wolf
+  teamFormat: text("team_format").notNull(), // solo | duo | squad
+  maps: text("maps").notNull().default("[]"), // JSON array of map names
+  totalSlots: integer("total_slots").notNull().default(12),
+  startTime: timestamp("start_time").notNull(),
+  registrationDeadline: timestamp("registration_deadline").notNull(),
+  endTime: timestamp("end_time"),
+  descriptionHtml: text("description_html"),
+  descriptionMarkdown: text("description_markdown"),
+  rulesHtml: text("rules_html"),
+  rulesMarkdown: text("rules_markdown"),
+  // UPCOMING | ACTIVE | ROOM_REVEALED | LIVE | FINISHED | COMPLETED | CANCELLED
+  status: text("status").notNull().default("UPCOMING"),
+  roomId: text("room_id"),
+  roomPassword: text("room_password"),
+  createdByAdminId: text("created_by_admin_id").references(() => user.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => [
+  index("tournament_status_idx").on(t.status),
+  index("tournament_start_time_idx").on(t.startTime),
+  index("tournament_type_idx").on(t.type),
+  index("tournament_game_mode_idx").on(t.gameMode),
+]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TOURNAMENT SLOTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const tournamentSlot = pgTable("tournament_slots", {
+  id: text("id").primaryKey(),
+  tournamentId: text("tournament_id")
+    .notNull()
+    .references(() => tournament.id, { onDelete: "cascade" }),
+  slotNumber: integer("slot_number").notNull(),
+  status: text("status").notNull().default("AVAILABLE"), // AVAILABLE | BOOKED
+  userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
+  teamName: text("team_name"),
+  ignList: text("ign_list").notNull().default("[]"), // JSON array of IGNs
+  bookedAt: timestamp("booked_at"),
+}, (t) => [
+  index("slot_tournament_idx").on(t.tournamentId),
+  index("slot_user_idx").on(t.userId),
+  index("slot_status_idx").on(t.status),
+]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TOURNAMENT PARTICIPANTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const tournamentParticipant = pgTable("tournament_participants", {
+  id: text("id").primaryKey(),
+  tournamentId: text("tournament_id")
+    .notNull()
+    .references(() => tournament.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  slotId: text("slot_id")
+    .notNull()
+    .references(() => tournamentSlot.id),
+  entryFeePaid: integer("entry_fee_paid").notNull().default(0),
+  joinTransactionId: text("join_transaction_id"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => [
+  index("participant_tournament_idx").on(t.tournamentId),
+  index("participant_user_idx").on(t.userId),
+  uniqueIndex("participant_tournament_user_unique_idx").on(t.tournamentId, t.userId),
+]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TOURNAMENT WINNERS
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const tournamentWinner = pgTable("tournament_winners", {
+  id: text("id").primaryKey(),
+  tournamentId: text("tournament_id")
+    .notNull()
+    .references(() => tournament.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id),
+  slotId: text("slot_id").references(() => tournamentSlot.id),
+  placement: text("placement").notNull().default("1st"), // 1st | 2nd | 3rd | custom
+  prizeAmount: integer("prize_amount").notNull().default(0),
+  creditTransactionId: text("credit_transaction_id"),
+  declaredAt: timestamp("declared_at").notNull().defaultNow(),
+}, (t) => [
+  index("winner_tournament_idx").on(t.tournamentId),
+  index("winner_user_idx").on(t.userId),
+  uniqueIndex("winner_tournament_user_unique_idx").on(t.tournamentId, t.userId),
+]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TOURNAMENT CANCELLATIONS
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const tournamentCancellation = pgTable("tournament_cancellations", {
+  id: text("id").primaryKey(),
+  tournamentId: text("tournament_id")
+    .notNull()
+    .references(() => tournament.id, { onDelete: "cascade" }),
+  reason: text("reason").notNull(),
+  cancelledByAdminId: text("cancelled_by_admin_id").references(() => user.id),
+  cancelledAt: timestamp("cancelled_at").notNull().defaultNow(),
+}, (t) => [
+  index("cancellation_tournament_idx").on(t.tournamentId),
+]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CANCELLATION REFUNDS
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const cancellationRefund = pgTable("cancellation_refunds", {
+  id: text("id").primaryKey(),
+  cancellationId: text("cancellation_id")
+    .notNull()
+    .references(() => tournamentCancellation.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id),
+  refundAmount: integer("refund_amount").notNull().default(0),
+  refundTransactionId: text("refund_transaction_id"),
+  status: text("status").notNull().default("PENDING"), // PENDING | COMPLETED | FAILED
+}, (t) => [
+  index("refund_cancellation_idx").on(t.cancellationId),
+  index("refund_user_idx").on(t.userId),
+]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WALLETS
+// One wallet per user; balance in coins (integer).
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const wallet = pgTable("wallets", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .unique()
+    .references(() => user.id, { onDelete: "cascade" }),
+  balance: integer("balance").notNull().default(0), // in coins
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => [
+  index("wallet_user_idx").on(t.userId),
+]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WALLET TRANSACTIONS
+// Immutable audit log — never DELETE or UPDATE these records.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const walletTransaction = pgTable("wallet_transactions", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id),
+  // JOIN_FEE | REFUND | PRIZE_CREDIT | ADMIN_CREDIT | ADMIN_DEBIT | WITHDRAWAL_REQUEST
+  type: text("type").notNull(),
+  amount: integer("amount").notNull(), // always positive; type determines credit/debit
+  balanceBefore: integer("balance_before").notNull(),
+  balanceAfter: integer("balance_after").notNull(),
+  referenceId: text("reference_id"), // tournament ID or admin action ID
+  description: text("description"),
+  status: text("status").notNull().default("COMPLETED"), // PENDING | COMPLETED | FAILED
+  idempotencyKey: text("idempotency_key").unique(),
+  performedByAdminId: text("performed_by_admin_id").references(() => user.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => [
+  index("txn_user_idx").on(t.userId),
+  index("txn_type_idx").on(t.type),
+  index("txn_reference_idx").on(t.referenceId),
+  index("txn_created_at_idx").on(t.createdAt),
+]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONTENT TEMPLATES (Description & Rules)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const contentTemplate = pgTable("content_templates", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // DESCRIPTION | RULES
+  contentHtml: text("content_html").notNull().default(""),
+  contentMarkdown: text("content_markdown").notNull().default(""),
+  createdByAdminId: text("created_by_admin_id").references(() => user.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => [
+  index("content_template_type_idx").on(t.type),
+]);
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PAYMENT GATEWAY CONFIG
+// Single row (id = "default"). Gmail IMAP credentials + UPI details.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const paymentConfig = pgTable("payment_config", {
+  id: text("id").primaryKey().default("default"),
+  gmailEmail: text("gmail_email").notNull().default(""),
+  gmailAppPassword: text("gmail_app_password").notNull().default(""),
+  trustedSenders: text("trusted_senders").notNull().default("[]"),
+  checkDays: integer("check_days").notNull().default(1),
+  upiId: text("upi_id").notNull().default(""),
+  upiName: text("upi_name").notNull().default("1onlysarkar"),
+  pageContent: text("page_content").notNull().default(""),
+  enabled: boolean("enabled").notNull().default(false),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PAYMENT VERIFICATION LOG
+// Immutable audit log of all UTR verification attempts.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const paymentVerification = pgTable("payment_verification", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  claimedAmount: integer("claimed_amount").notNull(),
+  verifiedAmount: integer("verified_amount"),
+  utrNumber: text("utr_number").notNull(),
+  status: text("status").notNull().default("pending"),
+  emailMessageId: text("email_message_id"),
+  emailSender: text("email_sender"),
+  ipAddress: text("ip_address"),
+  failReason: text("fail_reason"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  verifiedAt: timestamp("verified_at"),
+}, (t) => [
+  index("pv_user_created_idx").on(t.userId, t.createdAt),
+  index("pv_utr_idx").on(t.utrNumber),
+  uniqueIndex("pv_utr_verified_unique_idx").on(t.utrNumber).where(sql`status = 'verified'`),
+  index("pv_status_idx").on(t.status),
+]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NOTIFICATIONS
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const notification = pgTable("notifications", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  // ROOM_REVEALED | TOURNAMENT_CANCELLED | PRIZE_CREDITED | REFUND_CREDITED | GENERAL
+  type: text("type").notNull(),
+  referenceId: text("reference_id"), // tournament ID
+  isRead: boolean("is_read").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => [
+  index("notification_user_idx").on(t.userId),
+  index("notification_read_idx").on(t.isRead),
+  index("notification_created_idx").on(t.createdAt),
+]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CHATBOT CONFIG
+// Single row (id = "default"). Controls AI provider settings, rate limits, widget.
+// Provider is locked to "gemini" | "custom" (OpenAI-compatible endpoint).
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const chatbot_config = pgTable("chatbot_config", {
+  id: text("id").primaryKey().default("default"),
+
+  // ── General ────────────────────────────────────────────────────────────────
+  enabled: boolean("enabled").notNull().default(false),
+  chatbotName: text("chatbot_name").notNull().default("Nemu"),
+  welcomeMessage: text("welcome_message").notNull().default(
+    "Hi there! I'm Nemu, your support assistant for 1onlysarkar. I can help you with tournaments, wallet, account settings, and more. How can I help you today?"
+  ),
+  // Visible description in admin panel only
+  description: text("description").notNull().default(
+    "1onlysarkar's official AI support assistant — tournament registration, wallet & payment help, account setup, and platform navigation."
+  ),
+
+  // ── AI Provider ─────────────────────────────────────────────────────────────
+  // "gemini" | "custom" (OpenAI-compatible endpoint)
+  aiProvider: text("ai_provider").notNull().default("gemini"),
+  // API key — stored in DB, never in env
+  apiKey: text("api_key").notNull().default(""),
+  // For custom OpenAI-compatible providers only
+  customEndpoint: text("custom_endpoint"),
+  // Model name e.g. "gemini-2.0-flash-exp", "gemini-1.5-pro"
+  model: text("model").notNull().default("gemini-2.0-flash-exp"),
+  // 0.0 to 2.0 — stored as text, parsed as float in lib
+  temperature: text("temperature").notNull().default("0.7"),
+  // Max tokens in response
+  maxResponseTokens: integer("max_response_tokens").notNull().default(500),
+  // How many past messages to include as context (1–20)
+  contextWindow: integer("context_window").notNull().default(10),
+
+  // ── System Prompt ───────────────────────────────────────────────────────────
+  // Full customizable system prompt. Supports template variables:
+  // {{chatbot_name}}, {{platform_name}}, {{platform_url}},
+  // {{current_date}}, {{user_name}}, {{knowledge_base}}
+  systemPrompt: text("system_prompt").notNull().default(""),
+
+  // ── Streaming ───────────────────────────────────────────────────────────────
+  // Stream AI responses token-by-token via SSE
+  streamingEnabled: boolean("streaming_enabled").notNull().default(true),
+
+  // ── Rate Limiting ────────────────────────────────────────────────────────────
+  rateLimitEnabled: boolean("rate_limit_enabled").notNull().default(true),
+  // Max messages per user/IP per hour
+  rateLimitPerHour: integer("rate_limit_per_hour").notNull().default(30),
+  // Allow users who are NOT logged in to chat
+  allowAnonymous: boolean("allow_anonymous").notNull().default(false),
+
+  inputPlaceholder: text("input_placeholder").notNull().default(
+    "Type your question here... (max 300 words)"
+  ),
+
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CHATBOT KNOWLEDGE BASE
+// FAQ / platform-specific Q&A entries injected into the AI system prompt.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const chatbot_knowledge = pgTable("chatbot_knowledge", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  // Short title shown in admin panel list
+  title: text("title").notNull(),
+  // The actual Q&A or information content injected into context
+  content: text("content").notNull(),
+  // Optional grouping for admin UI
+  category: text("category").notNull().default("General"),
+  // Controls whether this entry is injected into AI context
+  isEnabled: boolean("is_enabled").notNull().default(true),
+  // Lower number = injected first (most important at top)
+  priority: integer("priority").notNull().default(100),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CHATBOT SESSIONS
+// One session per chat conversation. Authenticated or anonymous.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const chatbot_session = pgTable("chatbot_session", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  // null for anonymous users
+  userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
+  // UUID token sent to client to identify session
+  sessionToken: text("session_token").notNull().unique().$defaultFn(() => crypto.randomUUID()),
+  // User's display name at time of chat (snapshot)
+  userName: text("user_name"),
+  // For rate limiting anonymous users
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  messageCount: integer("message_count").notNull().default(0),
+  // "active" | "ended" | "rate_limited"
+  status: text("status").notNull().default("active"),
+  startedAt: timestamp("started_at").notNull().defaultNow(),
+  lastMessageAt: timestamp("last_message_at").notNull().defaultNow(),
+  // Last known page context details (JSON string)
+  lastPageContext: text("last_page_context"),
+}, (t) => [
+  index("chatbot_session_user_idx").on(t.userId),
+  index("chatbot_session_token_idx").on(t.sessionToken),
+]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CHATBOT MESSAGES
+// Immutable log of all messages in a session.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const chatbot_message = pgTable("chatbot_message", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  sessionId: text("session_id")
+    .notNull()
+    .references(() => chatbot_session.id, { onDelete: "cascade" }),
+  // "user" | "assistant" | "system"
+  role: text("role").notNull(),
+  content: text("content").notNull(),
+  // Token counts for cost tracking (null if provider doesn't return them)
+  promptTokens: integer("prompt_tokens"),
+  completionTokens: integer("completion_tokens"),
+  // "success" | "error" | "rate_limited" | "moderated"
+  status: text("status").notNull().default("success"),
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => [
+  index("chatbot_message_session_idx").on(t.sessionId, t.createdAt),
+]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WITHDRAW CONFIG
+// Single-row config for withdrawal settings.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const withdrawConfig = pgTable("withdraw_config", {
+  id: text("id").primaryKey().default("default"),
+  minWithdrawAmount: integer("min_withdraw_amount").notNull().default(50),
+  dailyWithdrawLimit: integer("daily_withdraw_limit").notNull().default(3),
+  description: text("description").notNull().default(""),
+  enabled: boolean("enabled").notNull().default(true),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WITHDRAW REQUESTS
+// User withdrawal requests — money deducted immediately on request.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const withdrawRequest = pgTable("withdraw_requests", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  amount: integer("amount").notNull(),
+  upiId: text("upi_id").notNull(),
+  status: text("status").notNull().default("PENDING"), // PENDING | COMPLETED | CANCELLED
+  adminNote: text("admin_note"),
+  refundedOnCancel: boolean("refunded_on_cancel").notNull().default(false),
+  transactionId: text("transaction_id"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  processedAt: timestamp("processed_at"),
+  processedByAdminId: text("processed_by_admin_id").references(() => user.id),
+}, (t) => [
+  index("withdraw_user_idx").on(t.userId),
+  index("withdraw_status_idx").on(t.status),
+  index("withdraw_created_at_idx").on(t.createdAt),
+]);

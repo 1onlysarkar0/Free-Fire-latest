@@ -1,0 +1,366 @@
+# 1onlysarkar — Gaming Tournament Platform
+
+A full-stack gaming tournament platform built for Indian esports / Free Fire tournaments. Built with **Next.js 15**, **Better Auth**, **Drizzle ORM + PostgreSQL**, and **Tailwind CSS v4**. Every piece of content — navbar, footer, auth pages, hero section, email templates, SEO — is **100% database-driven** with a full admin panel.
+
+Production: **https://1onlysarkar.shop**
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+| :--- | :--- |
+| Framework | Next.js 15.5 (App Router, Server Components, Server Actions) |
+| Language | TypeScript 5.9 |
+| Authentication | Better Auth 1.6 (Email+Password, Google OAuth, TOTP 2FA) |
+| Database | PostgreSQL (Supabase Pooler) |
+| ORM | Drizzle ORM 0.43 + Drizzle Kit 0.31 |
+| Styling | Tailwind CSS v4.3 + Radix UI + shadcn/ui (new-york style) |
+| State Management | @tanstack/react-query 5.100 |
+| Forms | react-hook-form 7.76 + Zod 3.25 validation |
+| Payment Gateway | Gmail IMAP UTR Scraper (`node-imap`, `mailparser`) |
+| QR Code | `qrcode.react` (client-side SVG) |
+| Charts | Recharts 3.8 |
+| Deployment | Vercel (serverless) / Docker |
+| Email Dispatch | Nodemailer 8.0 (SMTP credentials stored in DB) |
+| Analytics | Vercel Analytics |
+| Instagram | Instagram Graph API v25.0 (business_discovery for avatar fetch) |
+| Animation | Framer Motion 12.40 / Motion 12.40 |
+| AI Chatbot | Google Gemini API (streaming SSE, Gemini-only + custom endpoint) |
+
+---
+
+## Features
+
+### Authentication
+- Multi-step sign-in (email → password → optional 2FA)
+- Multi-step sign-up (email → password → profile completion)
+- Google OAuth with account linking
+- TOTP Two-Factor Authentication with backup codes
+- Password reset via email
+- Profile completion for OAuth users (game name, UID, Instagram)
+
+### Tournament System
+- Create/manage tournaments (FREE/PAID types)
+- Slot-based registration (Solo/Duo/Squad formats)
+- Real-time slot availability tracking
+- Room ID & Password reveal for participants
+- Winner declaration with prize distribution
+- Tournament cancellation with automatic refunds
+- Entry fee deduction from wallet balance
+
+### Wallet & Payments
+- UPI QR code generation for deposits
+- IMAP-based automatic UTR verification via Gmail
+- Transaction history with status tracking
+- Wallet debit/credit with idempotency and row locking
+- Rate limiting on payment verification attempts
+- **Withdrawal system**: User-submitted withdrawal requests to UPI
+- Amount deducted immediately on request with admin processing
+- Configurable min withdrawal amount, daily limit, and markdown description
+- Admin can complete or cancel requests with optional refund on cancel
+
+### Admin Panel (Dynamic Slug)
+- Dashboard with real-time statistics
+- User management (ban, role assignment, avatar sync)
+- Tournament management (CRUD, room credentials, winners)
+- Role-based access control (RBAC) with 47 permissions
+- Site configuration (logo, hero, footer, contact)
+- Navigation management (header, footer, social links)
+- Email template editor with variable placeholders
+- SMTP configuration with test connection
+- SEO configuration (per-page meta, OG, Twitter cards)
+- Custom page builder with markdown editor
+- Instagram Graph API configuration
+- Payment gateway configuration
+- Auth page content customization
+- Content templates (Description/Rules)
+- **AI Chatbot** configuration (full 7-tab panel)
+
+### AI Chatbot
+- Google Gemini AI backend with live streaming (SSE, token-by-token)
+- Custom OpenAI-compatible endpoint support
+- Full admin panel: General, AI Provider, System Prompt, Knowledge Base, Rate Limiting, Conversations
+- Session-based conversation history with configurable context window
+- Knowledge base injection into system prompt (FAQ entries from DB)
+- Rate limiting per user (logged in) or per IP (anonymous)
+- Prompt injection protection and input moderation (max 300 words)
+- Anonymous user blocking: unauthenticated users get clear sign-in message
+- Full conversation logs viewable in admin panel with inline message thread
+- Template variables in system prompt: `{{chatbot_name}}`, `{{knowledge_base}}`, `{{user_name}}`, etc.
+
+### Design System
+- Professional modern minimalist with subtle borders for structural separation
+- Forced light creamy theme (no dark mode)
+- Contrast-based elevation with soft shadows
+- 59+ shadcn/ui components (new-york style)
+- Custom utility classes: `card`, `card-coral`, `card-inset`, `input`, `btn`, `badge`
+- Interactive hover buttons with sliding background animation
+- Navigation uses `hover:bg-accent` / `data-[state=open]:bg-accent` for interactive states
+- Navbar has `h-16` height with consistent `px-4 py-2` padding on all nav items
+
+### Typography
+- **Brand Logo**: Momo Trust Display (custom font-face)
+- **Headings**: Inter (sans-serif)
+- **Body**: IBM Plex Sans (readability)
+- **Mono**: SF Mono (monospaced figures)
+
+---
+
+## Database Schema (24 Tables)
+
+### Better Auth Core
+| Table | Purpose |
+|-------|---------|
+| `user` | Auth users + gaming fields + admin/ban flags |
+| `session` | Auth sessions (cascade on user delete) |
+| `account` | OAuth provider accounts |
+| `verification` | Email/token verification records |
+| `twoFactor` | TOTP secrets + backup codes |
+
+### Site & Content
+| Table | Purpose |
+|-------|---------|
+| `site_config` | Single row: logo, navbar, hero, footer, adminSlug |
+| `navigation_item` | Header, footer, social, mobile-extra nav links |
+| `auth_page_content` | Left-panel quote+subtext for each auth page |
+| `smtp_config` | SMTP configuration (single row) |
+| `email_template` | HTML templates with `{{variable}}` placeholders |
+| `seo_config` | Per-page SEO; "global" row as site-wide fallback |
+| `custom_page` | Rich-text pages served at `/[slug]` |
+| `content_templates` | Reusable Description/Rules templates |
+
+### Tournament
+| Table | Purpose |
+|-------|---------|
+| `tournaments` | Tournament definitions (name, type, fee, prize, slots, status) |
+| `tournament_slots` | Individual slots per tournament |
+| `tournament_participants` | User registrations linking user to tournament and slot |
+| `tournament_winners` | Declared winners with placement and prize |
+| `tournament_cancellations` | Cancellation records |
+| `cancellation_refunds` | Refund records for cancelled tournaments |
+
+### Wallet & Payment
+| Table | Purpose |
+|-------|---------|
+| `wallets` | User wallet (balance in coins) |
+| `wallet_transactions` | Transaction log with idempotency |
+| `payment_config` | UPI configurations (single row) |
+| `payment_verification` | UTR verification logs |
+| `withdraw_config` | Withdrawal rules config (single row) |
+| `withdraw_requests` | User withdrawal requests with status |
+
+### RBAC & Notifications
+| Table | Purpose |
+|-------|---------|
+| `admin_role` | Named roles with JSON permissions array |
+| `admin_user_role` | User-role junction (cascade) |
+| `notifications` | User notifications (type, title, message, isRead) |
+
+### AI Chatbot
+| Table | Purpose |
+|-------|---------|
+| `chatbot_config` | Single row: AI provider, system prompt, rate limits, widget settings |
+| `chatbot_knowledge` | FAQ entries injected into AI context (priority-ordered) |
+| `chatbot_session` | Chat sessions (authenticated or anonymous) |
+| `chatbot_message` | Immutable message log with token counts |
+
+---
+
+## API Routes (61 Routes)
+
+### Auth Routes
+| Route | Method | Description |
+|-------|--------|-------------|
+| `/api/auth/[...all]` | ALL | Better Auth catch-all |
+| `/api/auth/check-email` | POST | Check email existence, password, 2FA status |
+
+### User Routes
+| Route | Method | Description |
+|-------|--------|-------------|
+| `/api/user/complete-profile` | POST | Complete profile (game name, UID) |
+| `/api/user/permissions` | GET | Get user permissions and roles |
+| `/api/user/profile` | GET/PUT | Get/update user profile |
+| `/api/user/set-password` | POST | Set password for OAuth users |
+
+### Tournament Routes
+| Route | Method | Description |
+|-------|--------|-------------|
+| `/api/tournaments` | GET | List tournaments |
+| `/api/tournaments/[id]` | GET | Get tournament detail |
+| `/api/tournaments/[id]/join` | POST | Join tournament |
+| `/api/tournaments/[id]/slots` | GET | Get tournament slots |
+
+### Wallet Routes
+| Route | Method | Description |
+|-------|--------|-------------|
+| `/api/wallet/me` | GET | Get current wallet balance |
+| `/api/wallet/transactions` | GET | Get transaction history |
+| `/api/wallet/verify-payment` | POST | Submit UTR for IMAP verification |
+| `/api/wallet/withdraw/request` | POST | Submit withdrawal request (deducts wallet) |
+| `/api/wallet/withdraw/requests` | GET | Get user's withdrawal request history |
+
+### Admin Routes (16 groups)
+All admin routes require `requireAdminOrRole(request, permission?)`.
+
+| Route Group | Capabilities |
+|-------------|-------------|
+| `/api/admin/stats` | Dashboard statistics |
+| `/api/admin/site-config` | Site configuration CRUD |
+| `/api/admin/navigation` | Navigation items CRUD |
+| `/api/admin/users` | User management + avatar sync |
+| `/api/admin/roles` | Role management CRUD |
+| `/api/admin/tournaments` | Tournament CRUD + room credentials, winners, cancel, participants, slots |
+| `/api/admin/smtp` | SMTP configuration |
+| `/api/admin/email-templates` | Email template CRUD |
+| `/api/admin/auth-content` | Auth page content CRUD |
+| `/api/admin/seo` | SEO configuration CRUD |
+| `/api/admin/pages` | Custom page CRUD |
+| `/api/admin/content-templates` | Content template CRUD |
+| `/api/admin/payment-config` | Payment config + IMAP test |
+| `/api/admin/payment-verifications` | Payment verification logs |
+| `/api/admin/wallet/adjust` | Credit/debit user wallet |
+| `/api/admin/withdraw/config` | GET/PUT | Get/update withdrawal configuration |
+| `/api/admin/withdraw/requests` | GET | List all withdrawal requests |
+| `/api/admin/withdraw/requests/[id]` | POST | Complete/cancel a withdrawal request |
+| `/api/admin/chatbot-config` | Chatbot config GET/PUT + test-connection |
+| `/api/admin/chatbot-knowledge` | Knowledge base CRUD |
+| `/api/admin/chatbot-sessions` | Chat session list + detail + delete |
+
+### Public Chatbot Routes
+| Route | Method | Description |
+|-------|--------|-------------|
+| `/api/chatbot/config` | GET | Public chatbot config (safe fields only) |
+| `/api/chatbot/session` | POST | Start new chat session |
+| `/api/chatbot/session/[token]` | GET | Get session message history |
+| `/api/chatbot/session/[token]/end` | POST | End a session |
+| `/api/chatbot/chat` | POST | Send message, get streaming SSE AI response |
+
+---
+
+## Local Development
+
+```bash
+# 1. Install dependencies
+pnpm install
+
+# 2. Create .env file (see .env.example for template)
+DATABASE_URL="postgresql://user:pass@host/dbname?sslmode=require"
+BETTER_AUTH_SECRET="your-32-char-minimum-secret"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+PORT=3000
+
+# 3. Push schema to database
+pnpm run db:push
+
+# 4. Seed all tables (idempotent, safe to rerun)
+pnpm run db:seed
+
+# 5. Start dev server
+pnpm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Available Scripts
+| Script | Description |
+|--------|-------------|
+| `pnpm run dev` | Start Next.js dev server |
+| `pnpm run build` | Production build |
+| `pnpm run start` | Start production server |
+| `pnpm run lint` | Run ESLint |
+| `pnpm run db:generate` | Generate Drizzle migrations |
+| `pnpm run db:push` | Push schema to database |
+| `pnpm run db:migrate` | Run migrations |
+| `pnpm run db:seed` | Seed database (idempotent) |
+| `pnpm run db:studio` | Open Drizzle Studio |
+| `pnpm run vercel-build` | Full Vercel build pipeline |
+
+### Docker
+```bash
+docker build -t 1onlysarkar .
+docker run -p 3000:3000 --env-file .env 1onlysarkar
+```
+
+### Admin Panel Access
+Set `is_admin = true` on your user in the database, then visit the admin route (default slug stored in `site_config.adminSlug`).
+
+---
+
+## Key Library Files
+
+| File | Purpose |
+|------|---------|
+| `lib/auth.ts` | Better Auth server config (Email+Password, Google OAuth, TOTP) |
+| `lib/auth-client.ts` | Better Auth client config |
+| `lib/admin-auth.ts` | Admin auth helpers (getAdminUser, requireAdminOrRole) |
+| `lib/admin-permissions.ts` | Permission groups, hasPermission, canAccessSection |
+| `lib/chatbot.ts` | Chatbot core: Gemini streaming, session management, knowledge base, moderation |
+| `lib/navigation.ts` | DB-cached navbar/footer config |
+| `lib/content.ts` | DB-cached auth page text, dashboard config, hero config |
+| `lib/wallet.ts` | Wallet helpers (idempotency, row locking) |
+| `lib/payment.ts` | IMAP UTR payment verification (518 lines) |
+| `lib/mailer.ts` | Nodemailer email sending |
+| `lib/notifications.ts` | Notification creation and retrieval |
+| `lib/seo.ts` | SEO data fetching and metadata building |
+| `lib/tournaments.ts` | Tournament CRUD helpers |
+| `lib/user-data.ts` | User profile, wallet, permissions, top players |
+| `lib/schemas/admin.ts` | Zod validation schemas |
+| `db/schema.ts` | Drizzle schema (24 tables) |
+| `db/seed-db.ts` | Idempotent seed script |
+| `db/drizzle.ts` | Database connection (postgres.js driver) |
+| `middleware.ts` | Auth route protection |
+
+---
+
+## Design System
+
+### Color Tokens (CSS Variables)
+| Token | Value | Usage |
+|-------|-------|-------|
+| `--primary` | `hsl(14, 100%, 50%)` | Brand orange (#FF5A1F) |
+| `--background` | `hsl(36, 33%, 97%)` | Warm cream background |
+| `--card` | `hsl(0, 0%, 100%)` | White card surfaces |
+| `--accent` | `hsl(36, 22%, 93%)` | Subtle warm tint |
+| `--muted` | `hsl(42, 12%, 90%)` | Muted backgrounds |
+| `--destructive` | `hsl(4, 76%, 49%)` | Error/danger |
+| `--success` | `hsl(142, 71%, 36%)` | Success states |
+| `--warning` | `hsl(38, 92%, 50%)` | Warning states |
+| `--info` | `hsl(211, 100%, 57%)` | Information |
+
+### Shadows
+| Token | Value |
+|-------|-------|
+| `--shadow-xs` | `0 1px 2px hsl(225 5% 22% / 0.06)` |
+| `--shadow-sm` | `0 1px 3px hsl(225 5% 22% / 0.08)` |
+| `--shadow-md` | `0 4px 12px hsl(225 5% 22% / 0.1)` |
+| `--shadow-lg` | `0 12px 28px hsl(225 5% 22% / 0.12)` |
+
+### Custom Utilities
+- `card` — White card with shadow-xs, rounded-xl, padding
+- `card-coral` — Primary gradient card
+- `card-inset` — Accent tint inset card
+- `input` — Styled input with focus ring
+- `btn` / `btn-primary` / `btn-secondary` — Base button utilities
+- `badge` / `badge-success` / `badge-warning` / `badge-error` / `badge-muted` — Status badges
+- `title-md` / `body-md` / `caption` — Typography utilities
+
+---
+
+## Caching & Security Architecture
+
+### 1. Multi-Layer Caching System
+To achieve high responsiveness and avoid unnecessary database queries, the platform implements a structured server-side caching architecture:
+- **Next.js Data Cache (`unstable_cache`)**: Persists database query results across user requests and deployments for site configuration, navigation, auth text pages, dynamic SEO metadata, top players, and tournaments.
+- **Request Memoization (`cache()`)**: React-level memoization to deduplicate duplicate database queries during a single render lifecycle (e.g. sharing fetch calls between metadata and page components).
+- **Tag-Based Invalidation**: Uses on-demand tag revalidation (`revalidateTag`) to clear cache entries on admin modifications.
+- **Router Cache Invalidation**: Calls `router.refresh()` on mutation completions to refresh the browser's in-memory cache and layout headers instantly.
+- **Strictly Live Data**: Wallet, transactions, and session authorization bypass caching entirely to guarantee real-time precision.
+
+### 2. RBAC & Route Protection
+- **API-Level Authorization**: Admin API routes always check user permissions using `requireAdminOrRole(request, permission?)`.
+- **Page-Level Router Checks**: Every dynamic sub-route under `app/[dynamicSlug]/` enforces page permissions using `requirePagePermission(dynamicSlug, permission)` on the server before rendering components, preventing users from accessing unauthorized admin features by typing URLs directly.
+- **Client-Side Filters**: The sidebar and admin dashboard (`AdminDashboardHome`) dynamically hide and show options/statistics based on active role permissions.
+

@@ -1,0 +1,127 @@
+import { NextRequest, NextResponse } from "next/server";
+import { requireAdminOrRole } from "@/lib/admin-auth";
+import { db } from "@/db/drizzle";
+import { tournament, tournamentSlot, tournamentParticipant, tournamentWinner, user } from "@/db/schema";
+import { count, eq } from "drizzle-orm";
+import { invalidateTournamentCache } from "@/lib/cache";
+
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const adminUser = await requireAdminOrRole(req, "tournaments:view");
+  if (adminUser instanceof Response) return adminUser;
+
+  try {
+    const { id } = await params;
+
+    const [row] = await db.select().from(tournament).where(eq(tournament.id, id)).limit(1);
+    if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    const [slots, participants, winners, [{ total: participantCount }]] = await Promise.all([
+      db.select().from(tournamentSlot).where(eq(tournamentSlot.tournamentId, id)).orderBy(tournamentSlot.slotNumber),
+      db
+        .select({
+          id: tournamentParticipant.id,
+          userId: tournamentParticipant.userId,
+          slotId: tournamentParticipant.slotId,
+          entryFeePaid: tournamentParticipant.entryFeePaid,
+          joinTransactionId: tournamentParticipant.joinTransactionId,
+          createdAt: tournamentParticipant.createdAt,
+          userName: user.name,
+          userEmail: user.email,
+          userGameName: user.gameName,
+          userUid: user.uid,
+          userImage: user.image,
+        })
+        .from(tournamentParticipant)
+        .innerJoin(user, eq(tournamentParticipant.userId, user.id))
+        .where(eq(tournamentParticipant.tournamentId, id)),
+      db
+        .select({
+          id: tournamentWinner.id,
+          userId: tournamentWinner.userId,
+          slotId: tournamentWinner.slotId,
+          placement: tournamentWinner.placement,
+          prizeAmount: tournamentWinner.prizeAmount,
+          declaredAt: tournamentWinner.declaredAt,
+          userName: user.name,
+          userGameName: user.gameName,
+          userImage: user.image,
+        })
+        .from(tournamentWinner)
+        .innerJoin(user, eq(tournamentWinner.userId, user.id))
+        .where(eq(tournamentWinner.tournamentId, id)),
+      db.select({ total: count() }).from(tournamentParticipant).where(eq(tournamentParticipant.tournamentId, id)),
+    ]);
+
+    return NextResponse.json({
+      ...row,
+      maps: JSON.parse(row.maps || "[]"),
+      slots: slots.map((s: typeof tournamentSlot.$inferSelect) => ({ ...s, ignList: JSON.parse(s.ignList || "[]") })),
+      participants,
+      winners,
+      participantCount,
+    });
+  } catch (err) {
+    console.error("[API/admin/tournaments/[id]] GET:", err);
+    return NextResponse.json({ error: "Failed to fetch tournament" }, { status: 500 });
+  }
+}
+
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const adminUser = await requireAdminOrRole(req, "tournaments:edit");
+  if (adminUser instanceof Response) return adminUser;
+
+  try {
+    const { id } = await params;
+
+    const [existing] = await db.select({ id: tournament.id, status: tournament.status }).from(tournament).where(eq(tournament.id, id)).limit(1);
+    if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    const body = await req.json();
+    const allowed = ["name", "type", "joiningFee", "prizePool", "gameMode", "teamFormat", "maps", "startTime", "registrationDeadline", "endTime", "descriptionHtml", "descriptionMarkdown", "rulesHtml", "rulesMarkdown", "status"];
+
+    const updates: Record<string, unknown> = { updatedAt: new Date() };
+    for (const key of allowed) {
+      if (key in body) {
+        if (key === "maps") updates.maps = JSON.stringify(Array.isArray(body[key]) ? body[key] : []);
+        else if (key === "startTime" || key === "registrationDeadline" || key === "endTime")
+          updates[key] = body[key] ? new Date(body[key]) : null;
+        else if (key === "joiningFee" || key === "prizePool")
+          updates[key] = Math.max(0, parseInt(body[key]) || 0);
+        else if (key === "type" || key === "status")
+          updates[key] = (body[key] as string).toUpperCase();
+        else updates[key] = body[key];
+      }
+    }
+
+    await db.update(tournament).set(updates).where(eq(tournament.id, id));
+    invalidateTournamentCache(id);
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("[API/admin/tournaments/[id]] PATCH:", err);
+    return NextResponse.json({ error: "Failed to update tournament" }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const adminUser = await requireAdminOrRole(req, "tournaments:delete");
+  if (adminUser instanceof Response) return adminUser;
+
+  try {
+    const { id } = await params;
+
+    const [existing] = await db.select({ status: tournament.status }).from(tournament).where(eq(tournament.id, id)).limit(1);
+    if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    if (["ACTIVE", "ROOM_REVEALED", "LIVE"].includes(existing.status)) {
+      return NextResponse.json({ error: "Cannot delete an active tournament. Cancel it first." }, { status: 400 });
+    }
+
+    await db.delete(tournament).where(eq(tournament.id, id));
+    invalidateTournamentCache(id);
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("[API/admin/tournaments/[id]] DELETE:", err);
+    return NextResponse.json({ error: "Failed to delete tournament" }, { status: 500 });
+  }
+}
