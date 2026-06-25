@@ -503,7 +503,7 @@ async function seedSeoConfig() {
   console.log("💾 Seeding seo_config...");
 
   const siteUrl = "https://1onlysarkar.shop";
-  const ogImage = "https://jdj14ctwppwprnqu.public.blob.vercel-storage.com/nsk-w9fFwBBmLDLxrB896I4xqngTUEEovS.png";
+  const ogImage = "/assets/og-image.png";
 
   await db.insert(seoConfig).values({
     id: "global",
