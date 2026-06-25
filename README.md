@@ -30,6 +30,18 @@ Production: **https://1onlysarkar.shop**
 
 ---
 
+## Architecture & Directory Structure
+
+- `app/(public)/` — Public-facing pages (home, tournaments)
+- `app/(auth)/` — Authentication pages (sign-in, sign-up, 2FA)
+- `app/(dashboard)/` — Authenticated user dashboard (wallet, settings, my tournaments)
+- `app/[dynamicSlug]/` — Admin panel (role-based, slug from DB) + public custom pages
+- `app/api/` — API routes (all admin routes protected by `requireAdminOrRole`)
+- `lib/` — Server-side helpers (auth, SEO, wallet, tournaments, notifications)
+- `db/` — Drizzle schema + seed script
+
+---
+
 ## Features
 
 ### Authentication
@@ -89,7 +101,7 @@ Production: **https://1onlysarkar.shop**
 - Full conversation logs viewable in admin panel with inline message thread
 - Template variables in system prompt: `{{chatbot_name}}`, `{{knowledge_base}}`, `{{user_name}}`, etc.
 
-### Design System
+### Design System & Aesthetics
 - Professional modern minimalist with subtle borders for structural separation
 - Forced light creamy theme (no dark mode)
 - Contrast-based elevation with soft shadows
@@ -104,6 +116,15 @@ Production: **https://1onlysarkar.shop**
 - **Headings**: Inter (sans-serif)
 - **Body**: IBM Plex Sans (readability)
 - **Mono**: SF Mono (monospaced figures)
+
+---
+
+## Key Design Decisions
+
+- **Fully DB-driven SEO**: All metadata (title, description, OG, JSON-LD) is stored in `seo_config` table and fetched at runtime — no hardcoded site names anywhere in the codebase.
+- **Admin Panel Security**: The admin panel slug is stored in `site_config.admin_slug`. It is NEVER mentioned in `robots.txt` (allowlist approach — only `/` and `/tournaments/` are allowed, everything else disallowed with `Disallow: /`). The panel requires `isAdmin=true` on the user row.
+- **RBAC**: All admin API routes use `requireAdminOrRole()` from `lib/admin-auth.ts`. Sub-admin roles have granular permissions stored as JSON in `admin_role.permissions`.
+- **No Fallback Brand Strings**: The string "1onlysarkar" does not appear in any catch block, fallback value, or default content in production code. If the DB is empty, pages show no title rather than a hardcoded one.
 
 ---
 
@@ -242,7 +263,7 @@ All admin routes require `requireAdminOrRole(request, permission?)`.
 
 ```bash
 # 1. Install dependencies
-pnpm install
+npm install
 
 # 2. Create .env file (see .env.example for template)
 DATABASE_URL="postgresql://user:pass@host/dbname?sslmode=require"
@@ -253,13 +274,13 @@ GOOGLE_CLIENT_SECRET=""
 PORT=3000
 
 # 3. Push schema to database
-pnpm run db:push
+npm run db:push
 
 # 4. Seed all tables (idempotent, safe to rerun)
-pnpm run db:seed
+npm run db:seed
 
 # 5. Start dev server
-pnpm run dev
+npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
@@ -267,16 +288,19 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ### Available Scripts
 | Script | Description |
 |--------|-------------|
-| `pnpm run dev` | Start Next.js dev server |
-| `pnpm run build` | Production build |
-| `pnpm run start` | Start production server |
-| `pnpm run lint` | Run ESLint |
-| `pnpm run db:generate` | Generate Drizzle migrations |
-| `pnpm run db:push` | Push schema to database |
-| `pnpm run db:migrate` | Run migrations |
-| `pnpm run db:seed` | Seed database (idempotent) |
-| `pnpm run db:studio` | Open Drizzle Studio |
-| `pnpm run vercel-build` | Full Vercel build pipeline |
+| `npm run dev` | Start Next.js dev server |
+| `npm run build` | Production build |
+| `npm run start` | Start production server |
+| `npm run lint` | Run ESLint |
+| `npm run typecheck` | TypeScript check (must pass with 0 errors) |
+| `npm run check` | Run typecheck, lint, and tests |
+| `npm run test` | Run tests with native Node test runner |
+| `npm run db:generate` | Generate Drizzle migrations |
+| `npm run db:push` | Push schema to database |
+| `npm run db:migrate` | Run migrations |
+| `npm run db:seed` | Seed database (idempotent) |
+| `npm run db:studio` | Open Drizzle Studio |
+| `npm run vercel-build` | Full Vercel build pipeline |
 
 ### Docker
 ```bash
@@ -301,7 +325,7 @@ Set `is_admin = true` on your user in the database, then visit the admin route (
 | `lib/navigation.ts` | DB-cached navbar/footer config |
 | `lib/content.ts` | DB-cached auth page text, dashboard config, hero config |
 | `lib/wallet.ts` | Wallet helpers (idempotency, row locking) |
-| `lib/payment.ts` | IMAP UTR payment verification (518 lines) |
+| `lib/payment.ts` | IMAP UTR payment verification |
 | `lib/mailer.ts` | Nodemailer email sending |
 | `lib/notifications.ts` | Notification creation and retrieval |
 | `lib/seo.ts` | SEO data fetching and metadata building |
@@ -349,18 +373,8 @@ Set `is_admin = true` on your user in the database, then visit the admin route (
 
 ---
 
-## Caching & Security Architecture
+## User Preferences & Constraints
 
-### 1. Multi-Layer Caching System
-To achieve high responsiveness and avoid unnecessary database queries, the platform implements a structured server-side caching architecture:
-- **Next.js Data Cache (`unstable_cache`)**: Persists database query results across user requests and deployments for site configuration, navigation, auth text pages, dynamic SEO metadata, top players, and tournaments.
-- **Request Memoization (`cache()`)**: React-level memoization to deduplicate duplicate database queries during a single render lifecycle (e.g. sharing fetch calls between metadata and page components).
-- **Tag-Based Invalidation**: Uses on-demand tag revalidation (`revalidateTag`) to clear cache entries on admin modifications.
-- **Router Cache Invalidation**: Calls `router.refresh()` on mutation completions to refresh the browser's in-memory cache and layout headers instantly.
-- **Strictly Live Data**: Wallet, transactions, and session authorization bypass caching entirely to guarantee real-time precision.
-
-### 2. RBAC & Route Protection
-- **API-Level Authorization**: Admin API routes always check user permissions using `requireAdminOrRole(request, permission?)`.
-- **Page-Level Router Checks**: Every dynamic sub-route under `app/[dynamicSlug]/` enforces page permissions using `requirePagePermission(dynamicSlug, permission)` on the server before rendering components, preventing users from accessing unauthorized admin features by typing URLs directly.
-- **Client-Side Filters**: The sidebar and admin dashboard (`AdminDashboardHome`) dynamically hide and show options/statistics based on active role permissions.
-
+- **IDE**: VS Code
+- **Social**: Instagram `@1onlysarkar`
+- **Branding**: No hardcoded brand defaults or strings (e.g. "1onlysarkar") anywhere in the catch blocks, fallback values, or default content. All text/SEO content must come dynamically from the database.
