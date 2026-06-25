@@ -72,7 +72,7 @@ async function seedSiteConfig() {
       logoUrl: "/",
       logoSrc: "/assets/favicon.png",
       logoAlt: "1onlysarkar logo",
-      logoTitle: "1onlysarkar",
+      logoTitle: "1OnlySarkar",
 
       // Navbar auth buttons
       authLoginText: "Log in",
@@ -85,13 +85,13 @@ async function seedSiteConfig() {
       authPanelColor: "#FF5A1F",
 
       // Footer copyright
-      copyrightText: `© ${year} 1onlysarkar. All rights reserved.`,
+      copyrightText: `© ${year} 1OnlySarkar. All rights reserved.`,
 
       // Homepage hero
-      heroHeadline: "Compete. Win. Rise.",
-      heroSubheadline: "Join India's most exciting gaming tournament platform. Register now and prove you're the best.",
+      heroHeadline: "Free Fire Tournament",
+      heroSubheadline: "Join India's most exciting Free Fire tournament platform. Register now and prove you're the best player.",
       heroCtaPrimaryText: "Join a Tournament",
-      heroCtaPrimaryUrl: "/sign-up",
+      heroCtaPrimaryUrl: "/tournaments",
 
 
       // UI Strings & Theme
@@ -131,6 +131,7 @@ async function seedNavigation() {
   const socialItems = [
     { id: "f-soc-github", title: "Github", url: "https://github.com/1onlysarkar0/1onlysarkar0", icon: "Github", order: 1 },
     { id: "f-soc-mail", title: "Email", url: "mailto:reply@1onlysarkar.shop", icon: "Mail", order: 2 },
+    { id: "f-soc-instagram", title: "Instagram", url: "https://instagram.com/1onlysarkar", icon: "Instagram", order: 3 },
   ];
 
   const mobileExtras = [
@@ -506,35 +507,35 @@ async function seedSeoConfig() {
 
   await db.insert(seoConfig).values({
     id: "global",
-    metaTitle: "1onlysarkar — Gaming Tournament Platform",
-    metaDescription: "Join India's most exciting gaming tournament platform. Register, compete, and dominate the leaderboard on 1onlysarkar.",
+    metaTitle: "1OnlySarkar Free Fire Tournaments",
+    metaDescription: "Join daily Free Fire tournaments on 1onlySarkar — Solo, Duo & Squad. Low entry fees, real cash prize pools, and instant UPI withdrawal. Register free and start competing today!",
     metaKeywords: "gaming tournament, India, Free Fire, esports, 1onlysarkar, compete, leaderboard",
-    ogTitle: "1onlysarkar — Gaming Tournament Platform",
-    ogDescription: "Join India's most exciting gaming tournament platform. Register, compete, and dominate the leaderboard.",
+    ogTitle: "1OnlySarkar Free Fire Tournaments",
+    ogDescription: "Join daily Free Fire tournaments on 1onlySarkar — Solo, Duo & Squad. Low entry fees, real cash prize pools, and instant UPI withdrawal. Register free and start competing today!",
     ogImage,
     ogType: "website",
     twitterCard: "summary_large_image",
     twitterSite: "@1onlysarkar",
-    twitterTitle: "1onlysarkar — Gaming Tournament Platform",
-    twitterDescription: "Join India's most exciting gaming tournament platform.",
+    twitterTitle: "1OnlySarkar Free Fire Tournaments",
+    twitterDescription: "Join daily Free Fire tournaments on 1onlySarkar — Solo, Duo & Squad. Low entry fees, real cash prize pools, and instant UPI withdrawal. Register free and start competing today!",
     twitterImage: ogImage,
     canonicalUrl: siteUrl,
     robots: "index, follow",
     structuredDataJson: JSON.stringify({
       "@context": "https://schema.org",
       "@type": "WebSite",
-      "name": "1onlysarkar",
+      "name": "1OnlySarkar",
       "url": siteUrl,
-      "description": "India's most exciting gaming tournament platform.",
+      "description": "Join daily Free Fire tournaments on 1onlySarkar — Solo, Duo & Squad.",
     }),
   }).onConflictDoNothing();
 
   await db.insert(seoConfig).values({
     id: "home",
-    metaTitle: "1onlysarkar — Compete. Win. Rise.",
-    metaDescription: "India's #1 gaming tournament platform. Join 10,000+ players, enter tournaments, and win prize pools.",
-    ogTitle: "1onlysarkar — Compete. Win. Rise.",
-    ogDescription: "India's #1 gaming tournament platform. Join 10,000+ players, enter tournaments, and win prize pools.",
+    metaTitle: "1OnlySarkar Free Fire Tournaments",
+    metaDescription: "Join daily Free Fire tournaments on 1onlySarkar — Solo, Duo & Squad. Low entry fees, real cash prize pools, and instant UPI withdrawal. Register free and start competing today!",
+    ogTitle: "1OnlySarkar Free Fire Tournaments",
+    ogDescription: "Join daily Free Fire tournaments on 1onlySarkar — Solo, Duo & Squad. Low entry fees, real cash prize pools, and instant UPI withdrawal. Register free and start competing today!",
     ogImage,
     robots: "index, follow",
   }).onConflictDoNothing();
