@@ -37,6 +37,7 @@ export default function AuthLeftPanel({ config, quote, subtext }: AuthLeftPanelP
             width={36}
             height={36}
             className="rounded-sm"
+            priority
           />
           <Large className="text-white text-2xl font-bold font-momo">
             {config.logo.title}

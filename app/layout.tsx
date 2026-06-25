@@ -2,16 +2,13 @@ import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import { ThemeProvider } from "@/components/provider";
 import { Toaster } from "@/components/ui/sonner";
-import dynamic from "next/dynamic";
 import { Analytics } from "@vercel/analytics/react";
 import { Agentation } from "agentation";
 import { Lora, IBM_Plex_Sans } from "next/font/google";
 import { getAdminSiteConfigCached } from "@/lib/admin-data";
 import { getSeoData } from "@/lib/seo";
 
-const ChatbotWidget = dynamic(
-  () => import("@/components/chatbot/chatbot-widget").then((m) => m.ChatbotWidget)
-);
+import ChatbotLoader from "@/components/chatbot-loader";
 
 const lora = Lora({ subsets: ["latin"], variable: "--font-lora", display: "swap" });
 const ibmPlex = IBM_Plex_Sans({
@@ -168,7 +165,7 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           {children}
-          <ChatbotWidget />
+          <ChatbotLoader />
           {process.env.NODE_ENV === "development" && <Agentation />}
           <Toaster position="top-center" richColors />
         </ThemeProvider>

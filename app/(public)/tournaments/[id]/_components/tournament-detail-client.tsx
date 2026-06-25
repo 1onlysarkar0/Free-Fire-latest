@@ -237,6 +237,7 @@ export default function TournamentDetailClient({ id, initialData }: Props) {
                             key={s.id}
                             type="button"
                             disabled={!isClickable}
+                            aria-label={isMySlot ? `Slot ${s.slotNumber} - Your Slot` : isBooked ? `Slot ${s.slotNumber} - Booked` : `Slot ${s.slotNumber} - Available`}
                             title={isBooked ? `Slot ${s.slotNumber} — Booked` : `Slot ${s.slotNumber} — Available`}
                             onClick={() => canJoin && !isBooked && setSelectedSlotId(isSelected ? null : s.id)}
                             className={[
@@ -397,7 +398,7 @@ export default function TournamentDetailClient({ id, initialData }: Props) {
                   </div>
 
                   {t.type === "PAID" && (
-                    <div className="p-3 bg-amber-50 rounded-xl text-sm text-amber-700">
+                    <div className="p-3 bg-amber-100/50 rounded-xl text-sm text-amber-900">
                       <Zap className="h-4 w-4 inline mr-1" />
                       <strong>₹{t.joiningFee}</strong> will be deducted from your wallet.
                     </div>

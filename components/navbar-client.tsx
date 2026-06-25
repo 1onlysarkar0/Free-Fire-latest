@@ -159,7 +159,7 @@ export const NavbarClient = ({
                 prefetch={true}
                 className="flex items-center gap-2.5 hover:opacity-90 transition-opacity shrink-0"
               >
-                <Image src={logo.src} className="w-8 h-8" alt={logo.alt} width={32} height={32} suppressHydrationWarning />
+                <Image src={logo.src} className="w-8 h-8" alt={logo.alt} width={32} height={32} priority suppressHydrationWarning />
                 <Large className="font-momo text-foreground text-[22px] font-normal tracking-tight">
                   {logo.title}
                 </Large>
@@ -181,7 +181,7 @@ export const NavbarClient = ({
           {/* ── Mobile Navigation ── */}
           <div className="flex w-full items-center justify-between lg:hidden">
             <Link href={logo.url} prefetch={true} className="flex items-center gap-2">
-              <Image src={logo.src} className="w-7 h-7" alt={logo.alt} width={28} height={28} suppressHydrationWarning />
+              <Image src={logo.src} className="w-7 h-7" alt={logo.alt} width={28} height={28} priority suppressHydrationWarning />
               <Large className="font-momo text-foreground text-lg font-normal">
                 {logo.title}
               </Large>
@@ -189,7 +189,7 @@ export const NavbarClient = ({
 
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="hover:bg-muted">
+                <Button variant="ghost" size="icon" className="hover:bg-muted" aria-label="Open menu">
                   <Menu className="size-5 text-foreground" />
                 </Button>
               </SheetTrigger>
@@ -200,7 +200,7 @@ export const NavbarClient = ({
                 <SheetHeader className="text-left pb-4">
                   <SheetTitle>
                     <Link href={logo.url} prefetch={true} className="flex items-center gap-2">
-                      <Image src={logo.src} className="w-7 h-7" alt={logo.alt} width={28} height={28} suppressHydrationWarning />
+                      <Image src={logo.src} className="w-7 h-7" alt={logo.alt} width={28} height={28} priority suppressHydrationWarning />
                       <Large className="font-momo text-foreground text-lg font-normal">
                         {logo.title}
                       </Large>

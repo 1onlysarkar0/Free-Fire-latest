@@ -58,6 +58,7 @@ export function CopyButton({ value, variant = "icon", className, ...props }: Cop
         copied && "text-success hover:text-success bg-card border-success/30",
         className
       )}
+      aria-label="Copy to clipboard"
       title="Copy to clipboard"
       {...props}
     >
@@ -100,6 +101,7 @@ export function CopyWrapper({ children, className }: { children: React.ReactNode
           "absolute right-2 top-2 z-10 p-2 rounded-md bg-card/80 backdrop-blur-sm border border-border shadow-sm text-muted-foreground hover:text-foreground hover:bg-card transition-all opacity-0 group-hover:opacity-100",
           copied && "text-success hover:text-success bg-card border-success/30"
         )}
+        aria-label="Copy to clipboard"
         title="Copy"
       >
         {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}

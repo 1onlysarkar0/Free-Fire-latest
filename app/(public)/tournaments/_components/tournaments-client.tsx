@@ -148,7 +148,7 @@ export default function TournamentsClient({
           <div className="lg:hidden shrink-0">
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="h-11 w-11 shrink-0">
+                <Button variant="outline" size="icon" className="h-11 w-11 shrink-0" aria-label="Filter tournaments">
                   <Filter className="h-4 w-4" />
                 </Button>
               </SheetTrigger>

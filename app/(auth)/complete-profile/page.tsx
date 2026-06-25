@@ -39,6 +39,7 @@ export default async function CompleteProfilePage() {
             width={28}
             height={28}
             className="rounded-sm"
+            priority
           />
           <span className="text-lg sm:text-xl font-bold font-momo text-foreground">
             {config.logo.title}
