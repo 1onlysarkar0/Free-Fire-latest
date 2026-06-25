@@ -27,7 +27,7 @@ export default async function Dashboard() {
               Welcome Back
             </span>
           </div>
-          <H1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground border-none pb-0 mt-0 font-inter">
+          <H1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground border-none pb-0 mt-0 font-lora">
             Hey, {userName}!
           </H1>
           <P className="text-base text-muted-foreground mt-1 max-w-xl font-ibm">

@@ -1,5 +1,10 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
+import dns from "dns";
+
+if (dns.setDefaultResultOrder) {
+  dns.setDefaultResultOrder("ipv4first");
+}
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL environment variable is required");
@@ -7,7 +12,6 @@ if (!process.env.DATABASE_URL) {
 
 const databaseUrl = process.env.DATABASE_URL;
 
-// Disable SSL for local/Replit Helium DB; require it for remote/production DBs
 const isLocalDb =
   databaseUrl.includes("helium") ||
   databaseUrl.includes("local" + "host") ||

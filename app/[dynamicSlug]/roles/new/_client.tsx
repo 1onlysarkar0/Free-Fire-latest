@@ -73,7 +73,7 @@ export default function NewRoleClient() {
           </Button>
         </Link>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold text-foreground font-inter">Create Role</h1>
+          <h1 className="text-3xl font-bold text-foreground font-lora">Create Role</h1>
           <p className="text-base text-muted-foreground mt-1 font-ibm">Define a role name and select which admin panel permissions it grants.</p>
         </div>
         <Button onClick={handleSave} disabled={saving} className="bg-primary hover:bg-primary/90 text-white gap-2">

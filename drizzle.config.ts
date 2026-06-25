@@ -1,5 +1,10 @@
 import { config } from "dotenv";
 import { defineConfig } from "drizzle-kit";
+import dns from "dns";
+
+if (dns.setDefaultResultOrder) {
+  dns.setDefaultResultOrder("ipv4first");
+}
 
 config({ path: ".env" });
 

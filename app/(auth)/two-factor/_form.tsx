@@ -56,7 +56,7 @@ export function TwoFactorForm() {
         <div className="flex justify-center mb-4">
           <ShieldCheck className="h-10 w-10 text-foreground" />
         </div>
-        <H2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight border-none pb-0 mt-0 font-inter">
+        <H2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight border-none pb-0 mt-0 font-lora">
           Two-factor authentication
         </H2>
         <Muted className="text-sm mt-1.5 font-ibm">

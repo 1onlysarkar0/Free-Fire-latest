@@ -72,7 +72,7 @@ export default function NewPageEditorPage() {
           <Link href={`/${panelSlug}/pages`} prefetch={true}><ArrowLeft className="h-4 w-4" /></Link>
         </Button>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold text-foreground font-inter">New Custom Page</h1>
+          <h1 className="text-3xl font-bold text-foreground font-lora">New Custom Page</h1>
           <p className="text-base text-muted-foreground mt-1 font-ibm">
             Accessible at <code className="bg-muted px-1 rounded text-sm">/{slug || "your-slug"}</code>
           </p>

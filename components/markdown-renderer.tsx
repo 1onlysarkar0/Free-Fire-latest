@@ -114,10 +114,10 @@ export function MarkdownRenderer({ content, className, variant = "default", isSt
   // Memoize components object to prevent ReactMarkdown from tearing down and remounting components on every render
   const components: Components = React.useMemo(() => {
     return {
-      h1: ({ node: _, ...props }) => <H1 {...props} className={cn(isChat ? "mt-4 mb-2 text-xl" : "mt-10 mb-6 font-inter text-foreground")} />,
-      h2: ({ node: _, ...props }) => <H2 {...props} className={cn(isChat ? "mt-4 mb-2 text-lg" : "mt-10 mb-4 font-inter text-foreground")} />,
-      h3: ({ node: _, ...props }) => <H3 {...props} className={cn(isChat ? "mt-3 mb-2 text-base" : "mt-8 mb-4 font-inter text-foreground")} />,
-      h4: ({ node: _, ...props }) => <H4 {...props} className={cn(isChat ? "mt-3 mb-2 text-sm" : "mt-8 mb-4 font-inter text-foreground")} />,
+      h1: ({ node: _, ...props }) => <H1 {...props} className={cn(isChat ? "mt-4 mb-2 text-xl" : "mt-10 mb-6 font-lora text-foreground")} />,
+      h2: ({ node: _, ...props }) => <H2 {...props} className={cn(isChat ? "mt-4 mb-2 text-lg" : "mt-10 mb-4 font-lora text-foreground")} />,
+      h3: ({ node: _, ...props }) => <H3 {...props} className={cn(isChat ? "mt-3 mb-2 text-base" : "mt-8 mb-4 font-lora text-foreground")} />,
+      h4: ({ node: _, ...props }) => <H4 {...props} className={cn(isChat ? "mt-3 mb-2 text-sm" : "mt-8 mb-4 font-lora text-foreground")} />,
       p: ({ node: _, ...props }) => <P {...props} className={cn(isChat ? "mb-2 !mt-0 font-medium text-foreground leading-snug" : "mb-6 font-ibm text-muted-foreground leading-relaxed")} />,
       blockquote: ({ node: _, ...props }) => <Blockquote {...props} className={cn("border-primary text-muted-foreground bg-primary/5 py-1 pr-4 rounded-r-lg", isChat ? "mt-2 mb-2" : "")} />,
       pre: ({ node: _, children, ...props }) => {

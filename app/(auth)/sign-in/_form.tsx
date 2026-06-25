@@ -194,7 +194,7 @@ export function SignInForm() {
           </button>
         )}
 
-        <H2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight border-none pb-0 mt-0 font-inter">
+        <H2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight border-none pb-0 mt-0 font-lora">
           {step === "email" && "Welcome back"}
           {step === "password" && "Enter your password"}
           {step === "two-factor" && "Two-factor authentication"}

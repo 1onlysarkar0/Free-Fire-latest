@@ -52,7 +52,7 @@ export default async function Home() {
             )}
 
             <H1 className={cn(
-              "text-balance text-center text-4xl tracking-tight font-inter font-medium text-foreground md:text-5xl lg:text-[64px] lg:leading-[64px] lg:tracking-[-0.06em]"
+              "text-balance text-center text-4xl tracking-tight font-lora font-medium text-foreground md:text-5xl lg:text-[64px] lg:leading-[64px] lg:tracking-[-0.06em]"
             )}>
               {config.heroHeadline}
             </H1>
@@ -84,7 +84,7 @@ export default async function Home() {
 
         {players.length > 0 && (
           <section className="relative space-y-4 pt-4 pb-14 w-full">
-            <H2 className="text-center font-normal text-lg text-muted-foreground tracking-tight md:text-xl font-inter border-none pb-0 mt-0">
+            <H2 className="text-center font-normal text-lg text-muted-foreground tracking-tight md:text-xl font-lora border-none pb-0 mt-0">
               Top Players
             </H2>
             <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-10">
@@ -101,7 +101,7 @@ export default async function Home() {
                   <div className="inline-flex items-center gap-1.5 bg-primary/20 text-primary/90 text-xs font-semibold px-2.5 py-1 rounded-full mb-2">
                     <Zap className="h-3 w-3" /> Live Events
                   </div>
-                  <H2 className="font-medium text-2xl font-inter border-none pb-0 mt-0">
+                  <H2 className="font-medium text-2xl font-lora border-none pb-0 mt-0">
                     Upcoming Tournaments
                   </H2>
                 </div>

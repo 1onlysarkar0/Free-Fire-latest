@@ -77,7 +77,7 @@ export default async function DynamicSlugPage({ params }: Props) {
       <Navbar />
       <div className="flex-1 w-full flex flex-col">
         <section className="mx-auto w-full max-w-5xl px-6 pt-32 pb-24">
-          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-10 font-inter">{page.title}</h1>
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-10 font-lora">{page.title}</h1>
           <MarkdownRenderer content={cleanContent} />
         </section>
       </div>

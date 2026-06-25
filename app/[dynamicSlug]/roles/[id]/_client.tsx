@@ -84,7 +84,7 @@ export default function EditRoleClient({ id, initialRole, dynamicSlug: panelSlug
           </Button>
         </Link>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold text-foreground font-inter">Edit Role</h1>
+          <h1 className="text-3xl font-bold text-foreground font-lora">Edit Role</h1>
           <p className="text-base text-muted-foreground mt-1 font-ibm">Modify permissions for <strong>{initialRole.name}</strong>.</p>
         </div>
         <Button onClick={handleSave} disabled={saving} className="bg-primary hover:bg-primary/90 text-white gap-2">

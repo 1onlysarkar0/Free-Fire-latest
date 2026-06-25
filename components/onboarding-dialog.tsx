@@ -100,7 +100,7 @@ export default function OnboardingDialog({
           </div>
         </div>
         <div>
-          <H2 className="text-2xl font-bold text-foreground border-none pb-0 mt-0 font-inter">
+          <H2 className="text-2xl font-bold text-foreground border-none pb-0 mt-0 font-lora">
             You&apos;re all set!
           </H2>
           <Muted className="text-sm mt-1.5 font-ibm">

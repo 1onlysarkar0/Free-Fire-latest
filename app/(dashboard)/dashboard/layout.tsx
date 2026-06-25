@@ -37,7 +37,7 @@ export default async function DashboardLayout({
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4 text-center">
         <div className="max-w-md w-full space-y-6">
-          <h1 className="text-3xl font-inter font-bold text-foreground">Account Suspended</h1>
+          <h1 className="text-3xl font-lora font-bold text-foreground">Account Suspended</h1>
           <p className="text-muted-foreground">
             {banReason 
               ? `Your account has been suspended for the following reason: ${banReason}`

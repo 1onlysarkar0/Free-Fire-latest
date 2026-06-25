@@ -96,7 +96,7 @@ const config = {
       },
       fontFamily: {
         sans: ["var(--font-ibm-plex)", "sans-serif"],
-        inter: ["var(--font-inter)", "sans-serif"],
+        lora: ["var(--font-lora)", "serif"],
         ibm: ["var(--font-ibm-plex)", "sans-serif"],
         mono: ["SF Mono", "Menlo", "Consolas", "monospace"],
       },

@@ -129,7 +129,7 @@ export default function TournamentsClient({
       {/* Header & Main Search Row */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <div>
-          <h1 className="text-3xl md:text-4xl font-bold font-inter text-foreground">Tournaments</h1>
+          <h1 className="text-3xl md:text-4xl font-bold font-lora text-foreground">Tournaments</h1>
           <p className="text-muted-foreground mt-2 font-ibm">Compete in premium events and climb the ranks.</p>
         </div>
 
@@ -154,7 +154,7 @@ export default function TournamentsClient({
               </SheetTrigger>
               <SheetContent side="right" className="w-[300px]">
                 <SheetHeader className="mb-6">
-                  <SheetTitle className="font-inter">Filters</SheetTitle>
+                  <SheetTitle className="font-lora">Filters</SheetTitle>
                 </SheetHeader>
                 <SidebarFilters />
               </SheetContent>
@@ -194,7 +194,7 @@ export default function TournamentsClient({
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-32 text-center bg-background rounded-3xl border border-border">
               <Trophy className="h-12 w-12 text-foreground mb-4" />
-              <p className="text-xl font-bold font-inter text-foreground">No tournaments found</p>
+              <p className="text-xl font-bold font-lora text-foreground">No tournaments found</p>
               <p className="text-muted-foreground text-sm mt-2 font-ibm">Try removing filters to see more events.</p>
             </div>
           ) : (
@@ -216,12 +216,12 @@ export default function TournamentsClient({
                         {TOURNAMENT_STATUS_LABELS[t.status] || t.status.replace(/_/g, " ")}
                       </span>
                       <div className="text-right">
-                        <span className="block text-xl md:text-2xl font-bold text-primary font-inter leading-none">₹{t.prizePool}</span>
+                        <span className="block text-xl md:text-2xl font-bold text-primary font-lora leading-none">₹{t.prizePool}</span>
                         <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest font-ibm">Prize Pool</span>
                       </div>
                     </div>
 
-                    <h3 className="text-xl font-bold text-foreground leading-tight mb-4 font-inter group-hover:text-primary transition-colors line-clamp-2">
+                    <h3 className="text-xl font-bold text-foreground leading-tight mb-4 font-lora group-hover:text-primary transition-colors line-clamp-2">
                       {t.name}
                     </h3>
 

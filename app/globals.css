@@ -54,7 +54,7 @@
   --radius-lg: var(--radius-lg);
   --radius-xl: var(--radius-xl);
   --font-sans: var(--font-ibm-plex), sans-serif;
-  --font-inter: var(--font-inter), sans-serif;
+  --font-lora: var(--font-lora), serif;
   --font-ibm: var(--font-ibm-plex), sans-serif;
   --font-momo: "Momo Trust Display", sans-serif;
   --font-mono: "SF Mono", Menlo, Consolas, monospace;
@@ -177,7 +177,7 @@
   h5,
   h6 {
     @apply font-medium tracking-tight;
-    font-family: var(--font-inter), sans-serif !important;
+    font-family: var(--font-lora), serif !important;
   }
 
   p {

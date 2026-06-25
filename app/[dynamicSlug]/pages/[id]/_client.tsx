@@ -94,7 +94,7 @@ export default function EditPageClient({ id, initialData, dynamicSlug: panelSlug
           <Link href={`/${panelSlug}/pages`} prefetch={true}><ArrowLeft className="h-4 w-4" /></Link>
         </Button>
         <div className="flex-1 min-w-0">
-          <h1 className="text-3xl font-bold text-foreground font-inter truncate">{title || "Edit Page"}</h1>
+          <h1 className="text-3xl font-bold text-foreground font-lora truncate">{title || "Edit Page"}</h1>
           <p className="text-base text-muted-foreground mt-1 font-ibm">
             Accessible at <code className="bg-muted px-1 rounded text-sm">/{slug}</code>
           </p>

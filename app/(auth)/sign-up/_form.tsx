@@ -153,7 +153,7 @@ export function SignUpForm({ siteName }: { siteName: string }) {
         )}
 
         <>
-          <H2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight border-none pb-0 mt-0 font-inter">
+          <H2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight border-none pb-0 mt-0 font-lora">
             {step === "email" && "Create your account"}
             {step === "password" && "Set a password"}
           </H2>

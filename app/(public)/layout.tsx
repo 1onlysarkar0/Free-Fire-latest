@@ -10,7 +10,7 @@ export async function generateMetadata(): Promise<Metadata> {
       getSeoData("global"),
       getAdminSiteConfigCached(),
     ]);
-    return buildMetadata(seo, process.env.NEXT_PUBLIC_APP_URL as string, config?.logoTitle ?? undefined);
+    return buildMetadata(seo, process.env.NEXT_PUBLIC_APP_URL as string, config?.logoTitle ?? undefined, config?.logoSrc ?? undefined);
   } catch {
     return {};
   }

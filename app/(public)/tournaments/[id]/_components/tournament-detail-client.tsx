@@ -114,7 +114,7 @@ export default function TournamentDetailClient({ id, initialData }: Props) {
                   {t.type === "FREE" ? "FREE ENTRY" : `₹${t.joiningFee} TO JOIN`}
                 </span>
               </div>
-              <h1 className="text-3xl md:text-4xl font-bold font-inter text-foreground">{t.name}</h1>
+              <h1 className="text-3xl md:text-4xl font-bold font-lora text-foreground">{t.name}</h1>
               <p className="text-muted-foreground mt-2 capitalize font-medium">
                 {t.gameMode.replace(/_/g, " ")} · {t.teamFormat}
                 {t.maps.length > 0 && ` · ${t.maps.join(", ")}`}

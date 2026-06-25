@@ -221,7 +221,7 @@ export default function UserEditClient({
           <Link href={`/${dynamicSlug}/users`} prefetch={true}><ArrowLeft className="h-4 w-4" /></Link>
         </Button>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold text-foreground font-inter flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-foreground font-lora flex items-center gap-3">
             <AvatarDisplay
               image={editForm.image}
               name={editForm.name}
@@ -391,7 +391,7 @@ export default function UserEditClient({
               <div className="pt-8 mt-8 border-t border-border space-y-4 max-w-xl">
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="h-5 w-5 text-foreground" />
-                  <span className="text-lg font-bold text-destructive font-inter">Danger Zone</span>
+                  <span className="text-lg font-bold text-destructive font-lora">Danger Zone</span>
                 </div>
                 {!deleteConfirm ? (
                   <Button

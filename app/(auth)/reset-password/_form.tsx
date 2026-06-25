@@ -78,7 +78,7 @@ export function ResetPasswordForm() {
             </div>
           </div>
           <div>
-            <H2 className="text-2xl font-bold text-foreground border-none pb-0 mt-0 font-inter">Password reset!</H2>
+            <H2 className="text-2xl font-bold text-foreground border-none pb-0 mt-0 font-lora">Password reset!</H2>
             <Muted className="text-sm mt-1.5 font-ibm">
               Your password has been updated. Redirecting you to sign in...
             </Muted>
@@ -98,7 +98,7 @@ export function ResetPasswordForm() {
           )}
 
           <div className="mb-8">
-            <H2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight border-none pb-0 mt-0 font-inter">
+            <H2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight border-none pb-0 mt-0 font-lora">
               Set new password
             </H2>
             <Muted className="text-sm mt-1.5 font-ibm">

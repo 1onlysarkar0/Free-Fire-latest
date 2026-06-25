@@ -65,7 +65,7 @@ export function ForgotPasswordForm() {
             </div>
           </div>
           <div>
-            <H2 className="text-2xl font-bold text-foreground border-none pb-0 mt-0 font-inter">Check your email</H2>
+            <H2 className="text-2xl font-bold text-foreground border-none pb-0 mt-0 font-lora">Check your email</H2>
             <Muted className="text-sm mt-2 leading-relaxed font-ibm">
               We&apos;ve sent a password reset link to{" "}
               <span className="font-medium text-foreground">{email}</span>. The
@@ -86,7 +86,7 @@ export function ForgotPasswordForm() {
       ) : (
         <>
           <div className="mb-8">
-            <H2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight border-none pb-0 mt-0 font-inter">
+            <H2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight border-none pb-0 mt-0 font-lora">
               Reset your password
             </H2>
             <Muted className="text-sm mt-1.5 font-ibm">

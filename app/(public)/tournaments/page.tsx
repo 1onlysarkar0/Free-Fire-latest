@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
     getAdminSiteConfigCached(),
   ]);
   const siteName = config?.logoTitle ?? "";
-  return buildMetadata(seo, process.env.NEXT_PUBLIC_APP_URL as string, siteName);
+  return buildMetadata(seo, process.env.NEXT_PUBLIC_APP_URL as string, siteName, config?.logoSrc ?? undefined);
 }
 
 export default async function TournamentsPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {

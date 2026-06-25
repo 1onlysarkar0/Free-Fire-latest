@@ -12,10 +12,10 @@ export default function RootNotFound() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/10 rounded-full blur-[100px] pointer-events-none -z-10" />
 
         <div className="relative z-10 flex flex-col items-center">
-          <h1 className="text-[150px] leading-none font-black text-transparent bg-clip-text bg-gradient-to-br from-primary/60 to-primary/90 font-inter drop-shadow-sm select-none">
+          <h1 className="text-[150px] leading-none font-black text-transparent bg-clip-text bg-gradient-to-br from-primary/60 to-primary/90 font-lora drop-shadow-sm select-none">
             404
           </h1>
-          <h2 className="text-3xl font-bold text-foreground mt-6 font-inter tracking-tight">
+          <h2 className="text-3xl font-bold text-foreground mt-6 font-lora tracking-tight">
             Page Not Found
           </h2>
           <p className="text-muted-foreground text-lg max-w-md mx-auto mt-4 mb-8">

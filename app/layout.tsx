@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import dynamic from "next/dynamic";
 import { Analytics } from "@vercel/analytics/react";
 import { Agentation } from "agentation";
-import { Inter, IBM_Plex_Sans } from "next/font/google";
+import { Lora, IBM_Plex_Sans } from "next/font/google";
 import { getAdminSiteConfigCached } from "@/lib/admin-data";
 import { getSeoData } from "@/lib/seo";
 
@@ -13,7 +13,7 @@ const ChatbotWidget = dynamic(
   () => import("@/components/chatbot/chatbot-widget").then((m) => m.ChatbotWidget)
 );
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+const lora = Lora({ subsets: ["latin"], variable: "--font-lora", display: "swap" });
 const ibmPlex = IBM_Plex_Sans({
   weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
@@ -62,7 +62,23 @@ export async function generateMetadata(): Promise<Metadata> {
       metadata.publisher = siteName;
     }
 
-    if (seo.ogTitle || seo.ogDescription || seo.ogImage || siteName) {
+    const logoSrc = config?.logoSrc || "/assets/favicon.png";
+    metadata.icons = {
+      icon: [
+        { url: logoSrc, type: "image/png" },
+        { url: "/assets/favicon-96x96.png", sizes: "96x96", type: "image/png" },
+        { url: "/assets/favicon.ico", sizes: "any" },
+        { url: "/assets/favicon-dark.png", media: "(prefers-color-scheme: dark)", type: "image/png" },
+      ],
+      apple: [
+        { url: "/assets/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+      ],
+    };
+
+    const ogImageFallback = seo.ogImage || "/assets/og-image.png";
+    const twitterImageFallback = seo.twitterImage || seo.ogImage || "/assets/og-image.png";
+
+    if (seo.ogTitle || seo.ogDescription || ogImageFallback || siteName) {
       metadata.openGraph = {
         type: (seo.ogType ?? "website") as "website",
         url: seo.canonicalUrl ?? siteUrl ?? undefined,
@@ -70,9 +86,7 @@ export async function generateMetadata(): Promise<Metadata> {
         locale: "en_IN",
         title: seo.ogTitle ?? seo.metaTitle ?? undefined,
         description: seo.ogDescription ?? seo.metaDescription ?? undefined,
-        ...(seo.ogImage && {
-          images: [{ url: seo.ogImage, width: 1200, height: 630 }],
-        }),
+        images: [{ url: ogImageFallback, width: 1200, height: 630 }],
       };
     }
 
@@ -83,7 +97,7 @@ export async function generateMetadata(): Promise<Metadata> {
         title: seo.twitterTitle ?? seo.ogTitle ?? seo.metaTitle ?? undefined,
         description:
           seo.twitterDescription ?? seo.ogDescription ?? seo.metaDescription ?? undefined,
-        ...(seo.twitterImage && { images: [seo.twitterImage] }),
+        images: [twitterImageFallback],
       };
     }
 
@@ -123,7 +137,7 @@ export default async function RootLayout({
     <html
       lang="en-IN"
       suppressHydrationWarning
-      className={`${inter.variable} ${ibmPlex.variable}`}
+      className={`${lora.variable} ${ibmPlex.variable}`}
     >
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
