@@ -98,9 +98,7 @@ export default async function Home() {
             <div className="max-w-5xl mx-auto px-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <div className="inline-flex items-center gap-1.5 bg-primary/20 text-primary/90 text-xs font-semibold px-2.5 py-1 rounded-full mb-2">
-                    <Zap className="h-3 w-3" /> Live Events
-                  </div>
+
                   <H2 className="font-medium text-2xl font-lora border-none pb-0 mt-0">
                     Upcoming Tournaments
                   </H2>
@@ -173,13 +171,7 @@ export default async function Home() {
                 })}
               </div>
 
-              <div className="text-center mt-6">
-                <Button asChild variant="outline" className="font-ibm font-medium">
-                  <Link href="/tournaments" prefetch={true}>
-                    See all tournaments <ArrowRightIcon className="h-4 w-4 ml-1" />
-                  </Link>
-                </Button>
-              </div>
+
             </div>
           </section>
         )}
