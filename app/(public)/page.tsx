@@ -122,7 +122,7 @@ export default async function Home() {
                       key={t.id}
                       href={`/tournaments/${t.id}`}
                       prefetch={true}
-                      className="group bg-card rounded-2xl border border-border hover:border-primary/30 hover:shadow-sm transition-all duration-200 overflow-hidden"
+                      className="group bg-card rounded-2xl border border-border/60 hover:border-primary/40 hover:-translate-y-1 hover:shadow-md active:translate-y-0 active:scale-[0.99] transition-all duration-300 ease-out overflow-hidden"
                     >
                       <div className="p-5">
                         <div className="flex items-start justify-between mb-3">

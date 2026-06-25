@@ -176,11 +176,12 @@
   h4,
   h5,
   h6 {
-    @apply font-medium tracking-tight;
+    @apply font-medium tracking-tight leading-tight;
     font-family: var(--font-lora), serif !important;
   }
 
   p {
+    @apply leading-relaxed;
     font-family: var(--font-ibm-plex), sans-serif !important;
   }
 }

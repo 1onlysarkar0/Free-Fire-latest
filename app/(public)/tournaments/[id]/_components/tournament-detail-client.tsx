@@ -241,7 +241,7 @@ export default function TournamentDetailClient({ id, initialData }: Props) {
                             title={isBooked ? `Slot ${s.slotNumber} — Booked` : `Slot ${s.slotNumber} — Available`}
                             onClick={() => canJoin && !isBooked && setSelectedSlotId(isSelected ? null : s.id)}
                             className={[
-                              "flex items-center justify-center h-10 rounded-lg text-xs font-bold border transition-all",
+                              "flex items-center justify-center h-11 rounded-lg text-xs font-bold border transition-all",
                               isMySlot ? "bg-primary text-white border-primary ring-2 ring-primary/30" :
                               isSelected ? "bg-primary/20 border-primary text-primary/90 ring-2 ring-primary/30 cursor-pointer" :
                               isBooked ? "bg-foreground text-white border-muted cursor-not-allowed" :

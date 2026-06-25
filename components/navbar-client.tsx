@@ -13,7 +13,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -147,7 +146,7 @@ export const NavbarClient = ({
   );
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 w-full bg-background">
+    <header className="fixed top-0 left-0 right-0 z-50 w-full bg-background/80 backdrop-blur-md border-b border-border/30 shadow-xs transition-all duration-200">
       <div className="mx-auto max-w-7xl px-6 lg:px-10">
         <div className="flex h-16 items-center justify-between">
 
@@ -189,9 +188,13 @@ export const NavbarClient = ({
 
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="hover:bg-muted" aria-label="Open menu">
+                <button
+                  type="button"
+                  className="h-11 w-11 flex items-center justify-center rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors cursor-pointer"
+                  aria-label="Open menu"
+                >
                   <Menu className="size-5 text-foreground" />
-                </Button>
+                </button>
               </SheetTrigger>
               <SheetContent
                 side="right"
