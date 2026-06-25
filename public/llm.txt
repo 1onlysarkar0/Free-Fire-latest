@@ -23,7 +23,7 @@ Join daily Free Fire tournaments on 1onlySarkar — Solo, Duo & Squad. Low entry
 
 ### Authentication Routes
 - [Sign In](/sign-in) — Log in using registered email or via Google OAuth.
-- [Sign Up](/sign-up) — Create a new player account.
+- [Sign Up](/sign-up) — Register a new player account.
 - [Forgot Password](/forgot-password) — Request password reset link.
 
 ## Tournament Structure & Payouts

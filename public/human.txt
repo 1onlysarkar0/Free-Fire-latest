@@ -1,0 +1,15 @@
+/* TEAM */
+Developer: 1onlysarkar
+Site: 1onlysarkar.com
+Instagram: https://www.instagram.com/1onlysarkar/
+Location: India
+
+/* THANKS */
+Next.js, Drizzle ORM, Better Auth, Radix UI, Tailwind CSS
+
+/* SITE */
+Last update: 2026/06/25
+Language: English (India)
+Doctype: HTML5
+IDE: VS Code
+Standards: HTML5, CSS3, TypeScript
