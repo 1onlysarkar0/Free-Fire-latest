@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 export const dynamic = "force-dynamic";
 
 import { verifyPanelAccess } from "@/lib/panel-auth";

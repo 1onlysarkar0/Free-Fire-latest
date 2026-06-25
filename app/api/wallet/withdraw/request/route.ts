@@ -35,11 +35,6 @@ export async function POST(request: NextRequest) {
     }
     const userId = session.user.id;
 
-    const ipAddress =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      request.headers.get("x-real-ip") ||
-      "unknown";
-
     let body: unknown;
     try {
       body = await request.json();

@@ -5,10 +5,12 @@ import type { ElementType } from "react";
 import {
   LayoutDashboard, Settings, Menu, FileText, Mail, MailOpen,
   Search,   Users, Shield, FileCode, Trophy, FileStack,
-  CreditCard, MessageSquare, ArrowUpFromLine,
+  CreditCard, MessageSquare, ArrowUpFromLine, ArrowLeft,
 } from "lucide-react";
 import AppSidebarShell, { type AppSidebarSection } from "@/components/app-sidebar";
 import { canAccessSection } from "@/lib/admin-permissions";
+import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface SidebarProps {
   siteName: string;
@@ -110,7 +112,39 @@ export default function AdminSidebar({
       logoAlt={logoAlt}
       sections={sections}
       badge="Admin"
-      footer={<Link href="/dashboard" prefetch={true} className="text-xs text-muted-foreground hover:text-foreground transition-colors">Back to Dashboard</Link>}
+      footer={(collapsed) => {
+        const linkEl = (
+          <Link
+            href="/dashboard"
+            prefetch={true}
+            className={cn(
+              "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full group",
+              "text-muted-foreground hover:bg-secondary hover:text-foreground",
+              collapsed && "justify-center px-0 h-9 w-9 mx-auto"
+            )}
+          >
+            <ArrowLeft className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-foreground" />
+            {!collapsed && <span className="flex-1 truncate">Back to Dashboard</span>}
+          </Link>
+        );
+
+        if (collapsed) {
+          return (
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  {linkEl}
+                </TooltipTrigger>
+                <TooltipContent side="right" className="text-xs">
+                  Back to Dashboard
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          );
+        }
+
+        return linkEl;
+      }}
     />
   );
 }
