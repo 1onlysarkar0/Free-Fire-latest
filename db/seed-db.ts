@@ -70,7 +70,7 @@ async function seedSiteConfig() {
 
       // Brand
       logoUrl: "/",
-      logoSrc: "/assets/favicon.png",
+      logoSrc: "/assets/logo.webp",
       logoAlt: "1onlysarkar logo",
       logoTitle: "1OnlySarkar",
 
@@ -102,7 +102,13 @@ async function seedSiteConfig() {
       // Admin access slug (admin changes this via admin panel)
       adminSlug: "xpanel2024",
     })
-    .onConflictDoNothing();
+    .onConflictDoUpdate({
+      target: siteConfig.id,
+      set: {
+        logoSrc: "/assets/logo.webp",
+        authPanelImageUrl: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=1920&q=85"
+      }
+    });
 
   console.log("✅ site_config seeded.");
 }

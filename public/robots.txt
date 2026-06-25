@@ -1,0 +1,9 @@
+# Allow all search engines to crawl the site
+User-agent: *
+Allow: /
+
+# Disallow admin panel from being indexed
+Disallow: /admin/
+
+# Sitemap location
+Sitemap: https://1onlysarkar.shop/sitemap.xml

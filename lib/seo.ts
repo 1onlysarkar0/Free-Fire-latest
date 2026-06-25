@@ -117,7 +117,8 @@ export function buildMetadata(
   if (seo.robots) metadata.robots = seo.robots as Metadata["robots"];
   if (seo.canonicalUrl) metadata.alternates = { canonical: seo.canonicalUrl };
 
-  const iconSrc = logoSrc || "/assets/favicon.png";
+  const iconSrc = logoSrc || "/assets/logo.webp";
+  metadata.manifest = "/assets/site.webmanifest";
   metadata.icons = {
     icon: [
       { url: iconSrc, type: "image/png" },
@@ -130,8 +131,8 @@ export function buildMetadata(
     ],
   };
 
-  const ogImageFallback = seo.ogImage || "/assets/og-image.png";
-  const twitterImageFallback = seo.twitterImage || seo.ogImage || "/assets/og-image.png";
+  const ogImageFallback = seo.ogImage || "/assets/og-image.webp";
+  const twitterImageFallback = seo.twitterImage || seo.ogImage || "/assets/og-image.webp";
 
   // Open Graph
   if (seo.ogTitle || seo.ogDescription || ogImageFallback || siteName) {

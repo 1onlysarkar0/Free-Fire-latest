@@ -68,7 +68,7 @@ export default async function DashboardLayout({
       <AppSidebar 
         user={session.user} 
         siteName={config?.logoTitle ?? ""}
-        logoSrc={config?.logoSrc ?? "/assets/favicon.png"}
+        logoSrc={config?.logoSrc ?? "/assets/logo.webp"}
         logoUrl={config?.logoUrl ?? "/dashboard"}
         logoAlt={config?.logoAlt ?? "logo"}
         myAccountText={config?.userProfileMyAccountText ?? "My Account"}

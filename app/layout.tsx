@@ -59,7 +59,8 @@ export async function generateMetadata(): Promise<Metadata> {
       metadata.publisher = siteName;
     }
 
-    const logoSrc = config?.logoSrc || "/assets/favicon.png";
+    const logoSrc = config?.logoSrc || "/assets/logo.webp";
+    metadata.manifest = "/assets/site.webmanifest";
     metadata.icons = {
       icon: [
         { url: logoSrc, type: "image/png" },
@@ -72,8 +73,8 @@ export async function generateMetadata(): Promise<Metadata> {
       ],
     };
 
-    const ogImageFallback = seo.ogImage || "/assets/og-image.png";
-    const twitterImageFallback = seo.twitterImage || seo.ogImage || "/assets/og-image.png";
+    const ogImageFallback = seo.ogImage || "/assets/og-image.webp";
+    const twitterImageFallback = seo.twitterImage || seo.ogImage || "/assets/og-image.webp";
 
     if (seo.ogTitle || seo.ogDescription || ogImageFallback || siteName) {
       metadata.openGraph = {
