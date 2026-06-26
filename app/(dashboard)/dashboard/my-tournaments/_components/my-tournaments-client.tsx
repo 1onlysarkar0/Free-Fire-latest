@@ -179,7 +179,7 @@ export default function MyTournamentsClient({
                               <Users2 className="h-4 w-4 text-foreground" />
                               <div className="text-right">
                                 <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
-                                  Slots
+                                  {tournament.teamFormat === "solo" ? "Slots" : "Teams"}
                                 </p>
                                 <p className="text-sm font-semibold text-foreground">
                                   {tournament.bookedSlots}/
@@ -215,7 +215,7 @@ export default function MyTournamentsClient({
                               <div className="inline-flex items-center gap-2 rounded-xl bg-background/80 px-3 py-2">
                                 <Users2 className="h-4 w-4 text-foreground" />
                                 <span className="text-xs text-muted-foreground">
-                                  Slots
+                                  {tournament.teamFormat === "solo" ? "Slots" : "Teams"}
                                 </span>
                                 <span className="text-sm font-semibold text-foreground">
                                   {tournament.bookedSlots}/

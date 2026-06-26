@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { authClient } from "@/lib/auth-client";
 import { TournamentDetail } from "@/lib/tournaments";
 import { TOURNAMENT_STATUS_COLORS } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 
 interface TournamentData extends TournamentDetail {
   userParticipant?: { slotId: string };
@@ -33,7 +34,6 @@ export default function TournamentDetailClient({ id, initialData }: Props) {
   const [t, setT] = useState<TournamentData | null>(initialData as TournamentData | null);
   const [joining, setJoining] = useState(false);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
-  const [joinForm, setJoinForm] = useState({ teamName: "", ignList: [""] });
 
   const load = useCallback(async () => {
     try {
@@ -57,12 +57,9 @@ export default function TournamentDetailClient({ id, initialData }: Props) {
     if (!session?.user) { router.push("/sign-in?returnTo=/tournaments/" + id); return; }
     setJoining(true);
     try {
-      const ignList = joinForm.ignList.filter(Boolean);
       const res = await fetch(`/api/tournaments/${id}/join`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          teamName: joinForm.teamName,
-          ignList,
           slotId: selectedSlotId || undefined,
         }),
       });
@@ -94,11 +91,23 @@ export default function TournamentDetailClient({ id, initialData }: Props) {
 
   const selectedSlot = selectedSlotId ? t.slots.find(s => s.id === selectedSlotId) : null;
 
+  // Group slots by teamName if Duo or Squad
+  const groupedTeams = (() => {
+    if (!isTeamFormat) return null;
+    const groups: Record<string, typeof t.slots> = {};
+    t.slots.forEach((s) => {
+      const tName = s.teamName || `Team ${Math.ceil(s.slotNumber / teamSize)}`;
+      if (!groups[tName]) groups[tName] = [];
+      groups[tName].push(s);
+    });
+    return groups;
+  })();
+
   return (
     <div className="flex flex-col">
 
       {/* Hero Banner */}
-      <div className="bg-card border-b border-border">
+      <div className="bg-background">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <Link href="/tournaments" prefetch={true} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
             <ArrowLeft className="h-4 w-4" /> Back to Tournaments
@@ -122,17 +131,19 @@ export default function TournamentDetailClient({ id, initialData }: Props) {
             </div>
 
             <div className="grid grid-cols-3 gap-3 md:min-w-[280px]">
-              <div className="bg-secondary rounded-xl p-3 text-center border border-border">
-                <Users className="h-5 w-5 mx-auto mb-1 text-foreground" />
-                <p className="text-xl font-bold text-foreground">{t.bookedSlots}/{t.totalSlots}</p>
-                <p className="text-xs text-muted-foreground font-medium uppercase">Slots</p>
-              </div>
-              <div className="bg-primary/10 rounded-xl p-3 text-center border border-primary/10">
-                <Trophy className="h-5 w-5 mx-auto mb-1 text-foreground" />
+              <div className="bg-primary/10 rounded-xl p-3 text-center border border-primary/15">
+                <Trophy className="h-5 w-5 mx-auto mb-1 text-primary" />
                 <p className="text-xl font-bold text-primary">{t.prizePool > 0 ? `₹${t.prizePool}` : "—"}</p>
-                <p className="text-xs text-primary font-medium uppercase">Prize</p>
+                <p className="text-xs text-primary font-medium uppercase">Winning Price</p>
               </div>
-              <div className="bg-secondary rounded-xl p-3 text-center border border-border">
+              <div className="bg-secondary/80 rounded-xl p-3 text-center border border-border/80">
+                <Users className="h-5 w-5 mx-auto mb-1 text-foreground" />
+                <p className="text-xl font-bold text-foreground">
+                  {isTeamFormat ? `${Math.floor(t.bookedSlots / teamSize)}/${Math.floor(t.totalSlots / teamSize)}` : `${t.bookedSlots}/${t.totalSlots}`}
+                </p>
+                <p className="text-xs text-muted-foreground font-medium uppercase">{isTeamFormat ? "Teams" : "Slots"}</p>
+              </div>
+              <div className="bg-secondary/80 rounded-xl p-3 text-center border border-border/80">
                 <Clock className="h-5 w-5 mx-auto mb-1 text-foreground" />
                 <p className="text-sm font-bold text-foreground">{format(new Date(t.startTime), "dd MMM")}</p>
                 <p className="text-xs text-muted-foreground font-medium">{format(new Date(t.startTime), "h:mm a")}</p>
@@ -146,152 +157,240 @@ export default function TournamentDetailClient({ id, initialData }: Props) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            <Tabs defaultValue={descContent ? "description" : rulesContent ? "rules" : "slots"}>
-              <TabsList className="bg-card border-border flex-wrap h-auto gap-1 p-1 shadow-sm">
-                {descContent && <TabsTrigger value="description">Description</TabsTrigger>}
-                {rulesContent && <TabsTrigger value="rules">Rules</TabsTrigger>}
-                <TabsTrigger value="slots">Slots</TabsTrigger>
-                {t.winners.length > 0 && <TabsTrigger value="winners">Winners</TabsTrigger>}
-              </TabsList>
-
-              {descContent && (
-                <TabsContent value="description">
-                  <div className="bg-card rounded-2xl border border-border p-6 prose prose-sm max-w-none shadow-sm">
-                    {t.descriptionMarkdown ? (
-                      <MarkdownRenderer content={t.descriptionMarkdown} />
-                    ) : (
-                      <div dangerouslySetInnerHTML={{ __html: t.descriptionHtml ?? "" }} />
-                    )}
-                  </div>
-                </TabsContent>
-              )}
-
-              {rulesContent && (
-                <TabsContent value="rules">
-                  <div className="bg-card rounded-2xl border border-border p-6 prose prose-sm max-w-none shadow-sm">
-                    {t.rulesMarkdown ? (
-                      <MarkdownRenderer content={t.rulesMarkdown} />
-                    ) : (
-                      <div dangerouslySetInnerHTML={{ __html: t.rulesHtml ?? "" }} />
-                    )}
-                  </div>
-                </TabsContent>
-              )}
-
-              <TabsContent value="slots">
-                <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
-                  <h3 className="font-semibold text-foreground mb-1">
-                    {isTeamFormat ? "Team Slots" : "Player Slots"}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {canJoin
-                      ? "Click an available slot to select it before joining."
-                      : `${t.bookedSlots} of ${t.totalSlots} slots filled.`
-                    }
-                  </p>
-
-                  {isTeamFormat ? (
-                    // Team format: show cards
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {t.slots.map((s) => {
-                        const isMySlot = s.id === t.userSlot?.id;
-                        const isSelected = s.id === selectedSlotId;
-                        const isBooked = s.status === "BOOKED";
-                        const isClickable = canJoin && !isBooked;
-
-                        return (
-                          <button
-                            key={s.id}
-                            type="button"
-                            disabled={!isClickable}
-                            onClick={() => canJoin && !isBooked && setSelectedSlotId(isSelected ? null : s.id)}
-                            className={[
-                              "flex flex-col items-center justify-center gap-1 p-3 rounded-xl border text-center transition-all",
-                              isMySlot ? "bg-primary text-white border-primary ring-2 ring-primary/30" :
-                              isSelected ? "bg-primary/10 border-primary ring-2 ring-primary/30 cursor-pointer" :
-                              isBooked ? "bg-muted text-muted-foreground border-border cursor-not-allowed" :
-                              "bg-card border-border hover:border-primary/30 hover:bg-primary/10 cursor-pointer",
-                            ].join(" ")}
-                          >
-                            <span className="text-xs font-bold">
-                              {s.teamName || `Team ${s.slotNumber}`}
-                            </span>
-                            <span className="text-[10px] font-medium opacity-70">
-                              {isMySlot ? "Your Team" : isBooked ? "Booked ✓" : "Available"}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    // Solo format: compact grid
-                    <div className="grid grid-cols-6 sm:grid-cols-8 lg:grid-cols-10 gap-1.5">
-                      {t.slots.map((s) => {
-                        const isMySlot = s.id === t.userSlot?.id;
-                        const isSelected = s.id === selectedSlotId;
-                        const isBooked = s.status === "BOOKED";
-                        const isClickable = canJoin && !isBooked;
-
-                        return (
-                          <button
-                            key={s.id}
-                            type="button"
-                            disabled={!isClickable}
-                            aria-label={isMySlot ? `Slot ${s.slotNumber} - Your Slot` : isBooked ? `Slot ${s.slotNumber} - Booked` : `Slot ${s.slotNumber} - Available`}
-                            title={isBooked ? `Slot ${s.slotNumber} — Booked` : `Slot ${s.slotNumber} — Available`}
-                            onClick={() => canJoin && !isBooked && setSelectedSlotId(isSelected ? null : s.id)}
-                            className={[
-                              "flex items-center justify-center h-11 rounded-lg text-xs font-bold border transition-all",
-                              isMySlot ? "bg-primary text-white border-primary ring-2 ring-primary/30" :
-                              isSelected ? "bg-primary/20 border-primary text-primary/90 ring-2 ring-primary/30 cursor-pointer" :
-                              isBooked ? "bg-foreground text-white border-muted cursor-not-allowed" :
-                              "bg-secondary text-muted-foreground border-border hover:bg-primary/10 hover:border-primary/30 cursor-pointer",
-                            ].join(" ")}
-                          >
-                            {isBooked && !isMySlot ? "✓" : s.slotNumber}
-                          </button>
-                        );
-                      })}
-                    </div>
+            {(descContent || rulesContent || t.winners.length > 0) && (
+              <Tabs defaultValue={descContent ? "description" : rulesContent ? "rules" : "winners"}>
+                <TabsList className="bg-transparent border-none flex-wrap h-auto gap-6 p-0 shadow-none text-muted-foreground mb-4">
+                  {descContent && (
+                    <TabsTrigger
+                      value="description"
+                      className="bg-transparent px-0 py-1.5 shadow-none border-none text-sm font-semibold text-muted-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent hover:text-foreground transition-colors"
+                    >
+                      Description
+                    </TabsTrigger>
                   )}
+                  {rulesContent && (
+                    <TabsTrigger
+                      value="rules"
+                      className="bg-transparent px-0 py-1.5 shadow-none border-none text-sm font-semibold text-muted-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent hover:text-foreground transition-colors"
+                    >
+                      Rules
+                    </TabsTrigger>
+                  )}
+                  {t.winners.length > 0 && (
+                    <TabsTrigger
+                      value="winners"
+                      className="bg-transparent px-0 py-1.5 shadow-none border-none text-sm font-semibold text-muted-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent hover:text-foreground transition-colors"
+                    >
+                      Winners
+                    </TabsTrigger>
+                  )}
+                </TabsList>
 
-                  <div className="flex flex-wrap items-center gap-4 mt-4 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-foreground inline-block" /> Booked</span>
-                    <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-primary inline-block" /> Your Slot</span>
-                    <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-primary/20 border border-primary inline-block" /> Selected</span>
-                    <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-muted border-border inline-block" /> Available</span>
-                  </div>
-                </div>
-              </TabsContent>
+                {descContent && (
+                  <TabsContent value="description">
+                    <div className="bg-accent/40 rounded-2xl border border-border/80 p-6 prose prose-sm max-w-none shadow-sm">
+                      {t.descriptionMarkdown ? (
+                        <MarkdownRenderer content={t.descriptionMarkdown} />
+                      ) : (
+                        <div dangerouslySetInnerHTML={{ __html: t.descriptionHtml ?? "" }} />
+                      )}
+                    </div>
+                  </TabsContent>
+                )}
 
-              {t.winners.length > 0 && (
-                <TabsContent value="winners">
-                  <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
-                    <h3 className="font-semibold text-foreground flex items-center gap-2 mb-4">
-                      <Crown className="h-5 w-5 text-foreground" /> Winners
-                    </h3>
-                    <div className="space-y-3">
-                      {t.winners.map((w, i) => (
-                        <div key={w.id} className={`flex items-center justify-between p-4 rounded-xl border ${i === 0 ? "bg-warning/10 border-warning/20" : i === 1 ? "bg-secondary border-border" : "bg-primary/10/30 border-primary/10"}`}>
-                          <div className="flex items-center gap-3">
-                            <span className={`text-2xl font-black ${i === 0 ? "text-warning" : i === 1 ? "text-muted-foreground" : "text-primary/70"}`}>
-                              {w.placement}
-                            </span>
-                            <div>
-                              <p className="font-semibold text-foreground">{w.userName}</p>
-                              {w.userGameName && <p className="text-xs text-muted-foreground">{w.userGameName}</p>}
+                {rulesContent && (
+                  <TabsContent value="rules">
+                    <div className="bg-accent/40 rounded-2xl border border-border/80 p-6 prose prose-sm max-w-none shadow-sm">
+                      {t.rulesMarkdown ? (
+                        <MarkdownRenderer content={t.rulesMarkdown} />
+                      ) : (
+                        <div dangerouslySetInnerHTML={{ __html: t.rulesHtml ?? "" }} />
+                      )}
+                    </div>
+                  </TabsContent>
+                )}
+
+                {t.winners.length > 0 && (
+                  <TabsContent value="winners">
+                    <div className="bg-accent/40 rounded-2xl border border-border/80 p-6 shadow-sm">
+                      <h3 className="font-semibold text-foreground flex items-center gap-2 mb-4">
+                        <Crown className="h-5 w-5 text-foreground" /> Winners
+                      </h3>
+                      <div className="space-y-3">
+                        {t.winners.map((w, i) => (
+                          <div key={w.id} className={`flex items-center justify-between p-4 rounded-xl border ${i === 0 ? "bg-warning/10 border-warning/20" : i === 1 ? "bg-secondary border-border" : "bg-primary/10/30 border-primary/10"}`}>
+                            <div className="flex items-center gap-3">
+                              <span className={`text-2xl font-black ${i === 0 ? "text-warning" : i === 1 ? "text-muted-foreground" : "text-primary/70"}`}>
+                                {w.placement}
+                              </span>
+                              <div>
+                                <p className="font-semibold text-foreground">{w.userName}</p>
+                                {w.userGameName && <p className="text-xs text-muted-foreground">{w.userGameName}</p>}
+                              </div>
                             </div>
+                            {w.prizeAmount > 0 && (
+                              <span className="font-bold text-primary">₹{w.prizeAmount}</span>
+                            )}
                           </div>
-                          {w.prizeAmount > 0 && (
-                            <span className="font-bold text-primary">₹{w.prizeAmount}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </TabsContent>
+                )}
+              </Tabs>
+            )}
+
+            {/* Slots section (Always Visible) */}
+            <div className="bg-accent/40 rounded-2xl border border-border/80 p-6 shadow-sm mt-6">
+              <h3 className="font-semibold text-foreground mb-1">
+                {isTeamFormat ? "Team Slots" : "Player Slots"}
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                {canJoin
+                  ? "Click an available slot to select it before joining."
+                  : isTeamFormat
+                    ? `${t.bookedSlots} of ${t.totalSlots} teams registered (${t.bookedSlots * teamSize} of ${t.totalSlots * teamSize} slots filled).`
+                    : `${t.bookedSlots} of ${t.totalSlots} slots filled.`
+                }
+              </p>
+
+              {isTeamFormat && groupedTeams ? (
+                // Team format: show grouped checkbox slots
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {Object.entries(groupedTeams).map(([teamName, slots]) => (
+                    <div key={teamName} className="border border-border/70 rounded-xl p-4 bg-background/40 flex flex-col gap-2.5 shadow-sm">
+                      <h4 className="font-bold text-xs text-foreground/80 tracking-wider uppercase border-b border-border/40 pb-1.5 flex items-center justify-between">
+                        <span>{teamName}</span>
+                      </h4>
+                      <div className="flex flex-col gap-2">
+                        {slots.map((s) => {
+                          const isMySlot = s.id === t.userSlot?.id;
+                          const isSelected = s.id === selectedSlotId;
+                          const isBooked = s.status === "BOOKED";
+                          const isClickable = canJoin && !isBooked;
+
+                          return (
+                            <div
+                              key={s.id}
+                              onClick={() => {
+                                if (isClickable) {
+                                  setSelectedSlotId(isSelected ? null : s.id);
+                                }
+                              }}
+                              className={cn(
+                                "flex items-center gap-2.5 px-3 py-2 rounded-lg border text-left transition-all text-xs font-medium select-none",
+                                isBooked ? "bg-muted/50 border-border/40 cursor-not-allowed opacity-80" :
+                                isSelected ? "bg-primary/10 border-primary ring-2 ring-primary/20 cursor-pointer" :
+                                "bg-card/50 border-border hover:border-primary/40 hover:bg-primary/5 cursor-pointer"
+                              )}
+                            >
+                              <div className={cn(
+                                "h-4 w-4 rounded border flex items-center justify-center shrink-0 transition-colors",
+                                (isBooked || isSelected) ? "bg-primary border-primary text-white" : "border-muted-foreground/45 bg-background"
+                              )}>
+                                {(isBooked || isSelected) && <Check className="h-3 w-3 stroke-[3]" />}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                {isBooked ? (
+                                  <span className="font-semibold text-foreground truncate block">
+                                    {s.userName || "Booked"}
+                                  </span>
+                                ) : (
+                                  <span className="text-muted-foreground">
+                                    {isSelected ? "Selected (Ready to book)" : "Available Slot"}
+                                  </span>
+                                )}
+                              </div>
+                              {isMySlot && (
+                                <span className="text-[9px] font-bold text-success uppercase bg-success/15 px-1.5 py-0.5 rounded shrink-0">
+                                  You
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                // Solo format: show a list of checkbox-like slots
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                  {t.slots.map((s) => {
+                    const isMySlot = s.id === t.userSlot?.id;
+                    const isSelected = s.id === selectedSlotId;
+                    const isBooked = s.status === "BOOKED";
+                    const isClickable = canJoin && !isBooked;
+
+                    return (
+                      <div
+                        key={s.id}
+                        onClick={() => {
+                          if (isClickable) {
+                            setSelectedSlotId(isSelected ? null : s.id);
+                          }
+                        }}
+                        className={cn(
+                          "flex items-center gap-2.5 px-3 py-2 rounded-lg border text-left transition-all text-xs font-medium select-none",
+                          isBooked ? "bg-muted/50 border-border/40 cursor-not-allowed opacity-80" :
+                          isSelected ? "bg-primary/10 border-primary ring-2 ring-primary/20 cursor-pointer" :
+                          "bg-card/50 border-border hover:border-primary/40 hover:bg-primary/5 cursor-pointer"
+                        )}
+                      >
+                        <div className={cn(
+                          "h-4 w-4 rounded border flex items-center justify-center shrink-0 transition-colors",
+                          (isBooked || isSelected) ? "bg-primary border-primary text-white" : "border-muted-foreground/45 bg-background"
+                        )}>
+                          {(isBooked || isSelected) && <Check className="h-3 w-3 stroke-[3]" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          {isBooked ? (
+                            <span className="font-semibold text-foreground truncate block">
+                              {s.userName || "Booked"}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">
+                              {isSelected ? `Slot #${s.slotNumber} (Selected)` : `Slot #${s.slotNumber} (Available)`}
+                            </span>
                           )}
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                </TabsContent>
+                        {isMySlot && (
+                          <span className="text-[9px] font-bold text-success uppercase bg-success/15 px-1.5 py-0.5 rounded shrink-0">
+                            You
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               )}
-            </Tabs>
+
+              {/* Legend */}
+              <div className="flex flex-wrap items-center gap-4 mt-6 text-xs text-muted-foreground pt-4 border-t border-border/40">
+                <span className="flex items-center gap-1.5">
+                  <div className="h-3.5 w-3.5 rounded border border-primary bg-primary text-white flex items-center justify-center shrink-0">
+                    <Check className="h-2.5 w-2.5 stroke-[3]" />
+                  </div>
+                  Booked
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <div className="h-3.5 w-3.5 rounded border border-primary bg-primary text-white flex items-center justify-center shrink-0">
+                    <Check className="h-2.5 w-2.5 stroke-[3]" />
+                  </div>
+                  <span className="text-success font-semibold">Your Slot</span>
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <div className="h-3.5 w-3.5 rounded border border-primary bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <Check className="h-2.5 w-2.5 stroke-[3]" />
+                  </div>
+                  Selected
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <div className="h-3.5 w-3.5 rounded border border-muted-foreground/45 bg-background shrink-0" />
+                  Available
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Sidebar */}
@@ -299,7 +398,7 @@ export default function TournamentDetailClient({ id, initialData }: Props) {
             
             {/* Room Credentials */}
             {showCredentials && (
-              <div className="bg-card rounded-2xl border border-primary/20 p-5 shadow-sm">
+              <div className="bg-accent/40 rounded-2xl border border-primary/25 p-5 shadow-sm">
                 <h3 className="font-semibold text-foreground flex items-center gap-2 mb-3">
                   <Key className="h-5 w-5 text-foreground" /> Room Credentials
                 </h3>
@@ -322,7 +421,7 @@ export default function TournamentDetailClient({ id, initialData }: Props) {
 
             {/* My Slot */}
             {isParticipant && t.userSlot && (
-              <div className="bg-card rounded-2xl border border-success/20 p-5 shadow-sm">
+              <div className="bg-accent/40 rounded-2xl border border-success/25 p-5 shadow-sm">
                 <h3 className="font-semibold text-foreground flex items-center gap-2 mb-3">
                   <Check className="h-5 w-5 text-foreground" /> You&apos;re Registered
                 </h3>
@@ -339,14 +438,14 @@ export default function TournamentDetailClient({ id, initialData }: Props) {
 
             {/* Join Card */}
             {canJoin && (
-              <div className="bg-card rounded-2xl border border-border p-5 shadow-sm">
+              <div className="bg-accent/40 rounded-2xl border border-border/80 p-5 shadow-sm">
                 <h3 className="font-semibold text-foreground mb-1">Join Tournament</h3>
                 <p className="text-sm text-muted-foreground mb-4">
                   Closes: {format(new Date(t.registrationDeadline), "dd MMM, h:mm a")}
                 </p>
 
                 {selectedSlot && (
-                  <div className="flex items-center gap-2 text-sm font-medium text-primary/90 bg-primary/10 border border-primary/20 rounded-lg px-3 py-2 mb-3">
+                  <div className="flex items-center gap-2 text-sm font-medium text-primary bg-primary/10 border border-primary/25 rounded-lg px-3 py-2 mb-3">
                     <ChevronRight className="h-3.5 w-3.5" />
                     {isTeamFormat
                       ? `Selected: ${selectedSlot.teamName || `Team ${selectedSlot.slotNumber}`}`
@@ -356,46 +455,12 @@ export default function TournamentDetailClient({ id, initialData }: Props) {
                 )}
 
                 <div className="space-y-3">
-                  {isTeamFormat && (
-                    <div>
-                      <Label className="text-xs">Team Name (optional)</Label>
-                      <Input
-                        value={joinForm.teamName}
-                        onChange={(e) => setJoinForm((f) => ({ ...f, teamName: e.target.value }))}
-                        placeholder="Your team name"
-                        className="mt-1 h-9 bg-card"
-                      />
+                  {/* Selected slot message or prompt */}
+                  {!selectedSlot && (
+                    <div className="p-3 bg-muted/60 border border-border/60 rounded-xl text-xs text-muted-foreground text-center font-medium">
+                      Please select an available slot from the Slots tab above to register.
                     </div>
                   )}
-
-                  <div>
-                    <Label className="text-xs">
-                      {isTeamFormat ? `Player IGNs (up to ${teamSize})` : "Your In-Game Name"}
-                    </Label>
-                    {joinForm.ignList.map((ign, i) => (
-                      <div key={i} className="mt-1 flex gap-2">
-                        <Input
-                          value={ign}
-                          onChange={(e) => {
-                            const updated = [...joinForm.ignList];
-                            updated[i] = e.target.value;
-                            setJoinForm((f) => ({ ...f, ignList: updated }));
-                          }}
-                          placeholder={`IGN ${i + 1}`}
-                          className="h-9 flex-1 bg-card"
-                        />
-                        {isTeamFormat && joinForm.ignList.length < teamSize && i === joinForm.ignList.length - 1 && (
-                          <button
-                            type="button"
-                            onClick={() => setJoinForm(f => ({ ...f, ignList: [...f.ignList, ""] }))}
-                            className="text-xs px-2 h-9 rounded-lg border border-border text-primary hover:bg-primary/10 shrink-0 bg-card"
-                          >
-                            + Add
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
 
                   {t.type === "PAID" && (
                     <div className="p-3 bg-amber-100/50 rounded-xl text-sm text-amber-900">
@@ -413,7 +478,7 @@ export default function TournamentDetailClient({ id, initialData }: Props) {
                   ) : (
                     <Button
                       onClick={handleJoin}
-                      disabled={joining}
+                      disabled={joining || !selectedSlotId}
                       className="w-full bg-primary hover:bg-primary/90 text-white font-semibold"
                     >
                       {joining ? (
@@ -421,7 +486,9 @@ export default function TournamentDetailClient({ id, initialData }: Props) {
                       ) : (
                         <Zap className="h-4 w-4 mr-2" />
                       )}
-                      {t.type === "PAID" ? `Pay ₹${t.joiningFee} & Join` : "Join Free"}
+                      {!selectedSlotId
+                        ? "Select a slot to join"
+                        : (t.type === "PAID" ? `Pay ₹${t.joiningFee} & Join` : "Join Free")}
                     </Button>
                   )}
                 </div>
@@ -430,7 +497,7 @@ export default function TournamentDetailClient({ id, initialData }: Props) {
 
             {/* Full / Deadline Passed */}
             {t.status === "UPCOMING" && !canJoin && !isParticipant && (
-              <div className="bg-card rounded-2xl border border-border p-5 text-center shadow-sm">
+              <div className="bg-accent/40 rounded-2xl border border-border/80 p-5 text-center shadow-sm">
                 {t.availableSlots === 0 ? (
                   <>
                     <Users className="h-8 w-8 mx-auto mb-2 text-foreground" />
@@ -448,7 +515,7 @@ export default function TournamentDetailClient({ id, initialData }: Props) {
             )}
 
             {/* Schedule Info */}
-            <div className="bg-card rounded-2xl border border-border p-5 space-y-3 shadow-sm">
+            <div className="bg-accent/40 rounded-2xl border border-border/80 p-5 space-y-3 shadow-sm">
               <h3 className="font-semibold text-foreground text-sm">Schedule</h3>
               {[
                 { label: "Registration Closes", value: format(new Date(t.registrationDeadline), "dd MMM yyyy, h:mm a") },

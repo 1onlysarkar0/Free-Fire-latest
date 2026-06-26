@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
-import { Trophy, Search, Clock, Zap, ChevronRight, Filter } from "lucide-react";
+import { Trophy, Search, Clock, Zap, ChevronRight, Filter, Users2, UserCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -199,81 +199,107 @@ export default function TournamentsClient({
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {filtered.map((t) => (
-                <Link
-                  key={t.id}
-                  href={`/tournaments/${t.id}`}
-                  prefetch={true}
-                  className="group flex flex-col bg-background rounded-2xl border border-border/60 hover:border-primary/40 hover:-translate-y-1 hover:shadow-md active:translate-y-0 active:scale-[0.99] transition-all duration-300 ease-out overflow-hidden shadow-sm"
-                >
-                  <div className="p-6 md:p-8 flex-1 flex flex-col">
-                    {/* Top Row: Status & Prize */}
-                    <div className="flex justify-between items-start mb-6">
-                      <span className={cn(
-                        "inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider",
-                        TOURNAMENT_STATUS_COLORS[t.status] || "bg-muted text-muted-foreground"
-                      )}>
-                        {TOURNAMENT_STATUS_LABELS[t.status] || t.status.replace(/_/g, " ")}
-                      </span>
-                      <div className="text-right">
-                        <span className="block text-xl md:text-2xl font-bold text-primary font-lora leading-none">₹{t.prizePool}</span>
-                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest font-ibm">Prize Pool</span>
-                      </div>
-                    </div>
+              {filtered.map((t) => {
+                const teamSize = t.teamFormat === "squad" ? 4 : t.teamFormat === "duo" ? 2 : 1;
+                const isTeamFormat = t.teamFormat === "duo" || t.teamFormat === "squad";
 
-                    <h3 className="text-xl font-bold text-foreground leading-tight mb-4 font-lora group-hover:text-primary transition-colors line-clamp-2">
-                      {t.name}
-                    </h3>
-
-                    {/* Metadata Badges */}
-                    <div className="flex flex-wrap gap-2 mb-6">
-                      <span className="bg-secondary px-3 py-1.5 rounded-lg text-xs font-semibold text-foreground font-ibm">
-                        {t.maps[0] || "TBD"}
-                      </span>
-                      <span className="bg-secondary px-3 py-1.5 rounded-lg text-xs font-semibold text-foreground font-ibm">
-                        {t.teamFormat}
-                      </span>
-                    </div>
-
-                    {/* Info Rows */}
-                    <div className="space-y-4 mb-8 flex-1">
-                      <div className="flex justify-between items-center text-muted-foreground text-sm font-ibm">
-                        <div className="flex items-center gap-2">
-                          <Zap className="h-4 w-4" />
-                          <span className={cn("font-medium", t.type === "FREE" ? "text-success" : "")}>
-                            {t.type === "FREE" ? "FREE ENTRY" : `₹${t.joiningFee} ENTRY`}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4" />
-                          <span className="font-medium">{format(new Date(t.startTime), "dd MMM, h:mm a")}</span>
+                return (
+                  <Link
+                    key={t.id}
+                    href={`/tournaments/${t.id}`}
+                    prefetch={true}
+                    className="group flex flex-col bg-accent/40 rounded-2xl border border-border/80 hover:border-primary/40 hover:-translate-y-1 hover:shadow-md active:translate-y-0 active:scale-[0.99] transition-all duration-300 ease-out overflow-hidden shadow-sm"
+                  >
+                    <div className="p-5 md:p-6 flex-1 flex flex-col">
+                      {/* Top Row: Status & Prize */}
+                      <div className="flex justify-between items-center mb-5">
+                        <span className={cn(
+                          "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider",
+                          TOURNAMENT_STATUS_COLORS[t.status] || "bg-muted text-muted-foreground"
+                        )}>
+                          {TOURNAMENT_STATUS_LABELS[t.status] || t.status.replace(/_/g, " ")}
+                        </span>
+                        <div className="text-right">
+                          <div className="flex items-center justify-end gap-1.5 text-primary font-lora">
+                            <Trophy className="h-4 w-4 shrink-0" aria-hidden="true" />
+                            <span className="text-base md:text-lg font-bold leading-none">₹{t.prizePool}</span>
+                          </div>
+                          <span className="block text-[9px] font-bold text-muted-foreground uppercase tracking-wider font-ibm mt-1">Winning Price</span>
                         </div>
                       </div>
 
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-xs font-medium font-ibm">
-                          <span className="text-muted-foreground">Registration</span>
-                          <span className="text-foreground">{t.bookedSlots} / {t.totalSlots}</span>
+                      <h3 className="text-lg font-bold text-foreground leading-tight mb-3 font-lora group-hover:text-primary transition-colors line-clamp-2">
+                        {t.name}
+                      </h3>
+
+                      {/* Metadata Badges */}
+                      <div className="flex flex-wrap gap-1.5 mb-5">
+                        <span className="bg-secondary/60 border border-border/30 px-2.5 py-0.5 rounded-lg text-xs font-semibold text-foreground font-ibm capitalize">
+                          {t.maps[0] || "TBD"}
+                        </span>
+                        <span className="bg-secondary/60 border border-border/30 px-2.5 py-0.5 rounded-lg text-xs font-semibold text-foreground font-ibm capitalize">
+                          {t.teamFormat}
+                        </span>
+                      </div>
+
+                      {/* Info Rows */}
+                      <div className="space-y-3 mb-6 flex-1">
+                        <div className="flex justify-between items-center text-muted-foreground text-xs font-ibm">
+                          <div className="flex items-center gap-1.5">
+                            <Zap className="h-3.5 w-3.5" />
+                            <span className={cn("font-medium", t.type === "FREE" ? "text-success" : "")}>
+                              {t.type === "FREE" ? "FREE ENTRY" : `₹${t.joiningFee} ENTRY`}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Clock className="h-3.5 w-3.5" />
+                            <span className="font-medium">{format(new Date(t.startTime), "dd MMM, h:mm a")}</span>
+                          </div>
                         </div>
-                        <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-primary transition-all duration-500 rounded-full" 
-                            style={{ width: `${(t.bookedSlots / t.totalSlots) * 100}%` }}
-                          />
+
+                        <div className="space-y-1.5 pt-3 border-t border-border/40">
+                          <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-medium font-ibm">
+                            {isTeamFormat ? (
+                              <div className="flex items-center gap-4 w-full">
+                                <span className="text-foreground flex items-center gap-1">
+                                  <Users2 className="h-3.5 w-3.5 text-primary shrink-0" aria-hidden="true" />
+                                  <span className="font-semibold">{Math.floor(t.bookedSlots / teamSize)} / {Math.floor(t.totalSlots / teamSize)}</span>
+                                  <span className="text-muted-foreground text-[10px]">Teams</span>
+                                </span>
+                                <span className="text-foreground flex items-center gap-1">
+                                  <UserCheck className="h-3.5 w-3.5 text-success/90 shrink-0" aria-hidden="true" />
+                                  <span className="font-semibold">{t.bookedSlots} / {t.totalSlots}</span>
+                                  <span className="text-muted-foreground text-[10px]">Slots</span>
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-foreground flex items-center gap-1.5 w-full">
+                                <UserCheck className="h-3.5 w-3.5 text-primary shrink-0" aria-hidden="true" />
+                                <span className="font-semibold">{t.bookedSlots} / {t.totalSlots}</span>
+                                <span className="text-muted-foreground text-[10px]">Slots Booked</span>
+                              </span>
+                            )}
+                          </div>
+                          <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden mt-1.5">
+                            <div 
+                              className="h-full bg-primary transition-all duration-500 rounded-full" 
+                              style={{ width: `${(t.bookedSlots / t.totalSlots) * 100}%` }}
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Action */}
-                    <div className="mt-auto">
-                      <Button className="w-full rounded-xl group/btn h-11" variant={t.status === "UPCOMING" && t.availableSlots > 0 ? "default" : "secondary"}>
-                        {t.status === "UPCOMING" ? (t.availableSlots > 0 ? "Join Tournament" : "Registration Full") : "View Results"}
-                        <ChevronRight className="h-4 w-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
-                      </Button>
+                      {/* Action */}
+                      <div className="mt-auto">
+                        <Button className="w-full rounded-xl group/btn h-10 text-xs font-semibold" variant={t.status === "UPCOMING" && t.availableSlots > 0 ? "default" : "secondary"}>
+                          {t.status === "UPCOMING" ? (t.availableSlots > 0 ? "Join Tournament" : "Registration Full") : "View Results"}
+                          <ChevronRight className="h-4 w-4 ml-1.5 group-hover/btn:translate-x-0.5 transition-transform" />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                );
+              })}
             </div>
           )}
         </div>

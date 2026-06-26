@@ -232,7 +232,11 @@ export default function ManageTournamentClient({ id: tournamentId, initialData, 
             </span>
           </div>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {t.gameMode.replace(/_/g, " ")} · {t.teamFormat} · {t.participantCount}/{t.totalSlots} participants
+            {t.gameMode.replace(/_/g, " ")} · {t.teamFormat} · {
+              t.teamFormat === "solo"
+                ? `${t.participantCount}/${t.totalSlots} slots`
+                : `${t.participantCount}/${t.totalSlots} teams (${t.participantCount * (t.teamFormat === "squad" ? 4 : 2)}/${t.totalSlots * (t.teamFormat === "squad" ? 4 : 2)} slots)`
+            }
           </p>
         </div>
       </div>
@@ -272,8 +276,13 @@ export default function ManageTournamentClient({ id: tournamentId, initialData, 
             {[
               { label: "Type", value: t.type },
               { label: "Entry Fee", value: t.type === "FREE" ? "Free" : `${t.joiningFee} coins` },
-              { label: "Prize Pool", value: `${t.prizePool} coins` },
-              { label: "Slots", value: `${t.participantCount}/${t.totalSlots}` },
+              { label: "Winning Price", value: `${t.prizePool} coins` },
+              {
+                label: t.teamFormat === "solo" ? "Slots" : "Teams",
+                value: t.teamFormat === "solo"
+                  ? `${t.participantCount}/${t.totalSlots}`
+                  : `${t.participantCount}/${t.totalSlots} (${t.participantCount * (t.teamFormat === "squad" ? 4 : 2)}/${t.totalSlots * (t.teamFormat === "squad" ? 4 : 2)} spots)`
+              },
               { label: "Start Time", value: format(new Date(t.startTime), "dd MMM yyyy, h:mm a") },
               { label: "Reg. Deadline", value: format(new Date(t.registrationDeadline), "dd MMM yyyy, h:mm a") },
             ].map((item) => (
@@ -303,8 +312,8 @@ export default function ManageTournamentClient({ id: tournamentId, initialData, 
               ))}
             </div>
             <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-primary inline-block" /> Booked ({t.participantCount})</span>
-              <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-muted border border-border inline-block" /> Available ({t.totalSlots - t.participantCount})</span>
+              <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-primary inline-block" /> Booked ({t.teamFormat === "solo" ? `${t.participantCount} slots` : `${t.participantCount} teams` })</span>
+              <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-muted border border-border inline-block" /> Available ({t.teamFormat === "solo" ? `${t.totalSlots - t.participantCount} slots` : `${t.totalSlots - t.participantCount} teams` })</span>
             </div>
           </div>
         </TabsContent>

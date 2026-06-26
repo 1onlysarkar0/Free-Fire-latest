@@ -138,7 +138,11 @@ export async function debitWallet(opts: {
     return { success: true, transactionId, newBalance };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
-    console.error(`[Wallet] Debit failed for userId=${userId}:`, message);
+    if (message.includes("Insufficient balance")) {
+      console.warn(`[Wallet] Debit failed: Insufficient balance for userId=${userId}. Required: ${amount}`);
+    } else {
+      console.error(`[Wallet] Debit failed for userId=${userId}:`, message);
+    }
     return { success: false, error: message };
   }
 }

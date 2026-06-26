@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db/drizzle";
-import { tournamentSlot } from "@/db/schema";
+import { tournamentSlot, user } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -15,14 +15,25 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         teamName: tournamentSlot.teamName,
         ignList: tournamentSlot.ignList,
         bookedAt: tournamentSlot.bookedAt,
+        userName: user.name,
+        userGameName: user.gameName,
       })
       .from(tournamentSlot)
+      .leftJoin(user, eq(tournamentSlot.userId, user.id))
       .where(eq(tournamentSlot.tournamentId, tournamentId))
       .orderBy(tournamentSlot.slotNumber);
 
     return NextResponse.json({
       success: true,
-      data: slots.map((s) => ({ ...s, ignList: JSON.parse((s.ignList as string) || "[]") })),
+      data: slots.map((s) => ({
+        id: s.id,
+        slotNumber: s.slotNumber,
+        status: s.status,
+        teamName: s.teamName,
+        ignList: JSON.parse((s.ignList as string) || "[]"),
+        bookedAt: s.bookedAt,
+        userName: s.status === "BOOKED" ? (s.userGameName || s.userName) : undefined,
+      })),
     });
   } catch (err) {
     console.error("[API/tournaments/slots] error:", err);

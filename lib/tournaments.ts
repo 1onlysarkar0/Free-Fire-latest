@@ -21,6 +21,9 @@ export interface TournamentListItem {
 export interface SlotItem {
   id: string; slotNumber: number; status: string;
   teamName?: string | null; ignList: string[];
+  userId?: string | null;
+  userName?: string | null;
+  userGameName?: string | null;
 }
 
 export interface TournamentDetail {
@@ -40,7 +43,19 @@ async function _fetchTournamentDetail(id: string): Promise<TournamentDetail | nu
   if (!row) return null;
 
   const [slots, winners] = await Promise.all([
-    db.select().from(tournamentSlot).where(eq(tournamentSlot.tournamentId, id))
+    db.select({
+      id: tournamentSlot.id,
+      slotNumber: tournamentSlot.slotNumber,
+      status: tournamentSlot.status,
+      teamName: tournamentSlot.teamName,
+      ignList: tournamentSlot.ignList,
+      userId: tournamentSlot.userId,
+      userName: user.name,
+      userGameName: user.gameName,
+    })
+      .from(tournamentSlot)
+      .leftJoin(user, eq(tournamentSlot.userId, user.id))
+      .where(eq(tournamentSlot.tournamentId, id))
       .orderBy(tournamentSlot.slotNumber),
     db.select({
       id: tournamentWinner.id, userId: tournamentWinner.userId,
@@ -70,6 +85,7 @@ async function _fetchTournamentDetail(id: string): Promise<TournamentDetail | nu
     slots: slots.map((s) => ({
       id: s.id, slotNumber: s.slotNumber, status: s.status,
       teamName: s.teamName, ignList: safeJson<string[]>(s.ignList, []),
+      userId: s.userId, userName: s.userName, userGameName: s.userGameName,
     })),
     winners: winners.map((w) => ({
       id: w.id, userId: w.userId, placement: w.placement,
@@ -155,8 +171,11 @@ async function _fetchTournamentPublicData(id: string) {
       ignList: tournamentSlot.ignList,
       bookedAt: tournamentSlot.bookedAt,
       userId: tournamentSlot.userId,
+      userName: user.name,
+      userGameName: user.gameName,
     })
     .from(tournamentSlot)
+    .leftJoin(user, eq(tournamentSlot.userId, user.id))
     .where(eq(tournamentSlot.tournamentId, id))
     .orderBy(tournamentSlot.slotNumber);
 

@@ -34,16 +34,14 @@ interface ContentTemplate {
   contentMarkdown: string;
 }
 
-function slotPreview(format: string, totalSlots: number): string {
+function slotPreview(format: string, value: number): string {
   if (format === "duo") {
-    const teams = Math.floor(totalSlots / 2);
-    return `${teams} teams × 2 players = ${teams * 2} player spots`;
+    return `${value} teams × 2 players = ${value * 2} player spots`;
   }
   if (format === "squad") {
-    const teams = Math.floor(totalSlots / 4);
-    return `${teams} teams × 4 players = ${teams * 4} player spots`;
+    return `${value} teams × 4 players = ${value * 4} player spots`;
   }
-  return `${totalSlots} individual player slots`;
+  return `${value} individual player slots`;
 }
 
 interface NewTournamentClientProps {
@@ -69,7 +67,7 @@ export default function NewTournamentClient({ dynamicSlug }: NewTournamentClient
     gameMode: "battle_royale",
     teamFormat: "solo",
     maps: [] as string[],
-    totalSlots: 12,
+    totalSlots: 48,
     startTime: toDatetimeLocal(defaultStart),
     registrationDeadline: toDatetimeLocal(defaultDeadline),
     endTime: "",
@@ -126,6 +124,12 @@ export default function NewTournamentClient({ dynamicSlug }: NewTournamentClient
 
     setSaving(true);
     try {
+      const rawSlots = form.teamFormat === "duo"
+        ? Number(form.totalSlots) * 2
+        : form.teamFormat === "squad"
+        ? Number(form.totalSlots) * 4
+        : Number(form.totalSlots);
+
       const payload = {
         name: form.name,
         type: form.type,
@@ -134,7 +138,7 @@ export default function NewTournamentClient({ dynamicSlug }: NewTournamentClient
         gameMode: form.gameMode,
         teamFormat: form.teamFormat,
         maps: form.maps,
-        totalSlots: Number(form.totalSlots),
+        totalSlots: rawSlots,
         startTime: new Date(form.startTime).toISOString(),
         registrationDeadline: new Date(form.registrationDeadline).toISOString(),
         endTime: form.endTime ? new Date(form.endTime).toISOString() : null,
@@ -210,7 +214,18 @@ export default function NewTournamentClient({ dynamicSlug }: NewTournamentClient
             </div>
             <div>
               <Label htmlFor="teamFormat">Team Format *</Label>
-              <Select value={form.teamFormat} onValueChange={(v) => set("teamFormat", v)}>
+              <Select
+                value={form.teamFormat}
+                onValueChange={(v) => {
+                  setForm((f) => {
+                    let defaultSlots = 12;
+                    if (v === "solo") defaultSlots = 48;
+                    else if (v === "duo") defaultSlots = 24;
+                    else if (v === "squad") defaultSlots = 12;
+                    return { ...f, teamFormat: v, totalSlots: defaultSlots };
+                  });
+                }}
+              >
                 <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {TEAM_FORMATS.map((f) => (
@@ -243,14 +258,13 @@ export default function NewTournamentClient({ dynamicSlug }: NewTournamentClient
 
           <div>
             <Label htmlFor="totalSlots">
-              {form.teamFormat === "solo" ? "Total Slots (players) *" : `Total Slots (player spots) *`}
+              {form.teamFormat === "solo" ? "Total Slots (players) *" : "Total Teams *"}
             </Label>
             <div className="flex items-center gap-3 mt-1">
               <Input
                 id="totalSlots"
                 type="number"
-                min={form.teamFormat === "duo" ? 2 : form.teamFormat === "squad" ? 4 : 1}
-                step={form.teamFormat === "duo" ? 2 : form.teamFormat === "squad" ? 4 : 1}
+                min={1}
                 max={500}
                 value={form.totalSlots}
                 onChange={(e) => set("totalSlots", e.target.value)}

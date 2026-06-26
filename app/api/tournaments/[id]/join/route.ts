@@ -167,8 +167,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         .set({
           status: "BOOKED",
           userId,
-          teamName: teamName || null,
-          ignList: JSON.stringify(ignList),
           bookedAt: new Date(),
         })
         .where(eq(tournamentSlot.id, chosenSlot!.id));
@@ -194,7 +192,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to join tournament";
-    console.error("[API/tournaments/join] error:", err);
     if (message === "ALREADY_JOINED") {
       return apiError("You have already joined this tournament", 409);
     }
@@ -204,6 +201,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (message.includes("Insufficient balance") || message === "Insufficient wallet balance") {
       return apiError(message, 400);
     }
+    console.error("[API/tournaments/join] error:", err);
     return apiError(message, 500);
   }
 }

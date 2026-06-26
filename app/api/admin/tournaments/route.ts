@@ -64,20 +64,16 @@ export async function POST(req: NextRequest) {
     const rawSlots = Math.max(2, Math.min(500, parseInt(totalSlots) || 12));
     const format = (teamFormat as string).toLowerCase();
 
-    // For duo/squad: totalSlots = total player spots; slot records = totalSlots / team size
-    // For solo: totalSlots = number of individual slot records
-    let slotRecordCount: number;
+    // Create slot records for all individual player spots
     let teamSize: number;
     if (format === "duo") {
       teamSize = 2;
-      slotRecordCount = Math.max(1, Math.floor(rawSlots / 2));
     } else if (format === "squad") {
       teamSize = 4;
-      slotRecordCount = Math.max(1, Math.floor(rawSlots / 4));
     } else {
       teamSize = 1;
-      slotRecordCount = rawSlots;
     }
+    const slotRecordCount = rawSlots;
 
     const id = nanoid();
 
@@ -106,17 +102,20 @@ export async function POST(req: NextRequest) {
       });
 
       // Auto-create slots
-      const slotRows = Array.from({ length: slotRecordCount }, (_, i) => ({
-        id: nanoid(),
-        tournamentId: id,
-        slotNumber: i + 1,
-        // For duo/squad: label as Team A, B, C... For solo: plain number
-        teamName: teamSize > 1 ? slotLabel(i + 1) : null,
-        status: "AVAILABLE",
-        userId: null,
-        ignList: "[]",
-        bookedAt: null,
-      }));
+      const slotRows = Array.from({ length: slotRecordCount }, (_, i) => {
+        const teamIndex = teamSize > 1 ? Math.floor(i / teamSize) + 1 : null;
+        return {
+          id: nanoid(),
+          tournamentId: id,
+          slotNumber: i + 1,
+          // Prefill team name to group individual slots
+          teamName: teamIndex ? slotLabel(teamIndex) : null,
+          status: "AVAILABLE",
+          userId: null,
+          ignList: "[]",
+          bookedAt: null,
+        };
+      });
       await tx.insert(tournamentSlot).values(slotRows);
     });
 

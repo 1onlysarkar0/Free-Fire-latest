@@ -213,9 +213,16 @@ export default function AdminTournamentsClient({ dynamicSlug, initialData }: { d
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-1 text-muted-foreground text-sm">
-                          <Users className="h-3.5 w-3.5" />
-                          <span>{t.bookedSlots}/{t.totalSlots}</span>
+                        <div className="flex flex-col gap-0.5 text-muted-foreground text-xs font-medium">
+                          <div className="flex items-center gap-1 text-foreground text-sm font-semibold">
+                            <Users className="h-3.5 w-3.5" />
+                            <span>{t.bookedSlots}/{t.totalSlots} {t.teamFormat === "solo" ? "Slots" : "Teams"}</span>
+                          </div>
+                          {t.teamFormat !== "solo" && (
+                            <span className="text-[10px] text-muted-foreground pl-[18px]">
+                              ({t.bookedSlots * (t.teamFormat === "squad" ? 4 : 2)}/{t.totalSlots * (t.teamFormat === "squad" ? 4 : 2)} spots)
+                            </span>
+                          )}
                         </div>
                       </td>
                       <td className="px-4 py-3 hidden md:table-cell">
