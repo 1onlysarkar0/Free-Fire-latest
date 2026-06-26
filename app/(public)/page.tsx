@@ -2,7 +2,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { RocketIcon, ArrowRightIcon, Trophy, Gamepad2, Clock, Users2, Zap } from "lucide-react";
+import { RocketIcon, ArrowRightIcon, Trophy, Gamepad2, Clock, Users2 } from "lucide-react";
 import { LogoCloud } from "@/components/ui/logo-cloud-3";
 import { H1, H2, P } from "@/components/ui/typography";
 import { getUpcomingTournamentsForHomepage } from "@/lib/tournaments";

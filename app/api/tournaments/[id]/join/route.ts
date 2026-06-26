@@ -34,8 +34,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     const body = await req.json().catch(() => ({}));
-    const teamName: string = (body.teamName ?? "").trim();
-    const ignList: string[] = Array.isArray(body.ignList) ? body.ignList : [];
     const requestedSlotId: string | null = body.slotId ?? null;
 
     // Load tournament

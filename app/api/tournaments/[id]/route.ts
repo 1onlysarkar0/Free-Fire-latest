@@ -62,7 +62,17 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         availableSlots: row.totalSlots - bookedSlots,
         roomId: roomCredentials?.roomId ?? null,
         roomPassword: roomCredentials?.roomPassword ?? null,
-        slots: slots.map((s: { userId?: string | null; userName?: string | null; userGameName?: string | null; [key: string]: any }) => ({
+        slots: slots.map((s: {
+          id: string;
+          slotNumber: number;
+          status: string;
+          teamName: string | null;
+          ignList: string[];
+          bookedAt: string | null;
+          userId: string | null;
+          userName: string | null;
+          userGameName: string | null;
+        }) => ({
           ...s,
           userId: s.userId === session?.user?.id ? s.userId : undefined,
           userName: s.status === "BOOKED" ? (s.userGameName || s.userName) : undefined,
