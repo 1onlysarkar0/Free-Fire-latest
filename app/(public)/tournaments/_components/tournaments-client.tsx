@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
-import { Trophy, Search, Clock, Zap, ChevronRight, Filter, Users2, UserCheck, Loader2 } from "lucide-react";
+import { Trophy, Search, Clock, Zap, ChevronRight, Filter, Users2, UserCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -13,20 +13,26 @@ import { TournamentListItem } from "@/lib/tournaments";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
-export default function TournamentsClient({ initialFilter = "ACTIVE,UPCOMING,ROOM_REVEALED,LIVE" }: { initialFilter?: string }) {
+export default function TournamentsClient({
+  initialData = [],
+  initialFilter = "ACTIVE,UPCOMING,ROOM_REVEALED,LIVE"
+}: {
+  initialData?: TournamentListItem[],
+  initialFilter?: string
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [tournaments, setTournaments] = useState<TournamentListItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [tournaments, setTournaments] = useState<TournamentListItem[]>(initialData);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState(initialFilter);
   const [gameModeFilter, setGameModeFilter] = useState<string>("ALL");
   const [entryFeeFilter, setEntryFeeFilter] = useState<string>("ALL");
 
   useEffect(() => {
+    setTournaments(initialData);
     setStatusFilter(initialFilter);
-  }, [initialFilter]);
+  }, [initialData, initialFilter]);
 
   const load = useCallback(() => {
     const params = new URLSearchParams({ limit: "100" });
@@ -37,8 +43,7 @@ export default function TournamentsClient({ initialFilter = "ACTIVE,UPCOMING,ROO
       .then((d) => {
         if (d.data) setTournaments(d.data);
       })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+      .catch(console.error);
   }, [statusFilter]);
 
   useEffect(() => {
@@ -118,23 +123,6 @@ export default function TournamentsClient({ initialFilter = "ACTIVE,UPCOMING,ROO
       </div>
     </div>
   );
-
-  if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-16">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-          <div>
-            <div className="h-8 w-48 bg-muted rounded animate-pulse" />
-            <div className="h-4 w-72 bg-muted rounded mt-2 animate-pulse" />
-          </div>
-          <div className="h-11 w-80 bg-muted rounded animate-pulse" />
-        </div>
-        <div className="flex justify-center py-32">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-16">

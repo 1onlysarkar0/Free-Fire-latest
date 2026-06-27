@@ -8,7 +8,7 @@ import Link from "next/link";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 import {
   Trophy, Users, Clock, Key, Crown, ArrowLeft, Check,
-  Shield, Zap, ChevronRight, Loader2,
+  Shield, Zap, ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,19 +18,30 @@ import { TOURNAMENT_STATUS_COLORS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 interface TournamentData extends TournamentDetail {
-  userParticipant?: { slotId: string };
-  userSlot?: { id: string; slotNumber: number; teamName?: string; ignList: string[] };
+  userParticipant?: { slotId: string } | null;
+  userSlot?: { id: string; slotNumber: number; teamName?: string; ignList: string[] } | null;
   roomId?: string | null;
   roomPassword?: string | null;
 }
 
-interface Props { id: string }
+interface Props {
+  id: string;
+  initialData: TournamentDetail | null;
+  userParticipant?: { slotId: string } | null;
+  userSlot?: { id: string; slotNumber: number; teamName?: string; ignList: string[] } | null;
+}
 
-export default function TournamentDetailClient({ id }: Props) {
+export default function TournamentDetailClient({ id, initialData, userParticipant: initialParticipant, userSlot: initialSlot }: Props) {
   const router = useRouter();
   const { data: session } = authClient.useSession();
-  const [t, setT] = useState<TournamentData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [t, setT] = useState<TournamentData | null>(() => {
+    if (!initialData) return null;
+    return {
+      ...initialData,
+      userParticipant: initialParticipant ?? undefined,
+      userSlot: initialSlot ?? undefined,
+    } as TournamentData;
+  });
   const [joining, setJoining] = useState(false);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
 
@@ -42,10 +53,11 @@ export default function TournamentDetailClient({ id }: Props) {
       if (!data.success) return;
       setT(data.data);
     } catch (err) { console.error(err); }
-    finally { setLoading(false); }
   }, [id]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    if (!initialData) load();
+  }, [load, initialData]);
 
   // Poll every 15s for real-time updates
   useEffect(() => {
@@ -76,13 +88,7 @@ export default function TournamentDetailClient({ id }: Props) {
     finally { setJoining(false); }
   }
 
-  if (!t) {
-    return (
-      <div className="flex items-center justify-center py-32">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
+  if (!t) return null;
 
   const isParticipant = !!t.userParticipant;
   const isRegistrationOpen = t.status === "UPCOMING" && new Date() < new Date(t.registrationDeadline);
