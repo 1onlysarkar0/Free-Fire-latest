@@ -75,7 +75,6 @@ export default function EmailDesignerClient({
 
   // Local compiled preview HTML
   const [previewHtml, setPreviewHtml] = useState("");
-  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Test send dialog
   const [testDialog, setTestDialog] = useState(false);
@@ -114,14 +113,16 @@ export default function EmailDesignerClient({
     setPreviewHtml(getRenderedHtmlLocal(htmlContent));
   }, [htmlContent, getRenderedHtmlLocal]);
 
-  // Write preview HTML to iframe document to ensure reliable rendering
-  useEffect(() => {
-    if (iframeRef.current && iframeRef.current.contentWindow) {
+  // Callback ref to write to iframe document on mount and updates
+  const setIframeRef = useCallback((node: HTMLIFrameElement | null) => {
+    if (node) {
       try {
-        const doc = iframeRef.current.contentWindow.document;
-        doc.open();
-        doc.write(previewHtml || "<html><body><p style='color:#666;font-family:sans-serif;'>Generating preview...</p></body></html>");
-        doc.close();
+        const doc = node.contentWindow?.document;
+        if (doc) {
+          doc.open();
+          doc.write(previewHtml || "<html><body><p style='color:#666;font-family:sans-serif;'>Generating preview...</p></body></html>");
+          doc.close();
+        }
       } catch (err) {
         console.error("Iframe write error:", err);
       }
@@ -316,7 +317,7 @@ export default function EmailDesignerClient({
                 </div>
                 <div className="flex-1 bg-white">
                   <iframe
-                    ref={iframeRef}
+                    ref={setIframeRef}
                     className="h-full w-full min-h-[550px] lg:min-h-[650px]"
                     title="Live Email Preview"
                     sandbox="allow-same-origin"
