@@ -4,14 +4,13 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  Mail, Plus, Pencil, Trash2, Loader2, Eye, Copy, Send,
+  Mail, Plus, Pencil, Trash2, Loader2, Copy, Send,
   CheckCircle, XCircle, Search, Filter, LayoutTemplate,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -41,7 +40,6 @@ export interface Template {
 }
 
 const CATEGORIES = ["all", "auth", "wallet", "tournaments", "notifications", "marketing", "system"];
-const EDITOR_TYPES = ["html", "visual"];
 const CATEGORY_COLORS: Record<string, string> = {
   auth: "bg-blue-500/10 text-blue-600",
   wallet: "bg-emerald-500/10 text-emerald-600",

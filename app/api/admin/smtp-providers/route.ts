@@ -1,7 +1,6 @@
 import { requireAdminOrRole } from "@/lib/admin-auth";
 import { db } from "@/db/drizzle";
 import { smtpProviders } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 
 const MASKED = "••••••••";

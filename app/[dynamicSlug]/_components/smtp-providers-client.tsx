@@ -3,8 +3,8 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Mail, Plus, Pencil, Trash2, Loader2, CheckCircle2, XCircle,
-  Star, StarOff, Send, Eye, EyeOff, Server, Settings,
+  Mail, Plus, Pencil, Trash2, Loader2, CheckCircle2,
+  Star, Send, Eye, EyeOff, Server,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";

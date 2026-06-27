@@ -16,7 +16,7 @@ export async function POST(request: Request, { params }: Params) {
   await db.update(smtpProviders).set({ isDefault: false });
 
   // Set this one as default
-  const result = await db
+  await db
     .update(smtpProviders)
     .set({ isDefault: true, updatedAt: new Date() })
     .where(eq(smtpProviders.id, id));

@@ -471,7 +471,7 @@ export default function EmailDesignerClient({
               <div className="rounded-2xl border border-border/20 overflow-hidden bg-white shadow-xs h-[750px] flex flex-col">
                 <div className="bg-accent/30 border-b border-border/10 px-4 py-2 flex items-center justify-between text-xs text-muted-foreground">
                   <p>Rendered Email Client Preview (Sample Data Applied)</p>
-                  <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 font-semibold">
+                  <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 font-semibold">
                     <Check className="h-3 w-3 mr-1" /> Ready
                   </Badge>
                 </div>
@@ -638,7 +638,7 @@ export default function EmailDesignerClient({
 }
 
 // Simple Badge component fallback in case it is not imported from ui
-function Badge({ children, className, variant }: { children: React.ReactNode; className?: string; variant?: string }) {
+function Badge({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
     <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors ${className}`}>
       {children}

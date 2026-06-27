@@ -51,11 +51,12 @@ const nextConfig: NextConfig = {
 
     const cspDirectives = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://cdn.vercel-insights.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://cdn.vercel-insights.com https://editor.unlayer.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob: https:",
-      "connect-src 'self' https://va.vercel-scripts.com https://vitals.vercel-insights.com wss:",
+      "connect-src 'self' https://va.vercel-scripts.com https://vitals.vercel-insights.com https://*.unlayer.com https://editor.unlayer.com wss:",
+      "frame-src 'self' https://editor.unlayer.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
