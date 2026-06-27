@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import TournamentDetailClient from "./_components/tournament-detail-client";
-import { fetchTournamentDetail } from "@/lib/tournaments";
 import { getAdminSiteConfigCached } from "@/lib/admin-data";
+import { fetchTournamentDetail } from "@/lib/tournaments";
 
 export const dynamic = "force-dynamic";
 
@@ -45,42 +45,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function TournamentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [initialData, siteConfig] = await Promise.all([
-    fetchTournamentDetail(id).catch(() => null),
-    getAdminSiteConfigCached().catch(() => null),
-  ]);
-
-  const structuredData = initialData
-    ? {
-        "@context": "https://schema.org",
-        "@type": "Event",
-        name: initialData.name,
-        description: `${initialData.gameMode} gaming tournament. Prize pool: ₹${initialData.prizePool}.`,
-        url: `${APP_URL}/tournaments/${id}`,
-        organizer: {
-          "@type": "Organization",
-          name: siteConfig?.logoTitle ?? "",
-          url: APP_URL,
-        },
-        offers: {
-          "@type": "Offer",
-          price: initialData.joiningFee ?? 0,
-          priceCurrency: "INR",
-          availability: "https://schema.org/InStock",
-          url: `${APP_URL}/tournaments/${id}`,
-        },
-      }
-    : null;
 
   return (
     <div className="min-h-screen bg-background pt-[68px]">
-      {structuredData && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-        />
-      )}
-      <TournamentDetailClient id={id} initialData={initialData} />
+      <TournamentDetailClient id={id} />
     </div>
   );
 }

@@ -8,7 +8,7 @@ import Link from "next/link";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 import {
   Trophy, Users, Clock, Key, Crown, ArrowLeft, Check,
-  Shield, Zap, ChevronRight,
+  Shield, Zap, ChevronRight, Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,23 +24,25 @@ interface TournamentData extends TournamentDetail {
   roomPassword?: string | null;
 }
 
-interface Props { id: string; initialData: TournamentDetail | null }
+interface Props { id: string }
 
-export default function TournamentDetailClient({ id, initialData }: Props) {
+export default function TournamentDetailClient({ id }: Props) {
   const router = useRouter();
   const { data: session } = authClient.useSession();
-  const [t, setT] = useState<TournamentData | null>(initialData as TournamentData | null);
+  const [t, setT] = useState<TournamentData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch(`/api/tournaments/${id}`);
+      const res = await fetch(`/api/tournaments/${id}?_=${Date.now()}`);
       if (!res.ok) return;
       const data = await res.json();
       if (!data.success) return;
       setT(data.data);
     } catch (err) { console.error(err); }
+    finally { setLoading(false); }
   }, [id]);
 
   useEffect(() => { load(); }, [load]);
@@ -74,7 +76,13 @@ export default function TournamentDetailClient({ id, initialData }: Props) {
     finally { setJoining(false); }
   }
 
-  if (!t) return null;
+  if (!t) {
+    return (
+      <div className="flex items-center justify-center py-32">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   const isParticipant = !!t.userParticipant;
   const isRegistrationOpen = t.status === "UPCOMING" && new Date() < new Date(t.registrationDeadline);

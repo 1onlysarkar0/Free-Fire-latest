@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
-import { Trophy, Search, Clock, Zap, ChevronRight, Filter, Users2, UserCheck } from "lucide-react";
+import { Trophy, Search, Clock, Zap, ChevronRight, Filter, Users2, UserCheck, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -13,26 +13,20 @@ import { TournamentListItem } from "@/lib/tournaments";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
-export default function TournamentsClient({ 
-  initialData = [], 
-  initialFilter = "ACTIVE,UPCOMING,ROOM_REVEALED,LIVE" 
-}: { 
-  initialData?: TournamentListItem[], 
-  initialFilter?: string 
-}) {
+export default function TournamentsClient({ initialFilter = "ACTIVE,UPCOMING,ROOM_REVEALED,LIVE" }: { initialFilter?: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
-  const [tournaments, setTournaments] = useState<TournamentListItem[]>(initialData);
+
+  const [tournaments, setTournaments] = useState<TournamentListItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState(initialFilter);
   const [gameModeFilter, setGameModeFilter] = useState<string>("ALL");
   const [entryFeeFilter, setEntryFeeFilter] = useState<string>("ALL");
 
   useEffect(() => {
-    setTournaments(initialData);
     setStatusFilter(initialFilter);
-  }, [initialData, initialFilter]);
+  }, [initialFilter]);
 
   const load = useCallback(() => {
     const params = new URLSearchParams({ limit: "100" });
@@ -43,11 +37,10 @@ export default function TournamentsClient({
       .then((d) => {
         if (d.data) setTournaments(d.data);
       })
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, [statusFilter]);
 
-  // Immediate fetch on mount (for user session data like hasJoined)
-  // + periodic refresh every 30s
   useEffect(() => {
     load();
     const interval = setInterval(load, 30_000);
@@ -126,9 +119,26 @@ export default function TournamentsClient({
     </div>
   );
 
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-16">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+          <div>
+            <div className="h-8 w-48 bg-muted rounded animate-pulse" />
+            <div className="h-4 w-72 bg-muted rounded mt-2 animate-pulse" />
+          </div>
+          <div className="h-11 w-80 bg-muted rounded animate-pulse" />
+        </div>
+        <div className="flex justify-center py-32">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-16">
-      
+
       {/* Header & Main Search Row */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <div>
@@ -146,7 +156,7 @@ export default function TournamentsClient({
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          
+
           {/* Mobile Filter Trigger */}
           <div className="lg:hidden shrink-0">
             <Sheet>
@@ -284,8 +294,8 @@ export default function TournamentsClient({
                             )}
                           </div>
                           <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden mt-1.5">
-                            <div 
-                              className="h-full bg-primary transition-all duration-500 rounded-full" 
+                            <div
+                              className="h-full bg-primary transition-all duration-500 rounded-full"
                               style={{ width: `${(t.bookedSlots / t.totalSlots) * 100}%` }}
                             />
                           </div>
