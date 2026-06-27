@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Save, Loader2, Eye, EyeOff, Plus, Trash2,
   Wifi, WifiOff, CheckCircle, XCircle, RefreshCw,
@@ -84,6 +85,7 @@ const defaultConfig: PaymentConfigData = {
 };
 
 export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs }: Props) {
+  const router = useRouter();
   const [config, setConfig] = useState<PaymentConfigData>(initialConfig || defaultConfig);
   const [saving, setSaving] = useState(false);
   const [showPass, setShowPass] = useState(false);
@@ -135,6 +137,7 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Save failed");
       toast.success("Payment configuration saved.");
+      router.refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Save failed");
     } finally {

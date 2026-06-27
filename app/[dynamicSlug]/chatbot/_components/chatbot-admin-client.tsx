@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   Bot, Settings, FileText, BookOpen, Shield,
@@ -233,6 +234,7 @@ export default function ChatbotAdminClient({
   canViewConversations,
   canDeleteConversations,
 }: Props) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("general");
   const [config, setConfig] = useState<ChatbotConfig>(
     initialConfig ?? {
@@ -291,6 +293,7 @@ export default function ChatbotAdminClient({
       if (data.success) {
         setConfig((prev) => ({ ...prev, ...patch }));
         toast.success("Saved successfully!");
+        router.refresh();
       } else {
         toast.error(data.error ?? "Failed to save");
       }
@@ -360,6 +363,7 @@ export default function ChatbotAdminClient({
         setEditingKnowledge(null);
         setKnowledgeForm({ title: "", content: "", category: "General", priority: 100, isEnabled: true });
         loadKnowledge();
+        router.refresh();
       } else {
         toast.error(data.error ?? "Failed to save");
       }
@@ -376,6 +380,7 @@ export default function ChatbotAdminClient({
       if (data.success) {
         toast.success("Entry deleted");
         loadKnowledge();
+        router.refresh();
       } else {
         toast.error(data.error ?? "Failed to delete");
       }
@@ -453,6 +458,7 @@ export default function ChatbotAdminClient({
       if (data.success) {
         toast.success("Session deleted");
         setSessions((prev) => prev.filter((s) => s.id !== id));
+        router.refresh();
       } else {
         toast.error(data.error ?? "Failed to delete");
       }
@@ -474,6 +480,7 @@ export default function ChatbotAdminClient({
         setSessionTotal(0);
         setTotalMessages(0);
         setSessionPage(1);
+        router.refresh();
       } else {
         toast.error(data.error ?? "Failed to delete all conversations");
       }

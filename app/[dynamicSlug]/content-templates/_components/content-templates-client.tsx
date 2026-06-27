@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { LayoutTemplate, Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,7 @@ interface ContentTemplate {
 }
 
 export default function ContentTemplatesClient({ initialData }: { dynamicSlug: string; initialData: ContentTemplate[] }) {
+  const router = useRouter();
   const [templates, setTemplates] = useState<ContentTemplate[]>(initialData);
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -97,6 +99,7 @@ export default function ContentTemplatesClient({ initialData }: { dynamicSlug: s
         toast.success(editingId ? "Template updated" : "Template created");
         setDialogOpen(false);
         load();
+        router.refresh();
       } else {
         toast.error(data.error || "Failed to save");
       }
@@ -116,6 +119,7 @@ export default function ContentTemplatesClient({ initialData }: { dynamicSlug: s
         toast.success("Template deleted");
         setDeleteId(null);
         load();
+        router.refresh();
       } else {
         toast.error(data.error || "Failed to delete");
       }

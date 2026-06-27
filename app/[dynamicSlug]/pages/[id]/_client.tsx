@@ -67,6 +67,7 @@ export default function EditPageClient({ id, initialData, dynamicSlug: panelSlug
       });
       if (!res.ok) throw new Error(await res.text());
       toast.success("Page saved.");
+      router.refresh();
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Error");
     } finally {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import {
   ArrowUpFromLine, RefreshCw,
@@ -74,6 +75,7 @@ const STATUS_STYLES: Record<string, { badge: string; dot: string }> = {
 };
 
 export default function WithdrawAdminClient() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"requests" | "config">("requests");
   const [previewContent, setPreviewContent] = useState(false);
 
@@ -129,6 +131,7 @@ export default function WithdrawAdminClient() {
       const data = await res.json();
       if (data.success) {
         toast.success("Withdrawal settings updated successfully.");
+        router.refresh();
       } else {
         toast.error(data.error || "Failed to update configuration.");
       }
@@ -189,6 +192,7 @@ export default function WithdrawAdminClient() {
       if (data.success) {
         toast.success(data.message);
         await loadRequests(page);
+        router.refresh();
       } else {
         toast.error(data.error || "Failed to process");
       }
