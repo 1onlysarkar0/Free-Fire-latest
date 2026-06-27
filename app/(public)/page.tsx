@@ -2,20 +2,16 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { RocketIcon, ArrowRightIcon, Trophy, Gamepad2, Clock, Users2 } from "lucide-react";
+import { RocketIcon, ArrowRightIcon, Trophy, Gamepad2 } from "lucide-react";
 import { LogoCloud } from "@/components/ui/logo-cloud-3";
 import { H1, H2, P } from "@/components/ui/typography";
-import { getUpcomingTournamentsForHomepage } from "@/lib/tournaments";
-import { TOURNAMENT_STATUS_COLORS, TOURNAMENT_STATUS_LABELS } from "@/lib/constants";
 import { getHeroConfig } from "@/lib/content";
 import { getTopPlayersForHomepage } from "@/lib/user-data";
-import { format } from "date-fns";
 
 export default async function Home() {
-  const [config, dbUsers, tournaments] = await Promise.all([
+  const [config, dbUsers] = await Promise.all([
     getHeroConfig(),
     getTopPlayersForHomepage(),
-    getUpcomingTournamentsForHomepage(),
   ]);
 
   let players = dbUsers.map((u) => ({
@@ -93,102 +89,6 @@ export default async function Home() {
             </H2>
             <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-10 w-full">
               <LogoCloud logos={players} />
-            </div>
-          </section>
-        )}
-
-        {tournaments.length > 0 && (
-          <section className="w-full pt-8 pb-24">
-            <div className="max-w-5xl mx-auto px-6">
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <H2 className="font-medium text-2xl font-lora border-none pb-0 mt-0">
-                    Upcoming Tournaments
-                  </H2>
-                </div>
-                <Link
-                  href="/tournaments"
-                  prefetch={true}
-                  className="text-sm font-semibold text-primary hover:text-primary/90 flex items-center gap-1 transition-colors"
-                >
-                  View all <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
-                </Link>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {tournaments.map((t) => {
-                  const maps = t.maps;
-                  return (
-                    <Link
-                      key={t.id}
-                      href={`/tournaments/${t.id}`}
-                      prefetch={true}
-                      className="group bg-card rounded-2xl border border-border/60 hover:border-primary/40 hover:-translate-y-1 hover:shadow-md active:translate-y-0 active:scale-[0.99] transition-all duration-300 ease-out overflow-hidden flex flex-col h-full"
-                    >
-                      <div className="p-5 flex flex-col justify-between flex-1">
-                        <div className="flex flex-col gap-3">
-                          <div className="flex items-center justify-between">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${TOURNAMENT_STATUS_COLORS[t.status] ?? "bg-muted text-muted-foreground"}`}>
-                              {TOURNAMENT_STATUS_LABELS[t.status] ?? t.status}
-                            </span>
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${t.type === "FREE" ? "bg-success/15 text-success border-success/20" : "bg-primary/10 text-primary border-primary/20"}`}>
-                              {t.type === "FREE" ? "FREE" : `₹${t.joiningFee} ENTRY`}
-                            </span>
-                          </div>
-
-                          <h3 className="font-bold text-foreground text-sm leading-snug group-hover:text-primary transition-colors line-clamp-2">
-                            {t.name}
-                          </h3>
-
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <span className="capitalize font-medium">{t.gameMode.replace(/_/g, " ")}</span>
-                            <span className="text-muted-foreground/30">·</span>
-                            <span className="capitalize font-medium">{t.teamFormat}</span>
-                            {maps.length > 0 && (
-                              <>
-                                <span className="text-muted-foreground/30">·</span>
-                                <span className="font-medium">{maps[0]}</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="mt-4 flex flex-col gap-2">
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground/80">
-                            <Clock className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" aria-hidden="true" />
-                            <span suppressHydrationWarning>Starts {format(new Date(t.startTime), "dd MMM, h:mm a")}</span>
-                          </div>
-
-                          <div className="mt-2 pt-3 border-t border-border/40 space-y-2">
-                            <div className="flex items-center justify-between text-xs text-muted-foreground">
-                              <span className="flex items-center gap-1.5">
-                                <Users2 className="h-3.5 w-3.5 text-muted-foreground/60" aria-hidden="true" />
-                                <span>Registration</span>
-                              </span>
-                              <span className="font-semibold text-foreground">
-                                {t.teamFormat === "solo" && `${t.bookedSlots} / ${t.totalSlots} Slots`}
-                                {t.teamFormat === "duo" && `${t.bookedSlots} / ${t.totalSlots} Teams (${t.bookedSlots * 2} / ${t.totalSlots * 2} slots)`}
-                                {t.teamFormat === "squad" && `${t.bookedSlots} / ${t.totalSlots} Teams (${t.bookedSlots * 4} / ${t.totalSlots * 4} slots)`}
-                              </span>
-                            </div>
-                            {t.prizePool > 0 && (
-                              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                <span className="flex items-center gap-1.5">
-                                  <Trophy className="h-3.5 w-3.5 text-primary/70" aria-hidden="true" />
-                                  <span>Winning Price</span>
-                                </span>
-                                <span className="font-bold text-primary">
-                                  ₹{t.prizePool}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
             </div>
           </section>
         )}

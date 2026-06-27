@@ -94,6 +94,7 @@ export const twoFactor = pgTable("twoFactor", {
 
 export const siteConfig = pgTable("site_config", {
   id: text("id").primaryKey(),
+  deletedTournamentsCount: integer("deleted_tournaments_count").notNull().default(0),
 
   // ── Brand / Logo ──────────────────────────────────────────────────────────
   logoUrl: text("logo_url").notNull().default("/"),

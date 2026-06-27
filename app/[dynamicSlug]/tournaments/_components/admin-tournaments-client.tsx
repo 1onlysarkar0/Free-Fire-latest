@@ -7,8 +7,16 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import {
   Trophy, Plus, Search, Filter, MoreHorizontal, Pencil, Trash2,
-  Users,
+  Users, Trash, Loader2,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -48,7 +56,7 @@ const STATUS_COLORS: Record<string, string> = {
   CANCELLED: "bg-red-100 text-destructive dark:bg-red-900/30 border-destructive/20",
 };
 
-interface Tournament {
+export interface Tournament {
   id: string;
   name: string;
   type: string;
@@ -63,9 +71,25 @@ interface Tournament {
   maps: string[];
 }
 
-export default function AdminTournamentsClient({ dynamicSlug, initialData }: { dynamicSlug: string; initialData: Tournament[] }) {
+interface AdminTournamentsClientProps {
+  dynamicSlug: string;
+  initialData: Tournament[];
+  initialDeletedCount: number;
+}
+
+export default function AdminTournamentsClient({
+  dynamicSlug,
+  initialData,
+  initialDeletedCount,
+}: AdminTournamentsClientProps) {
   const router = useRouter();
   const [tournaments, setTournaments] = useState<Tournament[]>(initialData);
+  const [deletedCount, setDeletedCount] = useState(initialDeletedCount);
+  const [showCleanup, setShowCleanup] = useState(false);
+  const [cleanupTournaments, setCleanupTournaments] = useState<Tournament[]>([]);
+  const [loadingCleanup, setLoadingCleanup] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [cleaningUp, setCleaningUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
@@ -99,6 +123,7 @@ export default function AdminTournamentsClient({ dynamicSlug, initialData }: { d
       const data = await res.json();
       if (data.success) {
         toast.success("Tournament deleted");
+        setDeletedCount((prev) => prev + 1);
         setDeleteId(null);
         router.refresh();
         load();
@@ -109,6 +134,52 @@ export default function AdminTournamentsClient({ dynamicSlug, initialData }: { d
       toast.error("Failed to delete tournament");
     } finally {
       setDeleting(false);
+    }
+  }
+
+  async function loadCleanup() {
+    setLoadingCleanup(true);
+    try {
+      const res = await fetch("/api/admin/tournaments/cleanup");
+      if (!res.ok) throw new Error("Failed to load");
+      const data = await res.json();
+      setCleanupTournaments(Array.isArray(data) ? data : []);
+      setSelectedIds([]);
+    } catch {
+      toast.error("Failed to load old tournaments");
+    } finally {
+      setLoadingCleanup(false);
+    }
+  }
+
+  const openCleanup = () => {
+    setShowCleanup(true);
+    loadCleanup();
+  };
+
+  async function handleCleanup() {
+    if (selectedIds.length === 0) return;
+    setCleaningUp(true);
+    try {
+      const res = await fetch("/api/admin/tournaments/cleanup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: selectedIds }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(`Deleted ${data.count} old tournaments successfully`);
+        setDeletedCount((prev) => prev + data.count);
+        setShowCleanup(false);
+        router.refresh();
+        load();
+      } else {
+        toast.error(data.error || "Failed to cleanup");
+      }
+    } catch {
+      toast.error("Failed to cleanup tournaments");
+    } finally {
+      setCleaningUp(false);
     }
   }
 
@@ -123,12 +194,17 @@ export default function AdminTournamentsClient({ dynamicSlug, initialData }: { d
             </div>
             <div>
               <h1 className="text-xl font-bold tracking-tight text-foreground">Tournaments</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">{tournaments.length} tournament{tournaments.length !== 1 ? "s" : ""} total</p>
+              <p className="text-sm text-muted-foreground mt-0.5">{tournaments.length} active · {tournaments.length + deletedCount} total created</p>
             </div>
           </div>
-          <Link href={`/${dynamicSlug}/tournaments/new`} prefetch={true}>
-            <Button><Plus className="h-4 w-4" />New Tournament</Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={openCleanup}>
+              <Trash className="h-4 w-4 mr-1.5" />Cleanup Old
+            </Button>
+            <Link href={`/${dynamicSlug}/tournaments/new`} prefetch={true}>
+              <Button><Plus className="h-4 w-4" />New Tournament</Button>
+            </Link>
+          </div>
         </div>
 
         {/* Filters */}
@@ -282,6 +358,115 @@ export default function AdminTournamentsClient({ dynamicSlug, initialData }: { d
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <Dialog open={showCleanup} onOpenChange={setShowCleanup}>
+          <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col p-6">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Trash className="h-5 w-5 text-destructive" />
+                <span>Cleanup Old Tournaments</span>
+              </DialogTitle>
+              <DialogDescription>
+                Select tournaments started more than 24 hours ago to delete them. Deleting these tournaments will free up space, but the total count of tournaments created will be preserved.
+              </DialogDescription>
+            </DialogHeader>
+
+            {loadingCleanup ? (
+              <div className="flex-1 flex items-center justify-center py-10">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : cleanupTournaments.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center py-10 text-center text-muted-foreground">
+                <Trophy className="h-10 w-10 mb-2 opacity-50 text-foreground animate-pulse" />
+                <p className="text-sm font-medium">No old tournaments found</p>
+                <p className="text-xs mt-1 text-muted-foreground/80">All tournaments are newer than 24 hours or have already been cleaned up.</p>
+              </div>
+            ) : (
+              <div className="flex-1 flex flex-col overflow-hidden min-h-[300px]">
+                {/* Select All */}
+                <div className="flex items-center justify-between border-b pb-2 mb-3">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="select-all-cleanup"
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer bg-background"
+                      checked={cleanupTournaments.length > 0 && selectedIds.length === cleanupTournaments.length}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedIds(cleanupTournaments.map(t => t.id));
+                        } else {
+                          setSelectedIds([]);
+                        }
+                      }}
+                    />
+                    <label htmlFor="select-all-cleanup" className="text-xs font-bold text-foreground cursor-pointer select-none uppercase tracking-wider">
+                      Select All ({cleanupTournaments.length})
+                    </label>
+                  </div>
+                  <span className="text-xs text-muted-foreground font-semibold">
+                    {selectedIds.length} selected
+                  </span>
+                </div>
+
+                {/* Tournament List */}
+                <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+                  {cleanupTournaments.map((t) => {
+                    const isSelected = selectedIds.includes(t.id);
+                    return (
+                      <div
+                        key={t.id}
+                        onClick={() => {
+                          setSelectedIds(prev => 
+                            prev.includes(t.id) 
+                              ? prev.filter(id => id !== t.id) 
+                              : [...prev, t.id]
+                          );
+                        }}
+                        className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer select-none ${
+                          isSelected 
+                            ? "bg-primary/5 border-primary/45" 
+                            : "bg-background/40 border-border/80 hover:bg-accent/20"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 mt-0.5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                          checked={isSelected}
+                          readOnly
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <h4 className="font-semibold text-sm text-foreground truncate">{t.name}</h4>
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${STATUS_COLORS[t.status] ?? "bg-muted text-muted-foreground"}`}>
+                              {t.status}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1 font-medium">
+                            <span className="capitalize">{t.gameMode.replace(/_/g, " ")} · {t.teamFormat}</span>
+                            <span>Starts: {format(new Date(t.startTime), "dd MMM, h:mm a")}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            <DialogFooter className="mt-4 border-t pt-4">
+              <Button variant="outline" onClick={() => setShowCleanup(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleCleanup}
+                disabled={selectedIds.length === 0 || cleaningUp}
+              >
+                {cleaningUp ? "Deleting..." : `Delete Selected (${selectedIds.length})`}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

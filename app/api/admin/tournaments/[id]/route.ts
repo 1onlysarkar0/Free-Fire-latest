@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminOrRole } from "@/lib/admin-auth";
 import { db } from "@/db/drizzle";
-import { tournament, tournamentSlot, tournamentParticipant, tournamentWinner, user } from "@/db/schema";
-import { count, eq } from "drizzle-orm";
+import { tournament, tournamentSlot, tournamentParticipant, tournamentWinner, user, siteConfig } from "@/db/schema";
+import { count, eq, sql } from "drizzle-orm";
 import { invalidateTournamentCache } from "@/lib/cache";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -117,7 +117,15 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
       return NextResponse.json({ error: "Cannot delete an active tournament. Cancel it first." }, { status: 400 });
     }
 
-    await db.delete(tournament).where(eq(tournament.id, id));
+    await db.transaction(async (tx) => {
+      await tx.delete(tournament).where(eq(tournament.id, id));
+      await tx
+        .update(siteConfig)
+        .set({
+          deletedTournamentsCount: sql`${siteConfig.deletedTournamentsCount} + 1`
+        })
+        .where(eq(siteConfig.id, "default"));
+    });
     invalidateTournamentCache(id);
     return NextResponse.json({ success: true });
   } catch (err) {
