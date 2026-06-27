@@ -153,7 +153,7 @@ export function MarkdownRenderer({ content, className, variant = "default", isSt
         return (
           <CopyWrapper>
             <pre 
-              className={cn("bg-zinc-950 border border-zinc-800/80 shadow-sm p-4 rounded-xl overflow-x-auto text-sm font-mono text-zinc-100 [&>code]:!bg-transparent [&>code]:!p-0 [&>code]:!text-inherit [&>code]:!font-normal", isChat ? "my-3" : "my-8")} 
+              className={cn("bg-card border border-border shadow-xs p-4 rounded-xl overflow-x-auto text-sm font-mono text-foreground [&>code]:!bg-transparent [&>code]:!p-0 [&>code]:!text-inherit [&>code]:!font-normal", isChat ? "my-3" : "my-8")} 
               {...props} 
             >
               {children}

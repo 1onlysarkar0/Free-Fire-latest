@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -75,6 +75,7 @@ export default function EmailDesignerClient({
 
   // Local compiled preview HTML
   const [previewHtml, setPreviewHtml] = useState("");
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Test send dialog
   const [testDialog, setTestDialog] = useState(false);
@@ -112,6 +113,20 @@ export default function EmailDesignerClient({
   useEffect(() => {
     setPreviewHtml(getRenderedHtmlLocal(htmlContent));
   }, [htmlContent, getRenderedHtmlLocal]);
+
+  // Write preview HTML to iframe document to ensure reliable rendering
+  useEffect(() => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      try {
+        const doc = iframeRef.current.contentWindow.document;
+        doc.open();
+        doc.write(previewHtml || "<html><body><p style='color:#666;font-family:sans-serif;'>Generating preview...</p></body></html>");
+        doc.close();
+      } catch (err) {
+        console.error("Iframe write error:", err);
+      }
+    }
+  }, [previewHtml]);
 
   async function handleSave() {
     setSaving(true);
@@ -192,7 +207,7 @@ export default function EmailDesignerClient({
   return (
     <div className="w-full min-w-0">
       {/* Top Action Bar */}
-      <div className="flex flex-col gap-3 border-b border-border/10 pb-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
+      <div className="sticky top-0 z-30 -mx-4 px-4 md:-mx-6 md:px-6 lg:-mx-8 lg:px-8 bg-background/95 backdrop-blur-md border-b border-border/10 pb-4 mb-6 pt-4 -mt-4 md:pt-6 md:-mt-6 lg:pt-8 lg:-mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <Link href={`/${adminSlug}/email-templates`}>
             <Button variant="ghost" size="sm" className="gap-2">
@@ -262,7 +277,7 @@ export default function EmailDesignerClient({
                 <Label className="text-sm font-medium text-foreground">Edit HTML Source Code</Label>
                 <span className="text-xs text-muted-foreground">Supports global & template variables</span>
               </div>
-              <div className="rounded-2xl border border-border/20 overflow-hidden bg-[#1e1e1e] p-2 min-h-[600px] lg:min-h-[700px]">
+              <div className="rounded-2xl border border-border/20 overflow-hidden bg-white p-2 min-h-[600px] lg:min-h-[700px]">
                 <Editor
                   height="680px"
                   defaultLanguage="html"
@@ -273,7 +288,7 @@ export default function EmailDesignerClient({
                       markDirty();
                     }
                   }}
-                  theme="vs-dark"
+                  theme="light"
                   options={{
                     minimap: { enabled: false },
                     fontSize: 14,
@@ -301,7 +316,7 @@ export default function EmailDesignerClient({
                 </div>
                 <div className="flex-1 bg-white">
                   <iframe
-                    srcDoc={previewHtml}
+                    ref={iframeRef}
                     className="h-full w-full min-h-[550px] lg:min-h-[650px]"
                     title="Live Email Preview"
                     sandbox="allow-same-origin"
@@ -358,7 +373,7 @@ export default function EmailDesignerClient({
                 Format: <code className="text-xs bg-accent px-1 rounded">{"[{\"key\":\"user_name\",\"description\":\"User display name\",\"sample\":\"John\"}]"}</code>
               </p>
             </div>
-            <div className="rounded-2xl border border-border/20 overflow-hidden bg-[#1e1e1e] p-2 min-h-[220px]">
+            <div className="rounded-2xl border border-border/20 overflow-hidden bg-white p-2 min-h-[220px]">
               <Editor
                 height="200px"
                 defaultLanguage="json"
@@ -369,7 +384,7 @@ export default function EmailDesignerClient({
                     markDirty();
                   }
                 }}
-                theme="vs-dark"
+                theme="light"
                 options={{
                   minimap: { enabled: false },
                   fontSize: 14,
