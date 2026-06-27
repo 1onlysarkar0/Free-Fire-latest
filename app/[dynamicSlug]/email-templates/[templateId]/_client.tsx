@@ -3,6 +3,9 @@
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+
+const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 import {
   ArrowLeft, Save, Send, Copy, Loader2, Code2,
   Mail, Settings, Variable, LayoutTemplate, Check
@@ -259,12 +262,29 @@ export default function EmailDesignerClient({
                 <Label className="text-sm font-medium text-foreground">Edit HTML Source Code</Label>
                 <span className="text-xs text-muted-foreground">Supports global & template variables</span>
               </div>
-              <textarea
-                value={htmlContent}
-                onChange={(e) => { setHtmlContent(e.target.value); markDirty(); }}
-                className="w-full rounded-2xl border border-border/20 bg-accent/40 p-4 font-mono text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 resize-y min-h-[600px] lg:min-h-[700px]"
-                spellCheck={false}
-              />
+              <div className="rounded-2xl border border-border/20 overflow-hidden bg-[#1e1e1e] p-2 min-h-[600px] lg:min-h-[700px]">
+                <Editor
+                  height="680px"
+                  defaultLanguage="html"
+                  value={htmlContent}
+                  onChange={(val) => {
+                    if (val !== undefined) {
+                      setHtmlContent(val);
+                      markDirty();
+                    }
+                  }}
+                  theme="vs-dark"
+                  options={{
+                    minimap: { enabled: false },
+                    fontSize: 14,
+                    lineNumbers: "on",
+                    wordWrap: "on",
+                    automaticLayout: true,
+                    tabSize: 2,
+                    scrollBeyondLastLine: false,
+                  }}
+                />
+              </div>
             </div>
 
             {/* Live Preview Column */}
@@ -338,14 +358,29 @@ export default function EmailDesignerClient({
                 Format: <code className="text-xs bg-accent px-1 rounded">{"[{\"key\":\"user_name\",\"description\":\"User display name\",\"sample\":\"John\"}]"}</code>
               </p>
             </div>
-            <textarea
-              value={variablesSchema}
-              onChange={(e) => { setVariablesSchema(e.target.value); markDirty(); }}
-              className="w-full rounded-2xl border border-border/20 bg-accent/40 p-4 font-mono text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 resize-y"
-              style={{ minHeight: 200 }}
-              spellCheck={false}
-              placeholder='[{"key":"userName","description":"User name","sample":"John"}]'
-            />
+            <div className="rounded-2xl border border-border/20 overflow-hidden bg-[#1e1e1e] p-2 min-h-[220px]">
+              <Editor
+                height="200px"
+                defaultLanguage="json"
+                value={variablesSchema}
+                onChange={(val) => {
+                  if (val !== undefined) {
+                    setVariablesSchema(val);
+                    markDirty();
+                  }
+                }}
+                theme="vs-dark"
+                options={{
+                  minimap: { enabled: false },
+                  fontSize: 14,
+                  lineNumbers: "on",
+                  wordWrap: "on",
+                  automaticLayout: true,
+                  tabSize: 2,
+                  scrollBeyondLastLine: false,
+                }}
+              />
+            </div>
             <div className="text-xs text-muted-foreground space-y-1">
               <p className="font-medium">Fields per variable:</p>
               <ul className="list-disc pl-4 space-y-0.5">

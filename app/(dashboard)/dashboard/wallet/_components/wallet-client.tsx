@@ -411,7 +411,7 @@ export default function WalletClient({
             ) : (
               <div className="grid grid-cols-1 gap-5 md:gap-6 lg:grid-cols-12">
                 <div className="lg:col-span-4">
-                  <Card className="card-settings">
+                  <Card className="card-settings p-5 md:p-6">
                     <div className="flex items-start gap-3">
                       <CreditCard className="h-5 w-5 shrink-0 text-foreground" />
                       <div className="min-w-0">
@@ -442,7 +442,7 @@ export default function WalletClient({
                 </div>
 
                 <div className="space-y-5 md:space-y-6 lg:col-span-8">
-                  <Card className="card-settings">
+                  <Card className="card-settings p-5 md:p-6">
                     <div className="space-y-1">
                       <h3 className="text-base font-semibold tracking-tight text-foreground">
                         Submit transaction details
@@ -549,7 +549,7 @@ export default function WalletClient({
                   </Card>
 
                   {paymentInfo?.pageContent ? (
-                    <Card className="card-settings">
+                    <Card className="card-settings p-5 md:p-6">
                       <div className="space-y-1">
                         <h3 className="text-base font-semibold tracking-tight text-foreground">
                           Payment instructions
@@ -577,7 +577,7 @@ export default function WalletClient({
             <div className="grid grid-cols-1 gap-5 md:gap-6 lg:grid-cols-12">
               <div className="lg:col-span-4">
                 {withdrawDescription ? (
-                  <Card className="card-settings">
+                  <Card className="card-settings p-5 md:p-6">
                     <div className="flex items-start gap-3">
                       <ArrowUpFromLine className="h-5 w-5 shrink-0 text-foreground" />
                       <div className="min-w-0">
@@ -594,7 +594,7 @@ export default function WalletClient({
                     </div>
                   </Card>
                 ) : (
-                  <Card className="card-settings">
+                  <Card className="card-settings p-5 md:p-6">
                     <div className="flex items-start gap-3">
                       <ArrowUpFromLine className="h-5 w-5 shrink-0 text-foreground" />
                       <div className="min-w-0">
@@ -616,7 +616,7 @@ export default function WalletClient({
               </div>
 
               <div className="space-y-5 md:space-y-6 lg:col-span-8">
-                <Card className="card-settings">
+                <Card className="card-settings p-5 md:p-6">
                   <div className="space-y-1">
                     <h3 className="text-base font-semibold tracking-tight text-foreground">
                       Submit withdrawal request
