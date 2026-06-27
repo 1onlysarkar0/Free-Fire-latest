@@ -23,8 +23,8 @@ Production: **https://1onlysarkar.shop**
 | Charts | Recharts 3.8 |
 | Deployment | Vercel (serverless) / Docker |
 | Email Dispatch | Nodemailer 9.0 (SMTP credentials & multi-provider configs stored in DB) |
-| Visual Designer | Unlayer Email Editor (`react-email-editor` dynamically imported) |
-| React Email | Dynamic compilation and static rendering (`react-dom/server`) |
+| Code Editor | Monaco Editor (VS Code engine React wrapper) |
+| React Email | Standard templates compilation and static rendering (`react-dom/server`) |
 | Analytics | Vercel Analytics |
 | Instagram | Instagram Graph API v25.0 (business_discovery for avatar fetch) |
 | Animation | Framer Motion 12.40 / Motion 12.40 |
@@ -83,7 +83,7 @@ Production: **https://1onlysarkar.shop**
 - Site configuration (logo, hero, footer, contact)
 - Navigation management (header, footer, social links)
 - **SMTP Configuration**: Multi-provider panel supporting multiple active connections (Gmail, Resend)
-- **Email Templates**: Stats dashboard, template duplications, live previewing, test-email dispatch overrides, Visual Designer (Unlayer), HTML editor, and React Email read-only rendering
+- **Email Templates**: Stats dashboard, template duplications, live side-by-side iframe previewing, test-email dispatch overrides, Monaco HTML Editor, and Variables Config schema validator
 - Auth page content customization
 - Content templates (Description/Rules)
 - **AI Chatbot** configuration (full 7-tab panel)
@@ -147,7 +147,7 @@ Production: **https://1onlysarkar.shop**
 | `auth_page_content` | Left-panel quote+subtext for each auth page |
 | `smtp_config` | Legacy single-row SMTP settings (deprecated but preserved for backwards compat) |
 | `smtp_providers` | Multi-provider SMTP configurations (label, type, credentials, default, active flags) |
-| `email_template` | Extended templates with categories, visual design JSON, template key, variables schema, and active flags |
+| `email_template` | Extended templates with categories, Monaco HTML source code, template key, variables schema, and active flags |
 | `seo_config` | Per-page SEO; "global" row as site-wide fallback |
 | `custom_page` | Rich-text pages served at `/[slug]` |
 | `content_templates` | Reusable Description/Rules templates |

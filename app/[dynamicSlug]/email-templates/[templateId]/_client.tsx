@@ -8,7 +8,7 @@ import dynamic from "next/dynamic";
 const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 import {
   ArrowLeft, Save, Send, Copy, Loader2, Code2,
-  Mail, Settings, Variable, LayoutTemplate, Check
+  Mail, Settings, Variable, LayoutTemplate
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
