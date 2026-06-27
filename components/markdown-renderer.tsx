@@ -10,6 +10,14 @@ import { MermaidChart } from "@/components/mermaid-chart";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { CircleArrowOutUpRight } from "lucide-react";
+import Prism from "prismjs";
+import "prismjs/components/prism-javascript";
+import "prismjs/components/prism-typescript";
+import "prismjs/components/prism-markup";
+import "prismjs/components/prism-css";
+import "prismjs/components/prism-json";
+import "prismjs/components/prism-python";
+import "prismjs/components/prism-bash";
 
 interface MarkdownRendererProps {
   content: string;
@@ -145,7 +153,7 @@ export function MarkdownRenderer({ content, className, variant = "default", isSt
         return (
           <CopyWrapper>
             <pre 
-              className={cn("bg-card border border-border shadow-sm p-4 rounded-xl overflow-x-auto text-sm font-mono text-foreground [&>code]:!bg-transparent [&>code]:!p-0 [&>code]:!text-inherit [&>code]:!font-normal", isChat ? "my-3" : "my-8")} 
+              className={cn("bg-zinc-950 border border-zinc-800/80 shadow-sm p-4 rounded-xl overflow-x-auto text-sm font-mono text-zinc-100 [&>code]:!bg-transparent [&>code]:!p-0 [&>code]:!text-inherit [&>code]:!font-normal", isChat ? "my-3" : "my-8")} 
               {...props} 
             >
               {children}
@@ -153,9 +161,37 @@ export function MarkdownRenderer({ content, className, variant = "default", isSt
           </CopyWrapper>
         );
       },
-      code: ({ node: _, className, ...props }) => (
-        <code className={cn("bg-primary/10 text-primary px-1.5 py-0.5 rounded-md font-medium text-[0.9em]", className)} {...props} />
-      ),
+      code: ({ node: _, className, children, ...props }) => {
+        const match = /language-(\w+)/.exec(className || "");
+        const isInline = !className;
+
+        if (isInline) {
+          return (
+            <code className={cn("bg-primary/10 text-primary px-1.5 py-0.5 rounded-md font-medium text-[0.9em]", className)} {...props}>
+              {children}
+            </code>
+          );
+        }
+
+        const lang = match ? match[1] : "markup";
+        const codeString = String(children).replace(/\n$/, "");
+        
+        let highlighted = codeString;
+        try {
+          if (Prism.languages[lang]) {
+            highlighted = Prism.highlight(codeString, Prism.languages[lang], lang);
+          }
+        } catch (e) {
+          console.error("Prism error:", e);
+        }
+
+        return (
+          <code
+            className={cn(`language-${lang}`, className)}
+            dangerouslySetInnerHTML={{ __html: highlighted }}
+          />
+        );
+      },
       ul: ({ node: _, ...props }) => (
         <ul className={cn("ml-6 list-disc [&>li]:mt-1 marker:text-primary", isChat ? "my-2 text-foreground font-medium" : "my-6 font-ibm text-muted-foreground")} {...props} />
       ),
