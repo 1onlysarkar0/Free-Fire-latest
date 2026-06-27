@@ -33,6 +33,7 @@ export interface TournamentDetail {
   bookedSlots: number; availableSlots: number; startTime: string;
   registrationDeadline: string; status: string; descriptionHtml?: string | null;
   descriptionMarkdown?: string | null; rulesHtml?: string | null; rulesMarkdown?: string | null;
+  roomId?: string | null; roomPassword?: string | null;
   slots: SlotItem[];
   winners: { id: string; userId: string; placement: string; prizeAmount: number; userName: string; userImage?: string | null; userGameName?: string | null }[];
 }
@@ -83,6 +84,8 @@ async function _fetchTournamentDetail(id: string): Promise<TournamentDetail | nu
     descriptionMarkdown: row.descriptionMarkdown,
     rulesHtml: row.rulesHtml,
     rulesMarkdown: row.rulesMarkdown,
+    roomId: row.roomId,
+    roomPassword: row.roomPassword,
     slots: slots.map((s) => ({
       id: s.id, slotNumber: s.slotNumber, status: s.status,
       teamName: s.teamName, ignList: safeJson<string[]>(s.ignList, []),

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -17,13 +17,6 @@ import { TournamentDetail } from "@/lib/tournaments";
 import { TOURNAMENT_STATUS_COLORS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
-interface TournamentData extends TournamentDetail {
-  userParticipant?: { slotId: string } | null;
-  userSlot?: { id: string; slotNumber: number; teamName?: string; ignList: string[] } | null;
-  roomId?: string | null;
-  roomPassword?: string | null;
-}
-
 interface Props {
   id: string;
   initialData: TournamentDetail | null;
@@ -31,39 +24,19 @@ interface Props {
   userSlot?: { id: string; slotNumber: number; teamName?: string; ignList: string[] } | null;
 }
 
-export default function TournamentDetailClient({ id, initialData, userParticipant: initialParticipant, userSlot: initialSlot }: Props) {
+export default function TournamentDetailClient({ id, initialData, userParticipant, userSlot }: Props) {
   const router = useRouter();
   const { data: session } = authClient.useSession();
-  const [t, setT] = useState<TournamentData | null>(() => {
-    if (!initialData) return null;
-    return {
-      ...initialData,
-      userParticipant: initialParticipant ?? undefined,
-      userSlot: initialSlot ?? undefined,
-    } as TournamentData;
-  });
   const [joining, setJoining] = useState(false);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    try {
-      const res = await fetch(`/api/tournaments/${id}?_=${Date.now()}`);
-      if (!res.ok) return;
-      const data = await res.json();
-      if (!data.success) return;
-      setT(data.data);
-    } catch (err) { console.error(err); }
-  }, [id]);
+  if (!initialData) return null;
 
-  useEffect(() => {
-    if (!initialData) load();
-  }, [load, initialData]);
-
-  // Poll every 15s for real-time updates
-  useEffect(() => {
-    const interval = setInterval(load, 15_000);
-    return () => clearInterval(interval);
-  }, [load]);
+  const t = {
+    ...initialData,
+    userParticipant: userParticipant ?? undefined,
+    userSlot: userSlot ?? undefined,
+  };
 
   async function handleJoin() {
     if (!session?.user) { router.push("/sign-in?returnTo=/tournaments/" + id); return; }
@@ -79,7 +52,6 @@ export default function TournamentDetailClient({ id, initialData, userParticipan
       if (data.success) {
         toast.success(`🎉 You're in! Slot #${data.data.slotNumber} secured.`);
         setSelectedSlotId(null);
-        load();
         router.refresh();
       } else {
         toast.error(data.error || "Failed to join tournament");

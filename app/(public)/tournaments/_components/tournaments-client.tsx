@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
@@ -23,34 +23,10 @@ export default function TournamentsClient({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [tournaments, setTournaments] = useState<TournamentListItem[]>(initialData);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState(initialFilter);
   const [gameModeFilter, setGameModeFilter] = useState<string>("ALL");
   const [entryFeeFilter, setEntryFeeFilter] = useState<string>("ALL");
-
-  useEffect(() => {
-    setTournaments(initialData);
-    setStatusFilter(initialFilter);
-  }, [initialData, initialFilter]);
-
-  const load = useCallback(() => {
-    const params = new URLSearchParams({ limit: "100" });
-    if (statusFilter !== "ALL") params.set("status", statusFilter);
-
-    fetch(`/api/tournaments?_=${Date.now()}&${params}`)
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.data) setTournaments(d.data);
-      })
-      .catch(console.error);
-  }, [statusFilter]);
-
-  useEffect(() => {
-    load();
-    const interval = setInterval(load, 30_000);
-    return () => clearInterval(interval);
-  }, [load]);
 
   const handleStatusChange = (val: string) => {
     setStatusFilter(val);
@@ -64,7 +40,7 @@ export default function TournamentsClient({
   };
 
   const filtered = useMemo(() => {
-    let result = tournaments.filter((t) =>
+    let result = initialData.filter((t) =>
       t.name.toLowerCase().includes(search.toLowerCase())
     );
 
@@ -83,7 +59,7 @@ export default function TournamentsClient({
     result.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
 
     return result;
-  }, [tournaments, search, gameModeFilter, entryFeeFilter]);
+  }, [initialData, search, gameModeFilter, entryFeeFilter]);
 
   const SidebarFilters = () => (
     <div className="space-y-8">
