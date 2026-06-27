@@ -516,6 +516,50 @@ async function seedEmailTemplates() {
     },
   ];
 
+  function buildUnlayerDesignJson(html: string): string {
+    return JSON.stringify({
+      counters: {
+        u_row: 1,
+        u_column: 1,
+        u_content_html: 1,
+      },
+      body: {
+        rows: [
+          {
+            cells: [1],
+            columns: [
+              {
+                contents: [
+                  {
+                    type: "html",
+                    values: {
+                      html: html,
+                      containerPadding: "0px",
+                    },
+                  },
+                ],
+                values: {
+                  backgroundColor: "",
+                },
+              },
+            ],
+            values: {
+              backgroundColor: "",
+            },
+          },
+        ],
+        values: {
+          contentWidth: "600px",
+          fontFamily: {
+            label: "Arial",
+            value: "Arial, sans-serif",
+          },
+          backgroundColor: "#f4f4f5",
+        },
+      },
+    });
+  }
+
   const categories: Record<string, string> = {
     room_revealed: "tournaments",
     tournament_cancelled: "tournaments",
@@ -527,16 +571,20 @@ async function seedEmailTemplates() {
 
   for (const template of templates) {
     const category = categories[template.name] ?? "system";
+    const designJson = buildUnlayerDesignJson(template.bodyHtml);
+
     await db.insert(emailTemplate).values({
       ...template,
       category,
-      editorType: "html",
+      editorType: "visual",
+      designJson,
       isActive: true,
     }).onConflictDoNothing();
 
     await db.update(emailTemplate).set({
       category,
-      editorType: "html",
+      editorType: "visual",
+      designJson,
       isActive: true,
     }).where(eq(emailTemplate.id, template.id));
   }
