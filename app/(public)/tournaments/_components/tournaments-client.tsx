@@ -208,7 +208,7 @@ export default function TournamentsClient({
                     key={t.id}
                     href={`/tournaments/${t.id}`}
                     prefetch={true}
-                    className="group flex flex-col bg-accent/40 rounded-2xl border border-border/80 hover:border-primary/40 hover:-translate-y-1 hover:shadow-md active:translate-y-0 active:scale-[0.99] transition-all duration-300 ease-out overflow-hidden shadow-sm"
+                    className="group flex flex-col card-widget hover:border-primary/40 hover:-translate-y-1 hover:shadow-md active:translate-y-0 active:scale-[0.99] transition-all duration-300 ease-out overflow-hidden"
                   >
                     <div className="p-5 md:p-6 flex-1 flex flex-col">
                       {/* Top Row: Status & Prize */}

@@ -495,9 +495,9 @@ export default function ChatbotAdminClient({
   };
 
   return (
-    <div className="w-full min-w-0 p-4 md:p-6">
-      <div className="space-y-6">
-        {/* Header */}
+    <div className="w-full min-w-0 space-y-6">
+      {/* Header */}
+      <div className="header-admin">
         <div className="flex items-center gap-4 group">
           <div className="rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 p-2.5 group-hover:scale-105 transition-transform duration-300">
             <Bot className="h-5 w-5 text-primary" />
@@ -518,6 +518,7 @@ export default function ChatbotAdminClient({
             </p>
           </div>
         </div>
+      </div>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -1418,7 +1419,6 @@ export default function ChatbotAdminClient({
             )}
           </TabsContent>
         </Tabs>
-      </div>
     </div>
   );
 }

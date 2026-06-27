@@ -53,9 +53,9 @@ export default function AuthContentClient({ initialData }: { initialData: AuthCo
   }
 
   return (
-    <div className="w-full min-w-0 p-4 md:p-6">
-      <div className="space-y-6">
-        {/* Header */}
+    <div className="w-full min-w-0 space-y-6">
+      {/* Header */}
+      <div className="header-admin">
         <div className="flex items-center gap-4">
           <div className="rounded-xl bg-primary/10 p-2.5">
             <Quote className="h-5 w-5 text-primary" />
@@ -65,46 +65,47 @@ export default function AuthContentClient({ initialData }: { initialData: AuthCo
             <p className="text-sm text-muted-foreground mt-0.5">Left-panel quote and subtext for each authentication page.</p>
           </div>
         </div>
+      </div>
 
-        {loading ? (
-          <div className="grid gap-3">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="rounded-2xl bg-accent/40 shadow-sm animate-pulse p-5">
-                <div className="flex items-start gap-4">
-                  <div className="h-8 w-8 rounded-lg bg-accent/60 shrink-0" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 w-40 rounded bg-accent/60" />
-                    <div className="h-3 w-64 rounded bg-accent/40" />
-                    <div className="h-3 w-48 rounded bg-accent/40" />
-                  </div>
+      {loading ? (
+        <div className="grid gap-3">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="card-widget animate-pulse p-5">
+              <div className="flex items-start gap-4">
+                <div className="h-8 w-8 rounded-lg bg-accent/60 shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-40 rounded bg-accent/60" />
+                  <div className="h-3 w-64 rounded bg-accent/40" />
+                  <div className="h-3 w-48 rounded bg-accent/40" />
                 </div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid gap-3">
-            {items.map(item => (
-              <Card key={item.id} className="rounded-2xl bg-accent/60 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
-                <CardContent className="p-5 flex items-start gap-4">
-                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <span className="text-xs font-bold text-primary">{(PAGE_LABELS[item.id] || item.id).slice(0,2).toUpperCase()}</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid gap-3">
+          {items.map(item => (
+            <Card key={item.id} className="card-widget">
+              <CardContent className="p-5 flex items-start gap-4">
+                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <span className="text-xs font-bold text-primary">{(PAGE_LABELS[item.id] || item.id).slice(0,2).toUpperCase()}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-sm font-semibold text-foreground">{PAGE_LABELS[item.id] || item.id}</span>
+                    <span className="text-xs text-muted-foreground font-mono">/{item.id}</span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-sm font-semibold text-foreground">{PAGE_LABELS[item.id] || item.id}</span>
-                      <span className="text-xs text-muted-foreground font-mono">/{item.id}</span>
-                    </div>
-                    <p className="text-sm font-medium text-muted-foreground mb-1">&quot;{item.quote}&quot;</p>
-                    <p className="text-xs text-muted-foreground line-clamp-2">{item.subtext}</p>
-                  </div>
-                  <button onClick={() => openEdit(item)} className="p-2 hover:bg-accent rounded-lg transition-colors text-muted-foreground hover:text-foreground shrink-0">
-                    <Pencil className="h-4 w-4" />
-                  </button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+                  <p className="text-sm font-medium text-muted-foreground mb-1">&quot;{item.quote}&quot;</p>
+                  <p className="text-xs text-muted-foreground line-clamp-2">{item.subtext}</p>
+                </div>
+                <button onClick={() => openEdit(item)} className="p-2 hover:bg-accent rounded-lg transition-colors text-muted-foreground hover:text-foreground shrink-0">
+                  <Pencil className="h-4 w-4" />
+                </button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
         <Dialog open={!!editing} onOpenChange={v => !v && setEditing(null)}>
           <DialogContent className="sm:max-w-lg">
@@ -139,7 +140,6 @@ export default function AuthContentClient({ initialData }: { initialData: AuthCo
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
     </div>
   );
 }

@@ -128,76 +128,75 @@ export default function ContentTemplatesClient({ initialData }: { dynamicSlug: s
   const rules = templates.filter((template) => template.type === "RULES");
 
   return (
-    <div className="w-full min-w-0 p-4 md:p-6">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-4">
-            <div className="rounded-xl bg-primary/10 p-2.5">
-              <LayoutTemplate className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight text-foreground">Content Templates</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">Reusable description and rules templates for tournaments.</p>
-            </div>
+    <div className="w-full min-w-0 space-y-6">
+      {/* Header */}
+      <div className="header-admin">
+        <div className="flex items-center gap-4">
+          <div className="rounded-xl bg-primary/10 p-2.5">
+            <LayoutTemplate className="h-5 w-5 text-primary" />
           </div>
-          <Button onClick={openNew} className="gap-2"><Plus className="h-4 w-4" />New Template</Button>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-foreground">Content Templates</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">Reusable description and rules templates for tournaments.</p>
+          </div>
         </div>
+        <Button onClick={openNew} className="gap-2"><Plus className="h-4 w-4" />New Template</Button>
+      </div>
 
-        {loading ? (
-          <div className="grid gap-3">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="rounded-2xl bg-accent/40 shadow-sm animate-pulse p-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-accent/60" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 w-48 rounded bg-accent/60" />
-                    <div className="h-3 w-64 rounded bg-accent/40" />
-                  </div>
+      {loading ? (
+        <div className="grid gap-3">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="card-widget animate-pulse p-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-accent/60" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-48 rounded bg-accent/60" />
+                  <div className="h-3 w-64 rounded bg-accent/40" />
                 </div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {[{ label: "Description Templates", items: descriptions }, { label: "Rules Templates", items: rules }].map(({ label, items }) => (
-              <div key={label}>
-                <div className="flex items-center gap-2 mb-3">
-                  <h2 className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">{label}</h2>
-                  <Badge variant="secondary" className="text-[10px]">{items.length}</Badge>
-                </div>
-                {items.length === 0 ? (
-                  <div className="rounded-2xl bg-accent/40 border border-dashed border-accent/60 p-8 text-center text-sm text-muted-foreground">
-                    No {label.toLowerCase()} yet
-                  </div>
-                ) : (
-                  <div className="grid gap-3">
-                    {items.map((template) => (
-                      <Card key={template.id} className="rounded-2xl bg-accent/60 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
-                        <CardContent className="p-4 flex items-center justify-between">
-                          <div className="min-w-0 flex-1">
-                            <p className="font-medium text-sm text-foreground">{template.name}</p>
-                            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                              {template.contentMarkdown || template.contentHtml?.replace(/<[^>]+>/g, " ").slice(0, 80) || "No content"}
-                            </p>
-                          </div>
-                          <div className="flex gap-1 shrink-0 ml-4">
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(template)}>
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20" onClick={() => setDeleteId(template.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {[{ label: "Description Templates", items: descriptions }, { label: "Rules Templates", items: rules }].map(({ label, items }) => (
+            <div key={label}>
+              <div className="flex items-center gap-2 mb-3">
+                <h2 className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">{label}</h2>
+                <Badge variant="secondary" className="text-[10px]">{items.length}</Badge>
               </div>
-            ))}
-          </div>
-        )}
+              {items.length === 0 ? (
+                <div className="rounded-2xl bg-accent/40 border border-dashed border-accent/60 p-8 text-center text-sm text-muted-foreground">
+                  No {label.toLowerCase()} yet
+                </div>
+              ) : (
+                <div className="grid gap-3">
+                  {items.map((template) => (
+                    <Card key={template.id} className="card-widget">
+                      <CardContent className="p-4 flex items-center justify-between">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-sm text-foreground">{template.name}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                            {template.contentMarkdown || template.contentHtml?.replace(/<[^>]+>/g, " ").slice(0, 80) || "No content"}
+                          </p>
+                        </div>
+                        <div className="flex gap-1 shrink-0 ml-4">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(template)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20" onClick={() => setDeleteId(template.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -256,7 +255,6 @@ export default function ContentTemplatesClient({ initialData }: { dynamicSlug: s
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </div>
     </div>
   );
 }

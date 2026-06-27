@@ -48,101 +48,100 @@ export default function MyTournamentsClient({
   }, [tournaments]);
 
   return (
-    <div className="w-full min-w-0 p-4 md:p-6">
-      <div className="space-y-6">
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          <Card className="rounded-2xl bg-accent/60 p-4 shadow-sm">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                  Registered
-                </p>
-                <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
-                  {stats.total}
-                </p>
-              </div>
-              <Trophy className="h-4 w-4 shrink-0 text-foreground" />
+    <div className="w-full min-w-0 space-y-6">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <Card className="card-widget p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                Registered
+              </p>
+              <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+                {stats.total}
+              </p>
             </div>
-            <Muted className="mt-3 text-xs leading-5">
-              Total tournaments currently linked to your account.
-            </Muted>
-          </Card>
-
-          <Card className="rounded-2xl bg-accent/60 p-4 shadow-sm">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                  Upcoming
-                </p>
-                <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
-                  {stats.upcoming}
-                </p>
-              </div>
-              <CalendarClock className="h-4 w-4 shrink-0 text-foreground" />
-            </div>
-            <Muted className="mt-3 text-xs leading-5">
-              Joined tournaments that are scheduled to start later.
-            </Muted>
-          </Card>
-
-          <Card className="rounded-2xl bg-accent/60 p-4 shadow-sm sm:col-span-2 xl:col-span-1">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                  Paid entries
-                </p>
-                <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
-                  {stats.paidEntries}
-                </p>
-              </div>
-              <CreditCard className="h-4 w-4 shrink-0 text-foreground" />
-            </div>
-            <Muted className="mt-3 text-xs leading-5">
-              Registrations with a recorded entry payment.
-            </Muted>
-          </Card>
-        </div>
-
-        {tournaments.length === 0 ? (
-          <div className="flex min-h-[340px] flex-col items-center justify-center bg-background px-6 py-10 text-center">
-            <Trophy className="mb-4 h-6 w-6 text-foreground" />
-
-            <H4 className="mt-0">No tournaments joined yet</H4>
-
-            <Muted className="mt-2 max-w-md text-sm leading-6">
-              Start with an upcoming event to see your registrations, match
-              timing, and slot details collected here in one place.
-            </Muted>
-
-            <Button asChild className="mt-6">
-              <Link href="/tournaments" prefetch>
-                Explore tournaments
-                <ArrowUpRight className="h-4 w-4 text-foreground" />
-              </Link>
-            </Button>
+            <Trophy className="h-4 w-4 shrink-0 text-foreground" />
           </div>
-        ) : (
-          <div className="space-y-3">
-            <div className="flex items-end justify-between gap-3 px-1">
-              <div className="space-y-1">
-                <h2 className="text-base font-semibold tracking-tight text-foreground">
-                  Tournament activity
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  Open any tournament to review details, participation status,
-                  and upcoming timing.
-                </p>
-              </div>
-            </div>
+          <Muted className="mt-3 text-xs leading-5">
+            Total tournaments currently linked to your account.
+          </Muted>
+        </Card>
 
-            {tournaments.map((tournament) => (
-              <Link
-                key={tournament.id}
-                href={`/tournaments/${tournament.id}`}
-                prefetch
-                className="group block"
-              >
-                <Card className="rounded-2xl bg-accent/40 p-4 shadow-sm transition-all duration-200 hover:bg-accent/70 hover:shadow-md">
+        <Card className="card-widget p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                Upcoming
+              </p>
+              <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+                {stats.upcoming}
+              </p>
+            </div>
+            <CalendarClock className="h-4 w-4 shrink-0 text-foreground" />
+          </div>
+          <Muted className="mt-3 text-xs leading-5">
+            Joined tournaments that are scheduled to start later.
+          </Muted>
+        </Card>
+
+        <Card className="card-widget p-4 sm:col-span-2 xl:col-span-1">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                Paid entries
+              </p>
+              <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+                {stats.paidEntries}
+              </p>
+            </div>
+            <CreditCard className="h-4 w-4 shrink-0 text-foreground" />
+          </div>
+          <Muted className="mt-3 text-xs leading-5">
+            Registrations with a recorded entry payment.
+          </Muted>
+        </Card>
+      </div>
+
+      {tournaments.length === 0 ? (
+        <div className="flex min-h-[340px] flex-col items-center justify-center bg-background px-6 py-10 text-center">
+          <Trophy className="mb-4 h-6 w-6 text-foreground" />
+
+          <H4 className="mt-0">No tournaments joined yet</H4>
+
+          <Muted className="mt-2 max-w-md text-sm leading-6">
+            Start with an upcoming event to see your registrations, match
+            timing, and slot details collected here in one place.
+          </Muted>
+
+          <Button asChild className="mt-6">
+            <Link href="/tournaments" prefetch>
+              Explore tournaments
+              <ArrowUpRight className="h-4 w-4 text-foreground" />
+            </Link>
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <div className="flex items-end justify-between gap-3 px-1">
+            <div className="space-y-1">
+              <h2 className="text-base font-semibold tracking-tight text-foreground">
+                Tournament activity
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Open any tournament to review details, participation status,
+                and upcoming timing.
+              </p>
+            </div>
+          </div>
+
+          {tournaments.map((tournament) => (
+            <Link
+              key={tournament.id}
+              href={`/tournaments/${tournament.id}`}
+              prefetch
+              className="group block"
+            >
+              <Card className="card-widget p-4">
                   <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                     <div className="min-w-0 flex-1">
                       <div className="flex min-w-0 items-start gap-3">
@@ -239,7 +238,6 @@ export default function MyTournamentsClient({
             ))}
           </div>
         )}
-      </div>
     </div>
   );
 }

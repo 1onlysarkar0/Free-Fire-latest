@@ -411,8 +411,8 @@ function SettingsContent({ initialProfile }: { initialProfile?: InitialProfile }
 
   if (loading) {
     return (
-      <div className="w-full min-w-0 p-4 md:p-6">
-        <Card>
+      <div className="w-full min-w-0 space-y-6">
+        <Card className="card-settings">
           <CardContent className="flex min-h-56 items-center justify-center">
             <Loader2 className="h-5 w-5 animate-spin text-foreground" />
           </CardContent>
@@ -424,7 +424,7 @@ function SettingsContent({ initialProfile }: { initialProfile?: InitialProfile }
   const resolvedUser = user ?? initialProfile ?? null;
 
   return (
-    <div className="w-full min-w-0 p-4 md:p-6">
+    <div className="w-full min-w-0 space-y-6">
       <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full min-w-0 space-y-6">
         <TabsList className="h-auto w-full justify-start rounded-xl bg-accent/60 p-1">
           <TabsTrigger value="profile" className="gap-2 rounded-lg px-4">
@@ -512,7 +512,7 @@ function SettingsContent({ initialProfile }: { initialProfile?: InitialProfile }
             )}
 
             {/* ── Profile Form ── */}
-            <Card className="w-full shadow-xs border-border/80">
+            <Card className="card-settings">
               <CardHeader className="px-4 sm:px-5 py-4">
                 <CardTitle className="text-base flex items-center gap-2">
                   <UserCircle2 className="h-4 w-4" />
@@ -584,7 +584,7 @@ function SettingsContent({ initialProfile }: { initialProfile?: InitialProfile }
         </TabsContent>
 
         <TabsContent value="security" className="mt-0 space-y-6">
-          <Card className="w-full shadow-sm">
+          <Card className="card-settings">
             <CardHeader className="space-y-2">
               <CardTitle>Change password</CardTitle>
               <CardDescription>
@@ -641,7 +641,7 @@ function SettingsContent({ initialProfile }: { initialProfile?: InitialProfile }
             </CardContent>
           </Card>
 
-          <Card className="w-full shadow-sm">
+          <Card className="card-settings">
             <CardHeader className="space-y-2">
               <CardTitle className="flex items-center gap-2">
                 <Shield className="h-5 w-5 text-foreground" />

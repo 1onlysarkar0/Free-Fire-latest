@@ -355,15 +355,15 @@ To ensure that all pages (including the Admin Panel, Dashboards, and public view
   ```
 
 ### 2. Standard Header Components
-All page headers must follow a uniform style:
+All page headers must follow a uniform style using the `.header-admin` utility class. The inner elements are structured as follows:
 * **Icon container**: A `rounded-xl bg-primary/10 p-2.5` container with a `h-5 w-5` brand-colored icon.
 * **Title size**: `text-xl font-bold tracking-tight text-foreground`.
 * **Description spacing**: `text-sm text-muted-foreground mt-0.5`.
-* **Header bottom divider**: `border-b border-border/10 pb-6`.
+* **Header bottom divider**: Managed automatically by the `.header-admin` selector.
 * **Action buttons**: Positioned on the right side using a flex row with `flex items-center gap-2`.
 
 ```tsx
-<div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/10 pb-6">
+<div className="header-admin">
   <div className="flex items-center gap-4">
     <div className="rounded-xl bg-primary/10 p-2.5">
       <Trophy className="h-5 w-5 text-primary" />
@@ -377,19 +377,19 @@ All page headers must follow a uniform style:
 ```
 
 ### 3. Card Types & Design Tokens
-Cards are the primary structural block of the UI and have three specific use cases:
+Cards are unified into four design utility classes in `app/globals.css` to prevent inline style leaks:
 
-| Card Role | CSS Styling classes | Typical Use Case |
+| Utility Class | Card Role | Typical Use Case |
 | :--- | :--- | :--- |
-| **Listings & Grids** | `rounded-2xl bg-accent/40 border border-border/20 shadow-sm overflow-hidden` | Tables, user lists, tournament schedules, search filters. |
-| **Settings & Inputs** | `rounded-2xl bg-accent/60 border border-border/20 shadow-sm overflow-hidden` | Configuration panels (e.g., SMTP Config, Wallet settings). |
-| **Grid Items / Widgets** | `rounded-2xl bg-accent/60 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 border-0` | Dashboard statistics, quick access cards, roles. |
+| `card-list` | **Listings & Grids** | Data lists, tables, user tables, search filters, transaction lists. |
+| `card-settings` | **Settings & Inputs** | Configuration panels (SMTP config, SEO forms, site content inputs). |
+| `card-widget` | **Grid Items & Info** | Dashboard statistics cards, small info blocks, roles badges. |
 
 ### 4. Tables & Lists
-To maintain consistency in data representations:
-* **Table Header**: Use `<thead className="bg-accent/40 border-b border-border/10">`.
-* **Table Dividers**: Use `<tbody className="divide-y divide-border/10">`.
-* **Row Hover States**: Apply `<tr className="hover:bg-accent/15 transition-colors">` to list rows.
+Inside `.card-list` and `.card-settings` containers:
+* **Automatic Styling**: Raw HTML `table`, `thead`, `tbody`, `tr`, `th`, and `td` tags automatically inherit padding and hover styles from `globals.css`. Do not write inline padding values (e.g. `px-6 py-4`) on individual table cells.
+* **Table Header**: Styled automatically with subtle backgrounds and bottom borders.
+* **Row Hover States**: Automatic smooth transition color change on hover.
 * **Pills & Badges**: Use `inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border` for state indicators.
 
 ### 5. Color Tokens (CSS Variables)
@@ -412,6 +412,36 @@ To maintain consistency in data representations:
 | `--shadow-sm` | `0 1px 3px hsl(225 5% 22% / 0.08)` |
 | `--shadow-md` | `0 4px 12px hsl(225 5% 22% / 0.1)` |
 | `--shadow-lg` | `0 12px 28px hsl(225 5% 22% / 0.12)` |
+
+---
+
+## AI Coding Guidance & Development Guardrails
+
+If you are an AI assistant pair-programming on this repository, you **must** strictly adhere to the following guardrails:
+
+### 1. Forced Light Theme (No Dark Mode)
+* **Rule**: The platform utilizes a forced cream light theme design. 
+* **Constraint**: Never add `dark:` utility classes, dark mode triggers, or CSS configurations that deviate from the warm cream aesthetic.
+
+### 2. No Hardcoded Brand Fallbacks
+* **Rule**: All site branding, meta tags, titles, and headers must be resolved dynamically from the database using `lib/seo.ts` and `lib/content.ts`.
+* **Constraint**: Do not hardcode the string "1onlysarkar" in fallback catch blocks, default variables, or UI messages. In case of database emptiness, fall back to generic placeholders or return empty values.
+
+### 3. Database-Driven SEO
+* **Rule**: The root `layout.tsx` uses custom metadata generation via `lib/seo.ts`.
+* **Constraint**: Do not override static page titles manually on public route components. Let the metadata generator fetch configurations from the `seo_config` database table.
+
+### 4. Database Transaction Concurrency (Wallet Locks)
+* **Rule**: The wallet coin balance credits and debits must be fully transactional and atomic to prevent race conditions or balance duplication.
+* **Constraint**: Always wrap wallet adjustments in `db.transaction()` block and enforce row-level locking on the wallet records (`FOR UPDATE` / `.forUpdate()` in Drizzle) before updating coin balances.
+
+### 5. Preserving Slot Booking Attributes
+* **Rule**: In multiplayer formats (Duo/Squad), slot reservation models support pre-assigned team names and temporary participant registration configurations.
+* **Constraint**: Do not clear or overwrite existing values like `teamName` or `ignList` of adjacent team slots when a single user books or updates their individual slot.
+
+### 6. Clean Up & Count Tracking (Persistent Records)
+* **Rule**: Deleted tournaments must be logged to increment `site_config.deleted_tournaments_count` persistently.
+* **Constraint**: The total count of tournaments created historically must always be calculated as: `(Active Tournaments Count) + siteConfig.deletedTournamentsCount`. Ensure database transaction queries increment this value when performing deletions.
 
 ---
 

@@ -209,7 +209,7 @@ export default function WithdrawAdminClient() {
     <div className="w-full min-w-0 space-y-6 animate-in fade-in duration-200">
       
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/10 pb-6">
+      <div className="header-admin">
         <div className="flex items-center gap-4">
           <div className="rounded-xl bg-primary/10 p-2.5">
             <ArrowUpFromLine className="h-5 w-5 text-primary" />
@@ -232,73 +232,73 @@ export default function WithdrawAdminClient() {
         </div>
       </div>
 
-        {/* Tab Selection */}
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "requests" | "config")} className="w-full space-y-6">
-          <TabsList className="flex h-auto w-full items-center justify-start rounded-xl bg-accent/40 p-1 md:w-auto border border-border/20">
-            <TabsTrigger value="requests" className="rounded-lg px-4 py-2 text-sm font-semibold transition-all">
-              Requests Queue
-            </TabsTrigger>
-            <TabsTrigger value="config" className="rounded-lg px-4 py-2 text-sm font-semibold transition-all">
-              System Settings
-            </TabsTrigger>
-          </TabsList>
+      {/* Tab Selection */}
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "requests" | "config")} className="w-full space-y-6">
+        <TabsList className="flex h-auto w-full items-center justify-start rounded-xl bg-accent/40 p-1 md:w-auto border border-border/20">
+          <TabsTrigger value="requests" className="rounded-lg px-4 py-2 text-sm font-semibold transition-all">
+            Requests Queue
+          </TabsTrigger>
+          <TabsTrigger value="config" className="rounded-lg px-4 py-2 text-sm font-semibold transition-all">
+            System Settings
+          </TabsTrigger>
+        </TabsList>
 
-          {/* Tab Content: Requests Queue */}
-          <TabsContent value="requests" className="outline-none space-y-6">
-            
-            {/* Quick Metrics Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card className="rounded-2xl bg-accent/40 shadow-sm border border-border/20 hover:border-border/40 transition-all duration-200">
-                <CardContent className="p-5 flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <div className="text-xl font-semibold tracking-tight text-foreground">{requests.length}</div>
-                    <div className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground mt-1">Queue Total</div>
-                  </div>
-                  <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 bg-primary/10 text-primary">
-                    <ArrowUpFromLine className="h-5 w-5" />
-                  </div>
-                </CardContent>
-              </Card>
+        {/* Tab Content: Requests Queue */}
+        <TabsContent value="requests" className="outline-none space-y-6">
+          
+          {/* Quick Metrics Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card className="card-widget">
+              <CardContent className="p-5 flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="text-xl font-semibold tracking-tight text-foreground">{requests.length}</div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground mt-1">Queue Total</div>
+                </div>
+                <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 bg-primary/10 text-primary">
+                  <ArrowUpFromLine className="h-5 w-5" />
+                </div>
+              </CardContent>
+            </Card>
 
-              <Card className="rounded-2xl bg-accent/40 shadow-sm border border-border/20 hover:border-border/40 transition-all duration-200">
-                <CardContent className="p-5 flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <div className="text-xl font-semibold tracking-tight text-amber-500">{pendingCount}</div>
-                    <div className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground mt-1">Pending</div>
-                  </div>
-                  <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 bg-amber-500/10 text-amber-500">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                  </div>
-                </CardContent>
-              </Card>
+            <Card className="card-widget">
+              <CardContent className="p-5 flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="text-xl font-semibold tracking-tight text-amber-500">{pendingCount}</div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground mt-1">Pending</div>
+                </div>
+                <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 bg-amber-500/10 text-amber-500">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                </div>
+              </CardContent>
+            </Card>
 
-              <Card className="rounded-2xl bg-accent/40 shadow-sm border border-border/20 hover:border-border/40 transition-all duration-200">
-                <CardContent className="p-5 flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <div className="text-xl font-semibold tracking-tight text-emerald-500">{completedCount}</div>
-                    <div className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground mt-1">Completed</div>
-                  </div>
-                  <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 bg-emerald-500/10 text-emerald-500">
-                    <CheckCircle className="h-5 w-5" />
-                  </div>
-                </CardContent>
-              </Card>
+            <Card className="card-widget">
+              <CardContent className="p-5 flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="text-xl font-semibold tracking-tight text-emerald-500">{completedCount}</div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground mt-1">Completed</div>
+                </div>
+                <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 bg-emerald-500/10 text-emerald-500">
+                  <CheckCircle className="h-5 w-5" />
+                </div>
+              </CardContent>
+            </Card>
 
-              <Card className="rounded-2xl bg-accent/40 shadow-sm border border-border/20 hover:border-border/40 transition-all duration-200">
-                <CardContent className="p-5 flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <div className="text-xl font-semibold tracking-tight text-rose-500">{cancelledCount}</div>
-                    <div className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground mt-1">Cancelled</div>
-                  </div>
-                  <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 bg-rose-500/10 text-rose-500">
-                    <XCircle className="h-5 w-5" />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <Card className="card-widget">
+              <CardContent className="p-5 flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="text-xl font-semibold tracking-tight text-rose-500">{cancelledCount}</div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground mt-1">Cancelled</div>
+                </div>
+                <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 bg-rose-500/10 text-rose-500">
+                  <XCircle className="h-5 w-5" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-            {/* Queue Table Card */}
-            <Card className="rounded-2xl bg-accent/40 border border-border/20 shadow-sm overflow-hidden">
+          {/* Queue Table Card */}
+          <Card className="card-list">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border-b border-border/10 bg-accent/20">
                 
                 {/* Dynamic Filters Pills */}
@@ -642,7 +642,7 @@ export default function WithdrawAdminClient() {
 
           {/* Tab Content: System Settings */}
           <TabsContent value="config" className="outline-none">
-            <Card className="rounded-2xl bg-accent/60 border border-border/20 shadow-sm overflow-hidden">
+            <Card className="card-settings">
               <div className="p-4 md:p-6 space-y-6">
                 
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border/20 pb-6">

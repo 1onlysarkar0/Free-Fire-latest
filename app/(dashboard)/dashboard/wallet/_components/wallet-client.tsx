@@ -297,102 +297,101 @@ export default function WalletClient({
 
   const paymentEnabled = Boolean(paymentInfo?.enabled && paymentInfo?.upiId);
   return (
-    <div className="w-full min-w-0 bg-background p-3 md:p-4 lg:p-6">
-      <div className="mx-auto max-w-7xl space-y-5 md:space-y-6">
-        <Tabs defaultValue="add-funds" className="w-full" onValueChange={(v) => { if (v === "withdraw") void loadWithdrawHistory(1); }}>
-          <div className="space-y-5 md:space-y-6">
+    <div className="w-full min-w-0 space-y-6">
+      <Tabs defaultValue="add-funds" className="w-full" onValueChange={(v) => { if (v === "withdraw") void loadWithdrawHistory(1); }}>
+        <div className="space-y-5 md:space-y-6">
 
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-              <div className="space-y-1">
-                <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-foreground">
-                  My wallet
-                </h1>
-                <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-                  Add funds, verify UPI payments, and track every wallet activity from one place.
-                </p>
-              </div>
-
-              <TabsList className="grid h-auto w-full grid-cols-3 rounded-2xl bg-accent/60 p-1 shadow-sm xl:w-auto">
-                <TabsTrigger
-                  value="add-funds"
-                  className="rounded-xl px-3 py-2 text-sm font-semibold text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-h-[44px] flex items-center justify-center gap-2"
-                >
-                  <Plus className="h-4 w-4 shrink-0" />
-                  <span className="hidden sm:inline">Add Funds</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="withdraw"
-                  className="rounded-xl px-3 py-2 text-sm font-semibold text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-h-[44px] flex items-center justify-center gap-2"
-                >
-                  <ArrowUpFromLine className="h-4 w-4 shrink-0" />
-                  <span className="hidden sm:inline">Withdraw</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="history"
-                  className="rounded-xl px-3 py-2 text-sm font-semibold text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-h-[44px] flex items-center justify-center gap-2"
-                >
-                  <History className="h-4 w-4 shrink-0" />
-                  <span className="hidden sm:inline">History</span>
-                </TabsTrigger>
-              </TabsList>
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+            <div className="space-y-1">
+              <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-foreground">
+                My wallet
+              </h1>
+              <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
+                Add funds, verify UPI payments, and track every wallet activity from one place.
+              </p>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <Card className="rounded-2xl bg-accent/60 p-4 shadow-sm">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                      Available balance
-                    </p>
-                    <p className="mt-1 text-xl md:text-2xl font-semibold tracking-tight text-foreground">
-                      ₹{balance}
-                    </p>
-                  </div>
-                  <Wallet className="h-5 w-5 shrink-0 text-foreground" />
-                </div>
-                <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                  Current usable wallet amount for tournament entries, refunds, prize credits, and
-                  verified deposits.
-                </p>
-              </Card>
-
-              <Card className="rounded-2xl bg-accent/60 p-4 shadow-sm">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                      Total earned
-                    </p>
-                    <p className="mt-1 text-xl md:text-2xl font-semibold tracking-tight text-foreground">
-                      +₹{totalEarned}
-                    </p>
-                  </div>
-                  <TrendingUp className="h-5 w-5 shrink-0 text-foreground" />
-                </div>
-                <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                  Refunds, prize winnings, admin credits, and successful UPI top-ups.
-                </p>
-              </Card>
-
-              <Card className="rounded-2xl bg-accent/60 p-4 shadow-sm">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                      Total spent
-                    </p>
-                    <p className="mt-1 text-xl md:text-2xl font-semibold tracking-tight text-foreground">
-                      -₹{totalSpent}
-                    </p>
-                  </div>
-                  <TrendingDown className="h-5 w-5 shrink-0 text-foreground" />
-                </div>
-                <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                  Tournament entries, manual debits, and withdrawal requests logged from your
-                  wallet.
-                </p>
-              </Card>
-
-            </div>
+            <TabsList className="grid h-auto w-full grid-cols-3 rounded-2xl bg-accent/60 p-1 shadow-sm xl:w-auto">
+              <TabsTrigger
+                value="add-funds"
+                className="rounded-xl px-3 py-2 text-sm font-semibold text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-h-[44px] flex items-center justify-center gap-2"
+              >
+                <Plus className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Add Funds</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="withdraw"
+                className="rounded-xl px-3 py-2 text-sm font-semibold text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-h-[44px] flex items-center justify-center gap-2"
+              >
+                <ArrowUpFromLine className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Withdraw</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="history"
+                className="rounded-xl px-3 py-2 text-sm font-semibold text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-h-[44px] flex items-center justify-center gap-2"
+              >
+                <History className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">History</span>
+              </TabsTrigger>
+            </TabsList>
           </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <Card className="card-widget p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                    Available balance
+                  </p>
+                  <p className="mt-1 text-xl md:text-2xl font-semibold tracking-tight text-foreground">
+                    ₹{balance}
+                  </p>
+                </div>
+                <Wallet className="h-5 w-5 shrink-0 text-foreground" />
+              </div>
+              <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                Current usable wallet amount for tournament entries, refunds, prize credits, and
+                verified deposits.
+              </p>
+            </Card>
+
+            <Card className="card-widget p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                    Total earned
+                  </p>
+                  <p className="mt-1 text-xl md:text-2xl font-semibold tracking-tight text-foreground">
+                    +₹{totalEarned}
+                  </p>
+                </div>
+                <TrendingUp className="h-5 w-5 shrink-0 text-foreground" />
+              </div>
+              <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                Refunds, prize winnings, admin credits, and successful UPI top-ups.
+              </p>
+            </Card>
+
+            <Card className="card-widget p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                    Total spent
+                  </p>
+                  <p className="mt-1 text-xl md:text-2xl font-semibold tracking-tight text-foreground">
+                    -₹{totalSpent}
+                  </p>
+                </div>
+                <TrendingDown className="h-5 w-5 shrink-0 text-foreground" />
+              </div>
+              <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                Tournament entries, manual debits, and withdrawal requests logged from your
+                wallet.
+              </p>
+            </Card>
+
+          </div>
+        </div>
 
           <TabsContent value="add-funds" className="mt-5 md:mt-6">
             {!paymentEnabled ? (
@@ -411,7 +410,7 @@ export default function WalletClient({
             ) : (
               <div className="grid grid-cols-1 gap-5 md:gap-6 lg:grid-cols-12">
                 <div className="lg:col-span-4">
-                  <Card className="rounded-2xl bg-accent/60 p-4 shadow-sm md:p-5">
+                  <Card className="card-settings">
                     <div className="flex items-start gap-3">
                       <CreditCard className="h-5 w-5 shrink-0 text-foreground" />
                       <div className="min-w-0">
@@ -442,7 +441,7 @@ export default function WalletClient({
                 </div>
 
                 <div className="space-y-5 md:space-y-6 lg:col-span-8">
-                  <Card className="rounded-2xl bg-accent/40 p-4 shadow-sm md:p-5">
+                  <Card className="card-settings">
                     <div className="space-y-1">
                       <h3 className="text-base font-semibold tracking-tight text-foreground">
                         Submit transaction details
@@ -549,7 +548,7 @@ export default function WalletClient({
                   </Card>
 
                   {paymentInfo?.pageContent ? (
-                    <Card className="rounded-2xl bg-accent/40 p-4 shadow-sm md:p-5">
+                    <Card className="card-settings">
                       <div className="space-y-1">
                         <h3 className="text-base font-semibold tracking-tight text-foreground">
                           Payment instructions
@@ -577,7 +576,7 @@ export default function WalletClient({
             <div className="grid grid-cols-1 gap-5 md:gap-6 lg:grid-cols-12">
               <div className="lg:col-span-4">
                 {withdrawDescription ? (
-                  <Card className="rounded-2xl bg-accent/40 p-4 shadow-sm md:p-5">
+                  <Card className="card-settings">
                     <div className="flex items-start gap-3">
                       <ArrowUpFromLine className="h-5 w-5 shrink-0 text-foreground" />
                       <div className="min-w-0">
@@ -594,7 +593,7 @@ export default function WalletClient({
                     </div>
                   </Card>
                 ) : (
-                  <Card className="rounded-2xl bg-accent/60 p-4 shadow-sm md:p-5">
+                  <Card className="card-settings">
                     <div className="flex items-start gap-3">
                       <ArrowUpFromLine className="h-5 w-5 shrink-0 text-foreground" />
                       <div className="min-w-0">
@@ -616,7 +615,7 @@ export default function WalletClient({
               </div>
 
               <div className="space-y-5 md:space-y-6 lg:col-span-8">
-                <Card className="rounded-2xl bg-accent/40 p-4 shadow-sm md:p-5">
+                <Card className="card-settings">
                   <div className="space-y-1">
                     <h3 className="text-base font-semibold tracking-tight text-foreground">
                       Submit withdrawal request
@@ -715,7 +714,7 @@ export default function WalletClient({
                 </Card>
 
                 {/* Withdrawal History */}
-                <Card className="rounded-2xl bg-accent/40 p-4 shadow-sm md:p-5">
+                <Card className="card-list">
                   <div className="space-y-1">
                     <h3 className="text-base font-semibold tracking-tight text-foreground">
                       Withdrawal history
@@ -804,7 +803,7 @@ export default function WalletClient({
 
           <TabsContent value="history" className="mt-5 md:mt-6">
             {loadingTx ? (
-              <Card className="rounded-2xl bg-accent/40 p-6 shadow-sm">
+              <Card className="card-list">
                 <div className="flex h-36 items-center justify-center">
                   <Loader2 className="h-8 w-8 animate-spin text-foreground" />
                 </div>
@@ -854,7 +853,7 @@ export default function WalletClient({
                   return (
                     <Card
                       key={tx.id}
-                      className="rounded-2xl bg-accent/40 p-4 shadow-sm transition-all duration-200 hover:bg-accent/70 hover:shadow-md"
+                      className="card-widget p-4"
                     >
                       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                         <div className="flex min-w-0 items-start gap-4">
@@ -911,7 +910,7 @@ export default function WalletClient({
                 })}
 
                 {totalPages > 1 ? (
-                  <Card className="rounded-2xl bg-accent/60 p-4 shadow-sm">
+                  <Card className="card-list">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
                       <span className="text-sm font-medium text-muted-foreground">
                         Page {page} of {totalPages}
@@ -945,7 +944,6 @@ export default function WalletClient({
             )}
           </TabsContent>
         </Tabs>
-      </div>
     </div>
   );
 }

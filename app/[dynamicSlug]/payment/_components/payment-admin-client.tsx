@@ -189,55 +189,54 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
   ];
 
   return (
-    <div className="w-full min-w-0 p-4 md:p-6">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-4">
-            <div className="rounded-xl bg-primary/10 p-2.5">
-              <CreditCard className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight text-foreground">Payment Gateway</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">Configure UPI payments, Gmail IMAP verification, and page content.</p>
-            </div>
+    <div className="w-full min-w-0 space-y-6">
+      {/* Header */}
+      <div className="header-admin">
+        <div className="flex items-center gap-4">
+          <div className="rounded-xl bg-primary/10 p-2.5">
+            <CreditCard className="h-5 w-5 text-primary" />
           </div>
-          {canEdit && (
-            <Button onClick={handleSave} disabled={saving}>
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              {saving ? "Saving..." : "Save Changes"}
-            </Button>
-          )}
-        </div>
-
-        {/* Security Info Box */}
-        <div className="rounded-2xl bg-info/10 dark:bg-info/5 border border-info/20 p-4 flex gap-3">
-          <AlertTriangle className="h-5 w-5 text-info shrink-0 mt-0.5" />
-          <div className="text-sm space-y-1">
-            <p className="font-semibold text-info">Security Notes</p>
-            <ul className="text-xs text-info/80 space-y-0.5 list-disc list-inside">
-              <li>Payments are verified by checking your actual Gmail inbox via IMAP.</li>
-              <li>Each UTR number can only be used <strong>ONCE</strong>.</li>
-              <li>Only unread emails are processed — emails are marked read after verification.</li>
-              <li>Rate limiting: max 5 verification attempts per user per 15 minutes.</li>
-              <li>Never share your Gmail App Password. Use a dedicated Gmail account.</li>
-            </ul>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-foreground">Payment Gateway</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">Configure UPI payments, Gmail IMAP verification, and page content.</p>
           </div>
         </div>
+        {canEdit && (
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            {saving ? "Saving..." : "Save Changes"}
+          </Button>
+        )}
+      </div>
 
-        {/* Main Tabs */}
-        <Card className="rounded-2xl bg-accent/60 shadow-sm overflow-hidden">
-          <div className="flex gap-1 p-2 bg-accent/40 border-b">
-            {tabs.map(({ key, label, icon: Icon }) => (
-              <button
-                key={key}
-                onClick={() => setActiveTab(key)}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
-                  activeTab === key
-                    ? "bg-background shadow-sm text-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
-                }`}
-              >
+      {/* Security Info Box */}
+      <div className="rounded-2xl bg-info/10 dark:bg-info/5 border border-info/20 p-4 flex gap-3">
+        <AlertTriangle className="h-5 w-5 text-info shrink-0 mt-0.5" />
+        <div className="text-sm space-y-1">
+          <p className="font-semibold text-info">Security Notes</p>
+          <ul className="text-xs text-info/80 space-y-0.5 list-disc list-inside">
+            <li>Payments are verified by checking your actual Gmail inbox via IMAP.</li>
+            <li>Each UTR number can only be used <strong>ONCE</strong>.</li>
+            <li>Only unread emails are processed — emails are marked read after verification.</li>
+            <li>Rate limiting: max 5 verification attempts per user per 15 minutes.</li>
+            <li>Never share your Gmail App Password. Use a dedicated Gmail account.</li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Main Tabs */}
+      <Card className="card-settings">
+        <div className="flex gap-1 p-2 bg-accent/40 border-b">
+          {tabs.map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key)}
+              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+                activeTab === key
+                  ? "bg-background shadow-sm text-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
+              }`}
+            >
                 <Icon className="h-4 w-4" />
                 {label}
               </button>
@@ -272,7 +271,7 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
                       <ol className="list-decimal list-inside space-y-1 text-xs text-warning/80">
                         <li>Go to <strong>myaccount.google.com</strong></li>
                         <li>Select <strong>Security → 2-Step Verification → App passwords</strong></li>
-                        <li>Select &quot;Mail&quot; and &quot;Other device&quot; → name it &quot;1onlysarkar&quot;</li>
+                        <li>Select &quot;Mail&quot; and &quot;Other device&quot; → name it after your app</li>
                         <li>Copy the 16-character password shown</li>
                         <li>Paste it in the App Password field below</li>
                       </ol>
@@ -523,7 +522,6 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
             )}
           </div>
         </Card>
-      </div>
     </div>
   );
 }

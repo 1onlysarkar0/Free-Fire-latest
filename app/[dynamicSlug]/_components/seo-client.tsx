@@ -133,102 +133,101 @@ export default function SeoPage({ initialData }: { initialData: SeoRow[] }) {
   });
 
   return (
-    <div className="w-full min-w-0 p-4 md:p-6">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-4">
-            <div className="rounded-xl bg-primary/10 p-2.5">
-              <Search className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight text-foreground">SEO Configuration</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">Per-page SEO settings. Null fields fall back to the Global row.</p>
-            </div>
+    <div className="w-full min-w-0 space-y-6">
+      {/* Header */}
+      <div className="header-admin">
+        <div className="flex items-center gap-4">
+          <div className="rounded-xl bg-primary/10 p-2.5">
+            <Search className="h-5 w-5 text-primary" />
           </div>
-          <Button onClick={openCreate}><Plus className="h-4 w-4" />Add Page SEO</Button>
-        </div>
-
-        {/* How it works info box */}
-        <div className="rounded-2xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4 flex items-start gap-3">
-          <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
-          <div className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
-            <p className="font-semibold">How SEO fallback works:</p>
-            <p>Each page first checks its own row. Any field that is empty falls back to the <strong>Global</strong> row. The Global row is the default for the entire site.</p>
-            <p>Page IDs must match the route slug (e.g., <code className="bg-blue-100 dark:bg-blue-800 px-1 rounded">home</code> for <code className="bg-blue-100 dark:bg-blue-800 px-1 rounded">/</code>).</p>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-foreground">SEO Configuration</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">Per-page SEO settings. Null fields fall back to the Global row.</p>
           </div>
         </div>
+        <Button onClick={openCreate}><Plus className="h-4 w-4" />Add Page SEO</Button>
+      </div>
 
-        {loading ? (
-          <div className="rounded-2xl bg-accent/40 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b bg-accent/60">
-                    {["Page","Meta Title","Robots","OG Image","Actions"].map(h => (
-                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">{h}</th>
+      {/* How it works info box */}
+      <div className="rounded-2xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4 flex items-start gap-3">
+        <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+        <div className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+          <p className="font-semibold">How SEO fallback works:</p>
+          <p>Each page first checks its own row. Any field that is empty falls back to the <strong>Global</strong> row. The Global row is the default for the entire site.</p>
+          <p>Page IDs must match the route slug (e.g., <code className="bg-blue-100 dark:bg-blue-800 px-1 rounded">home</code> for <code className="bg-blue-100 dark:bg-blue-800 px-1 rounded">/</code>).</p>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="card-list">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr>
+                  {["Page","Meta Title","Robots","OG Image","Actions"].map(h => (
+                    <th key={h}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/10">
+                {[1,2,3].map(i => (
+                  <tr key={i} className="animate-pulse">
+                    {[1,2,3,4,5].map(j => (
+                      <td key={j} className="px-4 py-3"><div className="h-4 w-20 rounded bg-accent/60" /></td>
                     ))}
                   </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {[1,2,3].map(i => (
-                    <tr key={i} className="animate-pulse">
-                      {[1,2,3,4,5].map(j => (
-                        <td key={j} className="px-4 py-3"><div className="h-4 w-20 rounded bg-accent/60" /></td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
-        ) : (
-          <Card className="rounded-2xl bg-accent/40 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[500px]">
-                <thead>
-                  <tr className="border-b bg-accent/60">
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Page</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Meta Title</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground hidden md:table-cell">Robots</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground hidden lg:table-cell">OG Image</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground w-24">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {sortedRows.map(row => (
-                    <tr key={row.id} className="hover:bg-accent/20 transition-colors">
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <PageInfo id={row.id} />
-                          {row.id === "global" && <Badge variant="secondary" className="text-[10px]">GLOBAL</Badge>}
-                          {!KNOWN_PAGES[row.id] && row.id !== "global" && <Badge variant="secondary" className="text-[10px]">CUSTOM</Badge>}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground truncate max-w-[160px] text-xs">{row.metaTitle || <span className="text-muted-foreground/60 italic">Using global</span>}</td>
-                      <td className="px-4 py-3 hidden md:table-cell"><code className="text-[11px] text-muted-foreground bg-background/80 rounded px-1.5 py-0.5">{row.robots || <span className="text-muted-foreground/60 italic">Using global</span>}</code></td>
-                      <td className="px-4 py-3 text-xs hidden lg:table-cell">
-                        {row.ogImage ? <Badge className="bg-success/20 text-success border-0">✓ Set</Badge> : <span className="text-muted-foreground/60 italic">Using global</span>}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex justify-end gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => openEdit(row)}>
-                            <Pencil className="h-3.5 w-3.5" />
+        </div>
+      ) : (
+        <Card className="card-list">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[500px]">
+              <thead>
+                <tr>
+                  <th>Page</th>
+                  <th>Meta Title</th>
+                  <th className="hidden md:table-cell">Robots</th>
+                  <th className="hidden lg:table-cell">OG Image</th>
+                  <th className="w-24 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/10">
+                {sortedRows.map(row => (
+                  <tr key={row.id}>
+                    <td>
+                      <div className="flex items-center gap-2">
+                        <PageInfo id={row.id} />
+                        {row.id === "global" && <Badge variant="secondary" className="text-[10px]">GLOBAL</Badge>}
+                        {!KNOWN_PAGES[row.id] && row.id !== "global" && <Badge variant="secondary" className="text-[10px]">CUSTOM</Badge>}
+                      </div>
+                    </td>
+                    <td className="text-muted-foreground truncate max-w-[160px] text-xs">{row.metaTitle || <span className="text-muted-foreground/60 italic">Using global</span>}</td>
+                    <td className="hidden md:table-cell"><code className="text-[11px] text-muted-foreground bg-background/80 rounded px-1.5 py-0.5">{row.robots || <span className="text-muted-foreground/60 italic">Using global</span>}</code></td>
+                    <td className="text-xs hidden lg:table-cell">
+                      {row.ogImage ? <Badge className="bg-success/20 text-success border-0">✓ Set</Badge> : <span className="text-muted-foreground/60 italic">Using global</span>}
+                    </td>
+                    <td className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => openEdit(row)}>
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        {row.id !== "global" && (
+                          <Button variant="ghost" size="icon" onClick={() => handleDelete(row.id)} className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
+                            <Trash2 className="h-3.5 w-3.5" />
                           </Button>
-                          {row.id !== "global" && (
-                            <Button variant="ghost" size="icon" onClick={() => handleDelete(row.id)} className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        )}
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="w-full max-w-2xl max-h-[92vh] overflow-hidden flex flex-col">
@@ -289,7 +288,6 @@ export default function SeoPage({ initialData }: { initialData: SeoRow[] }) {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
     </div>
   );
 }

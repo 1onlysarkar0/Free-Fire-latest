@@ -68,86 +68,85 @@ export default function EmailTemplatesClient({ initialData }: { initialData: Tem
   }
 
   return (
-    <div className="w-full min-w-0 p-4 md:p-6">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-4">
-            <div className="rounded-xl bg-primary/10 p-2.5">
-              <Mail className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight text-foreground">Email Templates</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">HTML templates with {"{{variable}}"} placeholders for transactional emails.</p>
-            </div>
+    <div className="w-full min-w-0 space-y-6">
+      {/* Header */}
+      <div className="header-admin">
+        <div className="flex items-center gap-4">
+          <div className="rounded-xl bg-primary/10 p-2.5">
+            <Mail className="h-5 w-5 text-primary" />
           </div>
-          <Button onClick={openCreate}><Plus className="h-4 w-4" />New Template</Button>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-foreground">Email Templates</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">HTML templates with {"{{variable}}"} placeholders for transactional emails.</p>
+          </div>
         </div>
+        <Button onClick={openCreate}><Plus className="h-4 w-4" />New Template</Button>
+      </div>
 
-        {loading ? (
-          <div className="grid gap-3">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="rounded-2xl bg-accent/40 shadow-sm animate-pulse p-5">
-                <div className="flex items-start gap-4">
-                  <div className="h-9 w-9 rounded-lg bg-accent/60 shrink-0" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 w-48 rounded bg-accent/60" />
-                    <div className="h-3 w-64 rounded bg-accent/40" />
-                    <div className="flex gap-2 mt-2">
-                      <div className="h-5 w-20 rounded bg-accent/40" />
-                      <div className="h-5 w-24 rounded bg-accent/40" />
-                    </div>
+      {loading ? (
+        <div className="grid gap-3">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="card-widget animate-pulse p-5">
+              <div className="flex items-start gap-4">
+                <div className="h-9 w-9 rounded-lg bg-accent/60 shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-48 rounded bg-accent/60" />
+                  <div className="h-3 w-64 rounded bg-accent/40" />
+                  <div className="flex gap-2 mt-2">
+                    <div className="h-5 w-20 rounded bg-accent/40" />
+                    <div className="h-5 w-24 rounded bg-accent/40" />
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        ) : templates.length === 0 ? (
-          <div className="flex min-h-[240px] flex-col items-center justify-center bg-background px-6 py-10 text-center rounded-2xl border">
-            <Mail className="mb-4 h-6 w-6 text-foreground" />
-            <h4 className="text-sm font-semibold text-foreground">No email templates yet</h4>
-            <Muted className="mt-1 text-sm">Create your first email template to get started.</Muted>
-          </div>
-        ) : (
-          <div className="grid gap-3">
-            {templates.map(t => {
-              let vars: string[] = [];
-              if (t.variables) {
-                try { vars = JSON.parse(t.variables) as string[]; }
-                catch { if (typeof t.variables === "string") vars = t.variables.split(",").map(s => s.trim()).filter(Boolean); }
-              }
-              return (
-                <Card key={t.id} className="rounded-2xl bg-accent/60 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
-                  <CardContent className="p-5 flex items-start gap-4">
-                    <div className="h-9 w-9 rounded-lg bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center shrink-0">
-                      <Mail className="h-4 w-4 text-pink-500" />
+            </div>
+          ))}
+        </div>
+      ) : templates.length === 0 ? (
+        <div className="flex min-h-[240px] flex-col items-center justify-center bg-background px-6 py-10 text-center rounded-2xl border">
+          <Mail className="mb-4 h-6 w-6 text-foreground" />
+          <h4 className="text-sm font-semibold text-foreground">No email templates yet</h4>
+          <Muted className="mt-1 text-sm">Create your first email template to get started.</Muted>
+        </div>
+      ) : (
+        <div className="grid gap-3">
+          {templates.map(t => {
+            let vars: string[] = [];
+            if (t.variables) {
+              try { vars = JSON.parse(t.variables) as string[]; }
+              catch { if (typeof t.variables === "string") vars = t.variables.split(",").map(s => s.trim()).filter(Boolean); }
+            }
+            return (
+              <Card key={t.id} className="card-widget">
+                <CardContent className="p-5 flex items-start gap-4">
+                  <div className="h-9 w-9 rounded-lg bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center shrink-0">
+                    <Mail className="h-4 w-4 text-pink-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-semibold text-foreground">{t.name}</span>
+                      {t.description && <span className="text-xs text-muted-foreground">— {t.description}</span>}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-semibold text-foreground">{t.name}</span>
-                        {t.description && <span className="text-xs text-muted-foreground">— {t.description}</span>}
+                    <p className="text-xs text-muted-foreground mt-1">Subject: {t.subject}</p>
+                    {vars.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {vars.map(v => <Badge key={v} variant="secondary" className="text-[10px] font-mono">{`{{${v}}}`}</Badge>)}
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">Subject: {t.subject}</p>
-                      {vars.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {vars.map(v => <Badge key={v} variant="secondary" className="text-[10px] font-mono">{`{{${v}}}`}</Badge>)}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <Button variant="ghost" size="icon" onClick={() => openEdit(t)}>
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(t.id)} className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button variant="ghost" size="icon" onClick={() => openEdit(t)}>
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleDelete(t.id)} className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
@@ -191,7 +190,6 @@ export default function EmailTemplatesClient({ initialData }: { initialData: Tem
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
     </div>
   );
 }
