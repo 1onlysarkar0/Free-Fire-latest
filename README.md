@@ -14,7 +14,7 @@ Production: **https://1onlysarkar.shop**
 | Language | TypeScript 5.9 |
 | Authentication | Better Auth 1.6 (Email+Password, Google OAuth, TOTP 2FA) |
 | Database | PostgreSQL (Supabase Pooler) |
-| ORM | Drizzle ORM 0.43 + Drizzle Kit 0.31 |
+| ORM | Drizzle ORM 0.45 + Drizzle Kit 0.31 |
 | Styling | Tailwind CSS v4.3 + Radix UI + shadcn/ui (new-york style) |
 | State Management | @tanstack/react-query 5.100 |
 | Forms | react-hook-form 7.76 + Zod 3.25 validation |
@@ -22,7 +22,9 @@ Production: **https://1onlysarkar.shop**
 | QR Code | `qrcode.react` (client-side SVG) |
 | Charts | Recharts 3.8 |
 | Deployment | Vercel (serverless) / Docker |
-| Email Dispatch | Nodemailer 8.0 (SMTP credentials stored in DB) |
+| Email Dispatch | Nodemailer 9.0 (SMTP credentials & multi-provider configs stored in DB) |
+| Visual Designer | Unlayer Email Editor (`react-email-editor` dynamically imported) |
+| React Email | Dynamic compilation and static rendering (`react-dom/server`) |
 | Analytics | Vercel Analytics |
 | Instagram | Instagram Graph API v25.0 (business_discovery for avatar fetch) |
 | Animation | Framer Motion 12.40 / Motion 12.40 |
@@ -37,7 +39,8 @@ Production: **https://1onlysarkar.shop**
 - `app/(dashboard)/` — Authenticated user dashboard (wallet, settings, my tournaments)
 - `app/[dynamicSlug]/` — Admin panel (role-based, slug from DB) + public custom pages
 - `app/api/` — API routes (all admin routes protected by `requireAdminOrRole`)
-- `lib/` — Server-side helpers (auth, SEO, wallet, tournaments, notifications)
+- `emails/` — React Email templates and compiler registry
+- `lib/` — Server-side helpers (auth, SEO, wallet, tournaments, notifications, mailing)
 - `db/` — Drizzle schema + seed script
 
 ---
@@ -76,15 +79,11 @@ Production: **https://1onlysarkar.shop**
 - Dashboard with real-time statistics
 - User management (ban, role assignment, avatar sync)
 - Tournament management (CRUD, room credentials, winners)
-- Role-based access control (RBAC) with 47 permissions
+- Role-based access control (RBAC) with granular sub-admin permissions
 - Site configuration (logo, hero, footer, contact)
 - Navigation management (header, footer, social links)
-- Email template editor with variable placeholders
-- SMTP configuration with test connection
-- SEO configuration (per-page meta, OG, Twitter cards)
-- Custom page builder with markdown editor
-- Instagram Graph API configuration
-- Payment gateway configuration
+- **SMTP Configuration**: Multi-provider panel supporting multiple active connections (Gmail, Resend)
+- **Email Templates**: Stats dashboard, template duplications, live previewing, test-email dispatch overrides, Visual Designer (Unlayer), HTML editor, and React Email read-only rendering
 - Auth page content customization
 - Content templates (Description/Rules)
 - **AI Chatbot** configuration (full 7-tab panel)
@@ -106,7 +105,7 @@ Production: **https://1onlysarkar.shop**
 - Forced light creamy theme (no dark mode)
 - Contrast-based elevation with soft shadows
 - 59+ shadcn/ui components (new-york style)
-- Custom utility classes: `card`, `card-coral`, `card-inset`, `input`, `btn`, `badge`
+- Custom utility classes: `card-list` (overflow hidden), `card-settings` (overflow visible), `card-widget` (transition / hover translateY)
 - Interactive hover buttons with sliding background animation
 - Navigation uses `hover:bg-accent` / `data-[state=open]:bg-accent` for interactive states
 - Navbar has `h-16` height with consistent `px-4 py-2` padding on all nav items
@@ -121,14 +120,15 @@ Production: **https://1onlysarkar.shop**
 
 ## Key Design Decisions
 
-- **Fully DB-driven SEO**: All metadata (title, description, OG, JSON-LD) is stored in `seo_config` table and fetched at runtime — no hardcoded site names anywhere in the codebase.
+- **Fully DB-driven SEO**: All metadata (title, description, OG, Twitter, JSON-LD) is stored in `seo_config` table and fetched at runtime — no hardcoded site names anywhere in the codebase.
 - **Admin Panel Security**: The admin panel slug is stored in `site_config.admin_slug`. It is NEVER mentioned in `robots.txt` (allowlist approach — only `/` and `/tournaments/` are allowed, everything else disallowed with `Disallow: /`). The panel requires `isAdmin=true` on the user row.
 - **RBAC**: All admin API routes use `requireAdminOrRole()` from `lib/admin-auth.ts`. Sub-admin roles have granular permissions stored as JSON in `admin_role.permissions`.
 - **No Fallback Brand Strings**: The string "1onlysarkar" does not appear in any catch block, fallback value, or default content in production code. If the DB is empty, pages show no title rather than a hardcoded one.
+- **Card Settings Overflow**: Resolved card input/dropdown clipping issues by configuring `.card-settings` with `overflow: visible` (rather than hidden), preserving border-radius and shadows on modern browsers without clipping form components.
 
 ---
 
-## Database Schema (24 Tables)
+## Database Schema (33 Tables)
 
 ### Better Auth Core
 | Table | Purpose |
@@ -145,8 +145,9 @@ Production: **https://1onlysarkar.shop**
 | `site_config` | Single row: logo, navbar, hero, footer, adminSlug |
 | `navigation_item` | Header, footer, social, mobile-extra nav links |
 | `auth_page_content` | Left-panel quote+subtext for each auth page |
-| `smtp_config` | SMTP configuration (single row) |
-| `email_template` | HTML templates with `{{variable}}` placeholders |
+| `smtp_config` | Legacy single-row SMTP settings (deprecated but preserved for backwards compat) |
+| `smtp_providers` | Multi-provider SMTP configurations (label, type, credentials, default, active flags) |
+| `email_template` | Extended templates with categories, visual design JSON, template key, variables schema, and active flags |
 | `seo_config` | Per-page SEO; "global" row as site-wide fallback |
 | `custom_page` | Rich-text pages served at `/[slug]` |
 | `content_templates` | Reusable Description/Rules templates |
@@ -188,7 +189,7 @@ Production: **https://1onlysarkar.shop**
 
 ---
 
-## API Routes (61 Routes)
+## API Routes (67 Routes)
 
 ### Auth Routes
 | Route | Method | Description |
@@ -221,7 +222,7 @@ Production: **https://1onlysarkar.shop**
 | `/api/wallet/withdraw/request` | POST | Submit withdrawal request (deducts wallet) |
 | `/api/wallet/withdraw/requests` | GET | Get user's withdrawal request history |
 
-### Admin Routes (16 groups)
+### Admin Routes
 All admin routes require `requireAdminOrRole(request, permission?)`.
 
 | Route Group | Capabilities |
@@ -232,8 +233,8 @@ All admin routes require `requireAdminOrRole(request, permission?)`.
 | `/api/admin/users` | User management + avatar sync |
 | `/api/admin/roles` | Role management CRUD |
 | `/api/admin/tournaments` | Tournament CRUD + room credentials, winners, cancel, participants, slots |
-| `/api/admin/smtp` | SMTP configuration |
-| `/api/admin/email-templates` | Email template CRUD |
+| `/api/admin/smtp-providers` | SMTP multi-provider CRUD, default setting, test dispatch |
+| `/api/admin/email-templates` | Email templates CRUD, duplicate, rendering preview, test dispatch overrides |
 | `/api/admin/auth-content` | Auth page content CRUD |
 | `/api/admin/seo` | SEO configuration CRUD |
 | `/api/admin/pages` | Custom page CRUD |
@@ -241,9 +242,8 @@ All admin routes require `requireAdminOrRole(request, permission?)`.
 | `/api/admin/payment-config` | Payment config + IMAP test |
 | `/api/admin/payment-verifications` | Payment verification logs |
 | `/api/admin/wallet/adjust` | Credit/debit user wallet |
-| `/api/admin/withdraw/config` | GET/PUT | Get/update withdrawal configuration |
-| `/api/admin/withdraw/requests` | GET | List all withdrawal requests |
-| `/api/admin/withdraw/requests/[id]` | POST | Complete/cancel a withdrawal request |
+| `/api/admin/withdraw/config` | Get/update withdrawal configuration |
+| `/api/admin/withdraw/requests` | List, complete, or cancel withdrawal requests |
 | `/api/admin/chatbot-config` | Chatbot config GET/PUT + test-connection |
 | `/api/admin/chatbot-knowledge` | Knowledge base CRUD |
 | `/api/admin/chatbot-sessions` | Chat session list + detail + delete |
@@ -326,13 +326,14 @@ Set `is_admin = true` on your user in the database, then visit the admin route (
 | `lib/content.ts` | DB-cached auth page text, dashboard config, hero config |
 | `lib/wallet.ts` | Wallet helpers (idempotency, row locking) |
 | `lib/payment.ts` | IMAP UTR payment verification |
-| `lib/mailer.ts` | Nodemailer email sending |
+| `lib/mailer.ts` | Nodemailer email sending (multi-provider + fallback) |
+| `emails/registry.ts` | React Email compilation & registration registry |
 | `lib/notifications.ts` | Notification creation and retrieval |
 | `lib/seo.ts` | SEO data fetching and metadata building |
 | `lib/tournaments.ts` | Tournament CRUD helpers |
 | `lib/user-data.ts` | User profile, wallet, permissions, top players |
 | `lib/schemas/admin.ts` | Zod validation schemas |
-| `db/schema.ts` | Drizzle schema (24 tables) |
+| `db/schema.ts` | Drizzle schema (33 tables) |
 | `db/seed-db.ts` | Idempotent seed script |
 | `db/drizzle.ts` | Database connection (postgres.js driver) |
 | `middleware.ts` | Auth route protection |
@@ -381,8 +382,8 @@ Cards are unified into four design utility classes in `app/globals.css` to preve
 
 | Utility Class | Card Role | Typical Use Case |
 | :--- | :--- | :--- |
-| `card-list` | **Listings & Grids** | Data lists, tables, user tables, search filters, transaction lists. |
-| `card-settings` | **Settings & Inputs** | Configuration panels (SMTP config, SEO forms, site content inputs). |
+| `card-list` | **Listings & Grids** | Data lists, tables, user tables, search filters, transaction lists (overflow: hidden). |
+| `card-settings` | **Settings & Inputs** | Configuration panels, form containers, settings inputs (overflow: visible). |
 | `card-widget` | **Grid Items & Info** | Dashboard statistics cards, small info blocks, roles badges. |
 
 ### 4. Tables & Lists
@@ -420,7 +421,7 @@ Inside `.card-list` and `.card-settings` containers:
 If you are an AI assistant pair-programming on this repository, you **must** strictly adhere to the following guardrails:
 
 ### 1. Forced Light Theme (No Dark Mode)
-* **Rule**: The platform utilizes a forced cream light theme design. 
+* **Rule**: The platform utilizes a forced cream light theme design.
 * **Constraint**: Never add `dark:` utility classes, dark mode triggers, or CSS configurations that deviate from the warm cream aesthetic.
 
 ### 2. No Hardcoded Brand Fallbacks

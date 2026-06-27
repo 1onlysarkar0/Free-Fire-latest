@@ -63,11 +63,12 @@
     "radix-ui": "^1.4.3",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "react-email-editor": "^1.8.0",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
+    "server-only": "^0.0.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.6.0",
-    "server-only": "^0.0.1",
     "zod": "^3.25.76"
   },
   "devDependencies": {

@@ -18,12 +18,14 @@ import * as dotenv from "dotenv";
 dotenv.config({ path: ".env" });
 
 import { drizzle } from "drizzle-orm/postgres-js";
+import { eq } from "drizzle-orm";
 import postgres from "postgres";
 import {
   siteConfig,
   navigationItem,
   authPageContent,
   smtpConfig,
+  smtpProviders,
   emailTemplate,
   seoConfig,
   adminRole,
@@ -214,7 +216,7 @@ async function seedAuthPageContent() {
 // ─── 4. SMTP Config ───────────────────────────────────────────────────────────
 
 async function seedSmtpConfig() {
-  console.log("💾 Seeding smtp_config (placeholder)...");
+  console.log("💾 Seeding smtp_config and smtp_providers...");
 
   await db
     .insert(smtpConfig)
@@ -231,7 +233,25 @@ async function seedSmtpConfig() {
     })
     .onConflictDoNothing();
 
-  console.log("✅ smtp_config seeded (disabled — configure before going live).");
+  await db
+    .insert(smtpProviders)
+    .values({
+      id: "default-gmail",
+      label: "Gmail Default",
+      providerType: "gmail_smtp",
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false,
+      username: "",
+      password: "",
+      fromName: "1onlysarkar",
+      fromEmail: "",
+      isDefault: true,
+      isActive: true,
+    })
+    .onConflictDoNothing();
+
+  console.log("✅ smtp_config and smtp_providers seeded (disabled — configure before going live).");
 }
 
 // ─── 5. Email Templates ───────────────────────────────────────────────────────
@@ -496,8 +516,29 @@ async function seedEmailTemplates() {
     },
   ];
 
+  const categories: Record<string, string> = {
+    room_revealed: "tournaments",
+    tournament_cancelled: "tournaments",
+    prize_credited: "wallet",
+    password_reset: "auth",
+    welcome: "auth",
+    email_verification: "auth",
+  };
+
   for (const template of templates) {
-    await db.insert(emailTemplate).values(template).onConflictDoNothing();
+    const category = categories[template.name] ?? "system";
+    await db.insert(emailTemplate).values({
+      ...template,
+      category,
+      editorType: "html",
+      isActive: true,
+    }).onConflictDoNothing();
+
+    await db.update(emailTemplate).set({
+      category,
+      editorType: "html",
+      isActive: true,
+    }).where(eq(emailTemplate.id, template.id));
   }
 
   console.log("✅ email_template seeded.");

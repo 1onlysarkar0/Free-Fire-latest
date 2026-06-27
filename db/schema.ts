@@ -174,7 +174,7 @@ export const authPageContent = pgTable("auth_page_content", {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SMTP CONFIGURATION
+// SMTP CONFIGURATION (legacy single-row — kept for backwards compat)
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const smtpConfig = pgTable("smtp_config", {
@@ -192,19 +192,56 @@ export const smtpConfig = pgTable("smtp_config", {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// SMTP PROVIDERS (multi-provider, replaces smtp_config for new logic)
+// providerType: 'gmail_smtp' | 'resend_smtp'
+// Only one row can have isDefault = true at a time (enforced in API layer).
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const smtpProviders = pgTable("smtp_providers", {
+  id: text("id").primaryKey(),
+  label: text("label").notNull(),
+  providerType: text("provider_type").notNull().default("gmail_smtp"),
+  host: text("host").notNull(),
+  port: integer("port").notNull().default(587),
+  secure: boolean("secure").notNull().default(false),
+  username: text("username").notNull(),
+  password: text("password").notNull(),
+  fromName: text("from_name").notNull(),
+  fromEmail: text("from_email").notNull(),
+  replyTo: text("reply_to"),
+  isDefault: boolean("is_default").notNull().default(false),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // EMAIL TEMPLATES
+// editorType: 'html' | 'visual' | 'react_email'
+// category: 'auth' | 'wallet' | 'tournaments' | 'notifications' | 'marketing' | 'system'
+// designJson: Unlayer visual editor JSON payload (for editorType='visual')
+// templateKey: maps to React Email registry (for editorType='react_email')
+// variablesSchema: JSON string of variable definitions
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const emailTemplate = pgTable("email_template", {
   id: text("id").primaryKey(),
   name: text("name").notNull().unique(),
   subject: text("subject").notNull(),
+  previewText: text("preview_text"),
   bodyHtml: text("body_html").notNull(),
+  designJson: text("design_json"),
+  templateKey: text("template_key"),
   variables: text("variables"),
+  variablesSchema: text("variables_schema"),
   description: text("description"),
+  category: text("category").notNull().default("system"),
+  editorType: text("editor_type").notNull().default("html"),
+  isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SEO CONFIGURATION
