@@ -1,9 +1,11 @@
 import { Suspense } from "react";
 import { Metadata } from "next";
 import TournamentsClient from "./_components/tournaments-client";
-import { getCachedTournamentsPaginated } from "@/lib/tournaments";
+import { fetchTournamentsPaginated } from "@/lib/tournaments";
 import { getSeoData, buildMetadata } from "@/lib/seo";
 import { getAdminSiteConfigCached } from "@/lib/admin-data";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   const [seo, config] = await Promise.all([
@@ -18,7 +20,7 @@ export default async function TournamentsPage({ searchParams }: { searchParams: 
   const params = await searchParams;
   const statusFilter = params.status || "ACTIVE,UPCOMING,ROOM_REVEALED,LIVE";
   
-  const initialData = await getCachedTournamentsPaginated(statusFilter, null, null, null, 1, 50)
+  const initialData = await fetchTournamentsPaginated(statusFilter, null, null, null, 1, 50)
     .then((res) => res.data)
     .catch(() => []);
 

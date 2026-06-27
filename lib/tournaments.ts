@@ -16,6 +16,7 @@ export interface TournamentListItem {
   gameMode: string; teamFormat: string; maps: string[]; totalSlots: number;
   bookedSlots: number; availableSlots: number; startTime: string;
   registrationDeadline: string; status: string;
+  hasJoined?: boolean;
 }
 
 export interface SlotItem {
@@ -296,3 +297,24 @@ export const getCachedTournamentPublicData = cache((id: string) => {
     { tags: [CACHE_TAGS.tournaments, tournamentCacheTag(id)], revalidate: 120 }
   )();
 });
+
+// ─── Uncached exports (real-time data, used by API routes) ──────────────────
+
+export function fetchTournamentsPaginated(
+  status: string | null,
+  gameMode: string | null,
+  teamFormat: string | null,
+  type: string | null,
+  page: number,
+  limit: number
+) {
+  return _fetchTournamentsPaginated(status, gameMode, teamFormat, type, page, limit);
+}
+
+export function fetchTournamentPublicData(id: string) {
+  return _fetchTournamentPublicData(id);
+}
+
+export function fetchTournamentDetail(id: string) {
+  return _fetchTournamentDetail(id);
+}

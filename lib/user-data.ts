@@ -9,6 +9,7 @@ import {
   adminRole,
   tournament,
   tournamentParticipant,
+  tournamentSlot,
   withdrawConfig,
 } from "@/db/schema";
 import { eq, desc, inArray, sql } from "drizzle-orm";
@@ -173,7 +174,7 @@ async function _fetchUserTournaments(userId: string): Promise<UserTournamentItem
       registrationDeadline: tournament.registrationDeadline,
       status: tournament.status,
       bookedSlots:
-        sql<number>`(SELECT count(*)::int FROM tournament_slots WHERE tournament_id = ${tournament.id} AND status = 'BOOKED')`,
+        sql<number>`(SELECT count(*) FROM ${tournamentSlot} WHERE ${tournamentSlot.tournamentId} = ${tournament.id} AND ${tournamentSlot.status} = 'BOOKED')::int`,
     })
     .from(tournament)
     .where(inArray(tournament.id, tournamentIds))

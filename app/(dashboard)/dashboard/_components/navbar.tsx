@@ -4,23 +4,23 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 
 import { usePathname } from "next/navigation";
 import { ChevronRight, Wallet } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 
 function WalletBalance({ initialBalance }: { initialBalance: number }) {
   const [balance, setBalance] = useState<number>(initialBalance);
 
-  // Only fetch if initialBalance is somehow missing (safety) 
-  // or if we want to implement a refresh mechanism later.
-  // For now, removing the redundant mount-fetch to speed up initial load.
+  const refreshBalance = useCallback(() => {
+    fetch("/api/wallet/me")
+      .then((r) => r.json())
+      .then((d) => setBalance(d.data?.balance ?? 0))
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
-    if (initialBalance === undefined) {
-      fetch("/api/wallet/me")
-        .then((r) => r.json())
-        .then((d) => setBalance(d.data?.balance ?? 0))
-        .catch(() => {});
-    }
-  }, [initialBalance]);
+    window.addEventListener("wallet:balance-updated", refreshBalance);
+    return () => window.removeEventListener("wallet:balance-updated", refreshBalance);
+  }, [refreshBalance]);
 
   return (
     <Link

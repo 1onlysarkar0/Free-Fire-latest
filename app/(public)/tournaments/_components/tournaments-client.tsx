@@ -291,8 +291,8 @@ export default function TournamentsClient({
 
                       {/* Action */}
                       <div className="mt-auto">
-                        <Button className="w-full rounded-xl group/btn h-10 text-xs font-semibold" variant={t.status === "UPCOMING" && t.availableSlots > 0 ? "default" : "secondary"}>
-                          {t.status === "UPCOMING" ? (t.availableSlots > 0 ? "Join Tournament" : "Registration Full") : "View Results"}
+                        <Button className="w-full rounded-xl group/btn h-10 text-xs font-semibold" variant={t.hasJoined ? "secondary" : t.status === "UPCOMING" && t.availableSlots > 0 ? "default" : "secondary"}>
+                          {t.hasJoined ? "Joined" : t.status === "UPCOMING" ? (t.availableSlots > 0 ? "Join Tournament" : "Registration Full") : "View Results"}
                           <ChevronRight className="h-4 w-4 ml-1.5 group-hover/btn:translate-x-0.5 transition-transform" />
                         </Button>
                       </div>

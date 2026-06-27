@@ -229,6 +229,7 @@ export default function WalletClient({
     if (res.ok) {
       const data = await res.json();
       setBalance(data.data?.balance ?? 0);
+      window.dispatchEvent(new CustomEvent("wallet:balance-updated"));
     }
   }
 
