@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import {
@@ -33,7 +33,27 @@ function isUpcoming(date: string) {
 export default function MyTournamentsClient({
   initialData,
 }: MyTournamentsClientProps) {
-  const tournaments = initialData;
+  const [tournaments, setTournaments] = useState(initialData);
+
+  useEffect(() => {
+    setTournaments(initialData);
+  }, [initialData]);
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch("/api/tournaments/my");
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.data) setTournaments(data.data);
+    } catch {}
+  }, []);
+
+  // Immediate fetch + periodic refresh every 30s
+  useEffect(() => {
+    load();
+    const interval = setInterval(load, 30_000);
+    return () => clearInterval(interval);
+  }, [load]);
 
   const stats = useMemo(() => {
     const total = tournaments.length;

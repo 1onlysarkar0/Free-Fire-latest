@@ -46,7 +46,10 @@ export default function TournamentsClient({
       .catch(console.error);
   }, [statusFilter]);
 
+  // Immediate fetch on mount (for user session data like hasJoined)
+  // + periodic refresh every 30s
   useEffect(() => {
+    load();
     const interval = setInterval(load, 30_000);
     return () => clearInterval(interval);
   }, [load]);
