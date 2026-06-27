@@ -1,13 +1,11 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import {
-  ArrowLeft, Save, Send, Eye, EyeOff, Copy, Loader2, CheckCircle,
-  XCircle, Code2, Paintbrush2, Mail, Settings, Variable, History,
-  LayoutTemplate,
+  ArrowLeft, Save, Send, Eye, Copy, Loader2, Code2, Paintbrush2,
+  Mail, Settings, Variable, LayoutTemplate, AlertTriangle, Check
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -23,18 +21,22 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 
-// Dynamic import for Unlayer visual editor (no SSR)
-const EmailEditor = dynamic(() => import("react-email-editor").then(m => m.default), {
-  ssr: false,
-  loading: () => (
-    <div className="flex h-[600px] items-center justify-center rounded-2xl bg-accent/40">
-      <div className="flex flex-col items-center gap-3">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground">Loading visual editor…</p>
-      </div>
-    </div>
-  ),
-});
+interface UnlayerEditor {
+  exportHtml: (cb: (data: { design: unknown; html: string }) => void) => void;
+  addEventListener: (event: string, cb: () => void) => void;
+  ready: (cb: () => void) => void;
+  loadDesign: (design: unknown) => void;
+}
+
+interface WindowWithUnlayer extends Window {
+  unlayer?: {
+    createEditor: (options: {
+      id: string;
+      displayMode: string;
+      appearance: { theme: string };
+    }) => UnlayerEditor;
+  };
+}
 
 export interface TemplateData {
   id: string;
@@ -56,6 +58,15 @@ export interface TemplateData {
 
 const CATEGORIES = ["auth", "wallet", "tournaments", "notifications", "marketing", "system"];
 
+function renderTemplateLocal(html: string, variables: Record<string, string>): string {
+  let rendered = html;
+  for (const [key, value] of Object.entries(variables)) {
+    rendered = rendered.replaceAll(`{{${key}}}`, value);
+    rendered = rendered.replaceAll(`{{ ${key} }}`, value);
+  }
+  return rendered;
+}
+
 export default function EmailDesignerClient({
   template: initialTemplate,
   adminSlug,
@@ -68,6 +79,9 @@ export default function EmailDesignerClient({
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
 
+  // Sub-tabs for the Design Tab: 'visual' | 'code' | 'preview'
+  const [activeSubTab, setActiveSubTab] = useState<"visual" | "code" | "preview">("visual");
+
   // HTML editor content
   const [htmlContent, setHtmlContent] = useState(initialTemplate.bodyHtml);
 
@@ -76,13 +90,12 @@ export default function EmailDesignerClient({
     initialTemplate.variablesSchema ?? "[]"
   );
 
-  // Visual editor ref
-  const emailEditorRef = useRef<{ exportHtml: (cb: (data: { design: unknown; html: string }) => void) => void } | null>(null);
+  // Unlayer script loading state
+  const [unlayerLoaded, setUnlayerLoaded] = useState(false);
+  const unlayerRef = useRef<UnlayerEditor | null>(null);
 
-  // Preview dialog
-  const [previewDialog, setPreviewDialog] = useState(false);
+  // Local compiled preview HTML
   const [previewHtml, setPreviewHtml] = useState("");
-  const [previewLoading, setPreviewLoading] = useState(false);
 
   // Test send dialog
   const [testDialog, setTestDialog] = useState(false);
@@ -96,18 +109,132 @@ export default function EmailDesignerClient({
     markDirty();
   }
 
-  async function getExportedHtml(): Promise<{ html: string; designJson: string | null }> {
-    if (template.editorType === "visual" && emailEditorRef.current) {
-      return new Promise((resolve) => {
-        emailEditorRef.current!.exportHtml((data) => {
-          resolve({
-            html: data.html,
-            designJson: JSON.stringify(data.design),
-          });
-        });
-      });
+  // Load the official Unlayer script dynamically on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const win = window as unknown as WindowWithUnlayer;
+
+    if (win.unlayer) {
+      setUnlayerLoaded(true);
+      return;
     }
-    return { html: htmlContent, designJson: null };
+
+    const script = document.createElement("script");
+    script.src = "https://editor.unlayer.com/embed.js?2";
+    script.async = true;
+    script.onload = () => {
+      setUnlayerLoaded(true);
+    };
+    script.onerror = () => {
+      toast.error("Failed to load visual editor script. Check your internet connection.");
+    };
+    document.body.appendChild(script);
+
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
+
+  // Initialize Unlayer instance when loaded and visual mode is active
+  const initUnlayer = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const win = window as unknown as WindowWithUnlayer;
+    if (!win.unlayer) return;
+
+    const container = document.getElementById("editor-container");
+    if (!container) return;
+    container.innerHTML = ""; // Clear loader text
+
+    try {
+      const editor = win.unlayer.createEditor({
+        id: "editor-container",
+        displayMode: "email",
+        appearance: { theme: "light" },
+      });
+
+      unlayerRef.current = editor;
+
+      editor.addEventListener("design:updated", () => {
+        setDirty(true);
+      });
+
+      editor.ready(() => {
+        if (template.designJson) {
+          try {
+            editor.loadDesign(JSON.parse(template.designJson));
+          } catch {
+            // invalid JSON — skip
+          }
+        }
+      });
+    } catch (err) {
+      console.error("Error creating unlayer editor:", err);
+    }
+  }, [template.designJson]);
+
+  // Handle mounting container
+  useEffect(() => {
+    if (unlayerLoaded && activeSubTab === "visual") {
+      const timer = setTimeout(() => {
+        initUnlayer();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [unlayerLoaded, activeSubTab, initUnlayer]);
+
+  // Synchronize the design blocks to raw HTML
+  const syncFromVisual = useCallback((): Promise<{ html: string; designJson: string | null }> => {
+    return new Promise((resolve) => {
+      if (unlayerRef.current) {
+        unlayerRef.current.exportHtml((data: { design: unknown; html: string }) => {
+          const designStr = JSON.stringify(data.design);
+          setHtmlContent(data.html);
+          setTemplate(t => ({ ...t, bodyHtml: data.html, designJson: designStr }));
+          resolve({ html: data.html, designJson: designStr });
+        });
+      } else {
+        resolve({ html: htmlContent, designJson: template.designJson });
+      }
+    });
+  }, [htmlContent, template.designJson]);
+
+  // Generate sample preview payload
+  const getRenderedHtmlLocal = useCallback((rawHtml: string) => {
+    const samplePayload: Record<string, string> = {
+      siteName: "1onlysarkar",
+    };
+    if (variablesSchema) {
+      try {
+        const schema = JSON.parse(variablesSchema) as Array<{ key: string; sample?: string }>;
+        for (const v of schema) {
+          samplePayload[v.key] = v.sample ?? `{{${v.key}}}`;
+        }
+      } catch {}
+    }
+    return renderTemplateLocal(rawHtml, samplePayload);
+  }, [variablesSchema]);
+
+  // Handle switching editor tabs
+  async function handleSubTabChange(tab: "visual" | "code" | "preview") {
+    if (activeSubTab === "visual" && (tab === "code" || tab === "preview")) {
+      const { html } = await syncFromVisual();
+      if (tab === "preview") {
+        setPreviewHtml(getRenderedHtmlLocal(html));
+      }
+    } else if (activeSubTab === "code" && tab === "preview") {
+      setPreviewHtml(getRenderedHtmlLocal(htmlContent));
+    }
+    setActiveSubTab(tab);
+  }
+
+  // Final HTML exporter helper
+  async function getExportedHtml(): Promise<{ html: string; designJson: string | null }> {
+    if (activeSubTab === "visual" && unlayerRef.current) {
+      return syncFromVisual();
+    }
+    return { html: htmlContent, designJson: template.designJson };
   }
 
   async function handleSave() {
@@ -122,41 +249,22 @@ export default function EmailDesignerClient({
           subject: template.subject,
           previewText: template.previewText,
           bodyHtml: html,
-          designJson: designJson ?? template.designJson,
+          designJson: designJson,
           category: template.category,
-          editorType: template.editorType,
+          editorType: "visual", // Unlayer visual editor is the primary editor type
           isActive: template.isActive,
           variablesSchema,
           description: template.description,
         }),
       });
       if (!res.ok) throw new Error(await res.text());
-      toast.success("Template saved.");
+      toast.success("Template saved successfully.");
       setDirty(false);
       router.refresh();
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Error saving template.");
     } finally {
       setSaving(false);
-    }
-  }
-
-  async function handlePreview() {
-    setPreviewLoading(true);
-    setPreviewDialog(true);
-    try {
-      const res = await fetch(`/api/admin/email-templates/${template.id}/preview`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ payload: {} }),
-      });
-      const data = await res.json();
-      setPreviewHtml(data.html ?? "");
-    } catch {
-      toast.error("Preview failed.");
-      setPreviewDialog(false);
-    } finally {
-      setPreviewLoading(false);
     }
   }
 
@@ -175,12 +283,16 @@ export default function EmailDesignerClient({
     if (!testEmail) return;
     setTestLoading(true);
     try {
-      // Save first
       const { html } = await getExportedHtml();
+      // Save changes first
       await fetch(`/api/admin/email-templates/${template.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bodyHtml: html }),
+        body: JSON.stringify({
+          bodyHtml: html,
+          designJson: template.designJson,
+          subject: template.subject,
+        }),
       });
 
       const res = await fetch(`/api/admin/email-templates/${template.id}/send-test`, {
@@ -219,21 +331,17 @@ export default function EmailDesignerClient({
             </div>
             <div>
               <p className="text-sm font-semibold text-foreground leading-tight">{template.name}</p>
-              <p className="text-xs text-muted-foreground leading-tight capitalize">
-                {template.editorType.replace("_", " ")} · {template.category}
+              <p className="text-xs text-muted-foreground leading-tight capitalize mt-0.5">
+                Visual Designer · {template.category}
               </p>
             </div>
           </div>
           {dirty && (
-            <span className="text-xs text-amber-600 font-medium">Unsaved changes</span>
+            <span className="text-xs text-amber-600 font-medium ml-2">Unsaved changes</span>
           )}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handlePreview}>
-            <Eye className="h-4 w-4" />
-            Preview
-          </Button>
           <Button variant="outline" size="sm" onClick={() => setTestDialog(true)}>
             <Send className="h-4 w-4" />
             Send Test
@@ -244,25 +352,25 @@ export default function EmailDesignerClient({
           </Button>
           <Button size="sm" onClick={handleSave} disabled={saving}>
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            {saving ? "Saving..." : "Save"}
+            {saving ? "Saving..." : "Save Template"}
           </Button>
         </div>
       </div>
 
       {/* Tabs */}
       <Tabs defaultValue="design" className="w-full">
-        <TabsList className="mb-6 flex h-auto gap-1 rounded-2xl bg-accent/60 p-1">
+        <TabsList className="mb-6 flex h-auto gap-1 rounded-2xl bg-accent/60 p-1 w-fit">
           <TabsTrigger value="design" className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:shadow-sm">
-            {template.editorType === "visual" ? <Paintbrush2 className="h-3.5 w-3.5" /> : <Code2 className="h-3.5 w-3.5" />}
-            Design
+            <Paintbrush2 className="h-3.5 w-3.5" />
+            Design Workspace
           </TabsTrigger>
           <TabsTrigger value="meta" className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:shadow-sm">
             <Mail className="h-3.5 w-3.5" />
-            Subject
+            Subject Line
           </TabsTrigger>
           <TabsTrigger value="variables" className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:shadow-sm">
             <Variable className="h-3.5 w-3.5" />
-            Variables
+            Variables Config
           </TabsTrigger>
           <TabsTrigger value="settings" className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:shadow-sm">
             <Settings className="h-3.5 w-3.5" />
@@ -271,64 +379,113 @@ export default function EmailDesignerClient({
         </TabsList>
 
         {/* DESIGN TAB */}
-        <TabsContent value="design">
-          {template.editorType === "visual" ? (
-            <div className="rounded-2xl border border-border/20 overflow-hidden">
-              <EmailEditor
-                ref={emailEditorRef as never}
-                onReady={() => {
-                  if (template.designJson && emailEditorRef.current) {
-                    try {
-                      (emailEditorRef.current as unknown as { loadDesign: (d: unknown) => void }).loadDesign(JSON.parse(template.designJson));
-                    } catch {
-                      // invalid JSON — start fresh
-                    }
-                  }
-                }}
-                style={{ height: 700 }}
-                options={{
-                  appearance: { theme: "light" },
-                  tools: { image: { enabled: true } },
-                }}
-              />
+        <TabsContent value="design" className="space-y-4 outline-none">
+          {/* Visual / Code / Preview Switcher */}
+          <div className="flex items-center justify-between bg-accent/40 rounded-2xl p-2 border border-border/10">
+            <p className="text-xs text-muted-foreground ml-2 font-medium">
+              {activeSubTab === "visual" ? "Visual Drag & Drop Designer" : activeSubTab === "code" ? "Raw HTML Code Editor" : "Live Local Preview"}
+            </p>
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant={activeSubTab === "visual" ? "default" : "ghost"}
+                size="sm"
+                className="h-8 text-xs font-semibold"
+                onClick={() => handleSubTabChange("visual")}
+              >
+                <Paintbrush2 className="h-3.5 w-3.5 mr-1" />
+                Visual
+              </Button>
+              <Button
+                variant={activeSubTab === "code" ? "default" : "ghost"}
+                size="sm"
+                className="h-8 text-xs font-semibold"
+                onClick={() => handleSubTabChange("code")}
+              >
+                <Code2 className="h-3.5 w-3.5 mr-1" />
+                Code
+              </Button>
+              <Button
+                variant={activeSubTab === "preview" ? "default" : "ghost"}
+                size="sm"
+                className="h-8 text-xs font-semibold"
+                onClick={() => handleSubTabChange("preview")}
+              >
+                <Eye className="h-3.5 w-3.5 mr-1" />
+                Preview
+              </Button>
             </div>
-          ) : template.editorType === "react_email" ? (
-            <Card className="card-settings p-6">
-              <div className="flex items-start gap-3 mb-4">
-                <div className="rounded-lg bg-primary/10 p-2 shrink-0">
-                  <Code2 className="h-4 w-4 text-primary" />
+          </div>
+
+          {/* Sub Tab Contents */}
+          <div className="min-h-[600px] w-full">
+            {activeSubTab === "visual" && (
+              <div className="rounded-2xl border border-border/20 overflow-hidden bg-white shadow-xs">
+                {!unlayerLoaded ? (
+                  <div className="flex h-[600px] items-center justify-center bg-accent/20">
+                    <div className="flex flex-col items-center gap-3">
+                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                      <p className="text-sm text-muted-foreground">Loading designer engine...</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    id="editor-container"
+                    style={{ height: 750 }}
+                    className="w-full bg-white"
+                  >
+                    <div className="flex h-full items-center justify-center">
+                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeSubTab === "code" && (
+              <div className="space-y-4">
+                <div className="flex items-start gap-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 p-4 text-amber-800">
+                  <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold">Warning: Design Overwrite</p>
+                    <p className="text-xs text-amber-700 mt-0.5">
+                      Edits to the raw HTML below are supported, but they cannot be converted back into visual drag-and-drop blocks. 
+                      If you switch back to the Visual Designer, any HTML changes you make here will be overwritten by the visual design blocks on save.
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">React Email Template</p>
-                  <p className="text-sm text-muted-foreground mt-0.5">
-                    This template is rendered from a React component in the codebase.
-                    You can edit the subject, preview text, and variables below.
-                    To modify the HTML structure, edit the component file directly.
-                  </p>
+
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Raw Template HTML</Label>
+                  <textarea
+                    value={htmlContent}
+                    onChange={(e) => { setHtmlContent(e.target.value); markDirty(); }}
+                    className="w-full rounded-2xl border border-border/20 bg-accent/40 p-4 font-mono text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 resize-y"
+                    style={{ minHeight: 600 }}
+                    spellCheck={false}
+                  />
                 </div>
               </div>
-              {template.templateKey && (
-                <div className="rounded-xl bg-background/60 border border-border/10 px-4 py-3">
-                  <p className="text-xs text-muted-foreground">Template key</p>
-                  <code className="text-sm font-mono font-semibold text-foreground">{template.templateKey}</code>
+            )}
+
+            {activeSubTab === "preview" && (
+              <div className="rounded-2xl border border-border/20 overflow-hidden bg-white shadow-xs h-[750px] flex flex-col">
+                <div className="bg-accent/30 border-b border-border/10 px-4 py-2 flex items-center justify-between text-xs text-muted-foreground">
+                  <p>Rendered Email Client Preview (Sample Data Applied)</p>
+                  <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 font-semibold">
+                    <Check className="h-3 w-3 mr-1" /> Ready
+                  </Badge>
                 </div>
-              )}
-            </Card>
-          ) : (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-muted-foreground">HTML Editor</p>
-                <p className="text-xs text-muted-foreground">Use {"{{variable}}"} for dynamic values</p>
+                <div className="flex-1 bg-white">
+                  <iframe
+                    srcDoc={previewHtml}
+                    className="h-full w-full"
+                    title="Live Email Preview"
+                    sandbox="allow-same-origin"
+                  />
+                </div>
               </div>
-              <textarea
-                value={htmlContent}
-                onChange={(e) => { setHtmlContent(e.target.value); markDirty(); }}
-                className="w-full rounded-2xl border border-border/20 bg-accent/40 p-4 font-mono text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 resize-y"
-                style={{ minHeight: 500 }}
-                spellCheck={false}
-              />
-            </div>
-          )}
+            )}
+          </div>
         </TabsContent>
 
         {/* SUBJECT & PREVIEW TEXT TAB */}
@@ -339,7 +496,7 @@ export default function EmailDesignerClient({
               <Input
                 value={template.subject}
                 onChange={(e) => setField("subject", e.target.value)}
-                placeholder="Welcome to {{site_name}}!"
+                placeholder="Welcome to {{siteName}}!"
               />
               <p className="text-xs text-muted-foreground">
                 Shown in the email inbox as the subject. Supports {"{{variable}}"} placeholders.
@@ -383,7 +540,7 @@ export default function EmailDesignerClient({
               className="w-full rounded-2xl border border-border/20 bg-accent/40 p-4 font-mono text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 resize-y"
               style={{ minHeight: 200 }}
               spellCheck={false}
-              placeholder='[{"key":"user_name","description":"User display name","sample":"John"}]'
+              placeholder='[{"key":"userName","description":"User name","sample":"John"}]'
             />
             <div className="text-xs text-muted-foreground space-y-1">
               <p className="font-medium">Fields per variable:</p>
@@ -399,41 +556,23 @@ export default function EmailDesignerClient({
         {/* SETTINGS TAB */}
         <TabsContent value="settings">
           <Card className="card-settings p-6 space-y-5">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Category</Label>
-                <Select
-                  value={template.category}
-                  onValueChange={(v) => setField("category", v)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CATEGORIES.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {c.charAt(0).toUpperCase() + c.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Editor Type</Label>
-                <Select
-                  value={template.editorType}
-                  onValueChange={(v) => setField("editorType", v)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="html">HTML Editor</SelectItem>
-                    <SelectItem value="visual">Visual Builder (Unlayer)</SelectItem>
-                    <SelectItem value="react_email">React Email</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-2">
+              <Label>Category</Label>
+              <Select
+                value={template.category}
+                onValueChange={(v) => setField("category", v)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c.charAt(0).toUpperCase() + c.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="flex items-center justify-between rounded-xl bg-background/60 border border-border/10 px-4 py-3">
@@ -463,33 +602,6 @@ export default function EmailDesignerClient({
           </Card>
         </TabsContent>
       </Tabs>
-
-      {/* Preview Dialog */}
-      <Dialog open={previewDialog} onOpenChange={setPreviewDialog}>
-        <DialogContent className="max-w-3xl h-[80vh]">
-          <DialogHeader>
-            <DialogTitle>Email Preview — {template.name}</DialogTitle>
-          </DialogHeader>
-          <div className="flex-1 overflow-auto rounded-xl border border-border/20 bg-white">
-            {previewLoading ? (
-              <div className="flex h-full items-center justify-center">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              </div>
-            ) : (
-              <iframe
-                srcDoc={previewHtml}
-                className="h-full w-full rounded-xl"
-                style={{ minHeight: 500 }}
-                title="Email preview"
-                sandbox="allow-same-origin"
-              />
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setPreviewDialog(false)}>Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Test Send Dialog */}
       <Dialog open={testDialog} onOpenChange={setTestDialog}>
@@ -522,5 +634,14 @@ export default function EmailDesignerClient({
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+// Simple Badge component fallback in case it is not imported from ui
+function Badge({ children, className, variant }: { children: React.ReactNode; className?: string; variant?: string }) {
+  return (
+    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors ${className}`}>
+      {children}
+    </span>
   );
 }

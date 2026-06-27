@@ -65,18 +65,7 @@ export async function POST(request: Request, { params }: Params) {
   }
 
   const subject = renderTemplate(template.subject, samplePayload);
-  let html = "";
-  if (template.editorType === "react_email" && template.templateKey) {
-    const { renderReactEmail } = await import("@/emails/registry");
-    try {
-      html = await renderReactEmail(template.templateKey, samplePayload);
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      return Response.json({ error: `Error rendering React Email template: ${msg}` }, { status: 500 });
-    }
-  } else {
-    html = renderTemplate(template.bodyHtml, samplePayload);
-  }
+  const html = renderTemplate(template.bodyHtml, samplePayload);
 
   try {
     await sendRawEmail({

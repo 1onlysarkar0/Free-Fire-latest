@@ -41,7 +41,7 @@ export interface Template {
 }
 
 const CATEGORIES = ["all", "auth", "wallet", "tournaments", "notifications", "marketing", "system"];
-const EDITOR_TYPES = ["html", "visual", "react_email"];
+const EDITOR_TYPES = ["html", "visual"];
 const CATEGORY_COLORS: Record<string, string> = {
   auth: "bg-blue-500/10 text-blue-600",
   wallet: "bg-emerald-500/10 text-emerald-600",
@@ -479,7 +479,6 @@ export default function EmailTemplatesClient({
                   <SelectContent>
                     <SelectItem value="html">HTML Editor</SelectItem>
                     <SelectItem value="visual">Visual Builder</SelectItem>
-                    <SelectItem value="react_email">React Email</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
