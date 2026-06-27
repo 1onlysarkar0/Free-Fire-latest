@@ -1,14 +1,7 @@
 import { Metadata } from "next";
 import TournamentDetailClient from "./_components/tournament-detail-client";
+import { getTournamentDetail } from "@/lib/tournaments";
 import { getAdminSiteConfigCached } from "@/lib/admin-data";
-import { fetchTournamentDetail } from "@/lib/tournaments";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
-import { db } from "@/db/drizzle";
-import { tournamentParticipant } from "@/db/schema";
-import { and, eq } from "drizzle-orm";
-
-export const dynamic = "force-dynamic";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "";
 
@@ -16,7 +9,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   try {
     const [t, config] = await Promise.all([
-      fetchTournamentDetail(id),
+      getTournamentDetail(id),
       getAdminSiteConfigCached(),
     ]);
     const siteName = config?.logoTitle ?? "";
@@ -51,33 +44,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function TournamentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const [initialData, siteConfig] = await Promise.all([
-    fetchTournamentDetail(id).catch(() => null),
+    getTournamentDetail(id).catch(() => null),
     getAdminSiteConfigCached().catch(() => null),
   ]);
-
-  let userParticipant: { slotId: string } | null = null;
-  let userSlot: { id: string; slotNumber: number; teamName?: string; ignList: string[] } | null = null;
-
-  const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
-  if (session?.user?.id && initialData) {
-    const parts = await db
-      .select({ slotId: tournamentParticipant.slotId })
-      .from(tournamentParticipant)
-      .where(
-        and(
-          eq(tournamentParticipant.tournamentId, id),
-          eq(tournamentParticipant.userId, session.user.id)
-        )
-      )
-      .limit(1);
-    if (parts.length > 0) {
-      userParticipant = { slotId: parts[0].slotId };
-      const slot = initialData.slots.find((s) => s.id === parts[0].slotId);
-      if (slot) {
-        userSlot = { id: slot.id, slotNumber: slot.slotNumber, teamName: slot.teamName ?? undefined, ignList: slot.ignList };
-      }
-    }
-  }
 
   const structuredData = initialData
     ? {
@@ -109,12 +78,7 @@ export default async function TournamentDetailPage({ params }: { params: Promise
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
       )}
-      <TournamentDetailClient
-        id={id}
-        initialData={initialData}
-        userParticipant={userParticipant}
-        userSlot={userSlot}
-      />
+      <TournamentDetailClient id={id} initialData={initialData} />
     </div>
   );
 }

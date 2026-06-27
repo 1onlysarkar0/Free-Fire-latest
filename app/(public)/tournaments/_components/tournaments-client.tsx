@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
@@ -13,20 +13,43 @@ import { TournamentListItem } from "@/lib/tournaments";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
-export default function TournamentsClient({
-  initialData = [],
-  initialFilter = "ACTIVE,UPCOMING,ROOM_REVEALED,LIVE"
-}: {
-  initialData?: TournamentListItem[],
-  initialFilter?: string
+export default function TournamentsClient({ 
+  initialData = [], 
+  initialFilter = "ACTIVE,UPCOMING,ROOM_REVEALED,LIVE" 
+}: { 
+  initialData?: TournamentListItem[], 
+  initialFilter?: string 
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-
+  
+  const [tournaments, setTournaments] = useState<TournamentListItem[]>(initialData);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState(initialFilter);
   const [gameModeFilter, setGameModeFilter] = useState<string>("ALL");
   const [entryFeeFilter, setEntryFeeFilter] = useState<string>("ALL");
+
+  useEffect(() => {
+    setTournaments(initialData);
+    setStatusFilter(initialFilter);
+  }, [initialData, initialFilter]);
+
+  const load = useCallback(() => {
+    const params = new URLSearchParams({ limit: "100" });
+    if (statusFilter !== "ALL") params.set("status", statusFilter);
+
+    fetch(`/api/tournaments?${params}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.data) setTournaments(d.data);
+      })
+      .catch(console.error);
+  }, [statusFilter]);
+
+  useEffect(() => {
+    const interval = setInterval(load, 30_000);
+    return () => clearInterval(interval);
+  }, [load]);
 
   const handleStatusChange = (val: string) => {
     setStatusFilter(val);
@@ -40,7 +63,7 @@ export default function TournamentsClient({
   };
 
   const filtered = useMemo(() => {
-    let result = initialData.filter((t) =>
+    let result = tournaments.filter((t) =>
       t.name.toLowerCase().includes(search.toLowerCase())
     );
 
@@ -59,7 +82,7 @@ export default function TournamentsClient({
     result.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
 
     return result;
-  }, [initialData, search, gameModeFilter, entryFeeFilter]);
+  }, [tournaments, search, gameModeFilter, entryFeeFilter]);
 
   const SidebarFilters = () => (
     <div className="space-y-8">
@@ -102,7 +125,7 @@ export default function TournamentsClient({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-16">
-
+      
       {/* Header & Main Search Row */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <div>
@@ -120,7 +143,7 @@ export default function TournamentsClient({
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-
+          
           {/* Mobile Filter Trigger */}
           <div className="lg:hidden shrink-0">
             <Sheet>
@@ -258,8 +281,8 @@ export default function TournamentsClient({
                             )}
                           </div>
                           <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden mt-1.5">
-                            <div
-                              className="h-full bg-primary transition-all duration-500 rounded-full"
+                            <div 
+                              className="h-full bg-primary transition-all duration-500 rounded-full" 
                               style={{ width: `${(t.bookedSlots / t.totalSlots) * 100}%` }}
                             />
                           </div>
@@ -268,8 +291,8 @@ export default function TournamentsClient({
 
                       {/* Action */}
                       <div className="mt-auto">
-                        <Button className="w-full rounded-xl group/btn h-10 text-xs font-semibold" variant={t.hasJoined ? "secondary" : t.status === "UPCOMING" && t.availableSlots > 0 ? "default" : "secondary"}>
-                          {t.hasJoined ? "Joined" : t.status === "UPCOMING" ? (t.availableSlots > 0 ? "Join Tournament" : "Registration Full") : "View Results"}
+                        <Button className="w-full rounded-xl group/btn h-10 text-xs font-semibold" variant={t.status === "UPCOMING" && t.availableSlots > 0 ? "default" : "secondary"}>
+                          {t.status === "UPCOMING" ? (t.availableSlots > 0 ? "Join Tournament" : "Registration Full") : "View Results"}
                           <ChevronRight className="h-4 w-4 ml-1.5 group-hover/btn:translate-x-0.5 transition-transform" />
                         </Button>
                       </div>

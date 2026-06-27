@@ -4,16 +4,14 @@ import { tournament, tournamentSlot, tournamentParticipant } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { fetchTournamentPublicData } from "@/lib/tournaments";
-
-export const dynamic = "force-dynamic";
+import { getCachedTournamentPublicData } from "@/lib/tournaments";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
 
-    const publicData = await fetchTournamentPublicData(id);
+    const publicData = await getCachedTournamentPublicData(id);
     if (!publicData) return NextResponse.json({ success: false, error: "Tournament not found" }, { status: 404 });
 
     const { row, slots, bookedSlots, winners } = publicData;

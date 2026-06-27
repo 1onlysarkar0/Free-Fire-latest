@@ -16,7 +16,6 @@ export interface TournamentListItem {
   gameMode: string; teamFormat: string; maps: string[]; totalSlots: number;
   bookedSlots: number; availableSlots: number; startTime: string;
   registrationDeadline: string; status: string;
-  hasJoined?: boolean;
 }
 
 export interface SlotItem {
@@ -33,7 +32,6 @@ export interface TournamentDetail {
   bookedSlots: number; availableSlots: number; startTime: string;
   registrationDeadline: string; status: string; descriptionHtml?: string | null;
   descriptionMarkdown?: string | null; rulesHtml?: string | null; rulesMarkdown?: string | null;
-  roomId?: string | null; roomPassword?: string | null;
   slots: SlotItem[];
   winners: { id: string; userId: string; placement: string; prizeAmount: number; userName: string; userImage?: string | null; userGameName?: string | null }[];
 }
@@ -84,8 +82,6 @@ async function _fetchTournamentDetail(id: string): Promise<TournamentDetail | nu
     descriptionMarkdown: row.descriptionMarkdown,
     rulesHtml: row.rulesHtml,
     rulesMarkdown: row.rulesMarkdown,
-    roomId: row.roomId,
-    roomPassword: row.roomPassword,
     slots: slots.map((s) => ({
       id: s.id, slotNumber: s.slotNumber, status: s.status,
       teamName: s.teamName, ignList: safeJson<string[]>(s.ignList, []),
@@ -300,24 +296,3 @@ export const getCachedTournamentPublicData = cache((id: string) => {
     { tags: [CACHE_TAGS.tournaments, tournamentCacheTag(id)], revalidate: 120 }
   )();
 });
-
-// ─── Uncached exports (real-time data, used by API routes) ──────────────────
-
-export function fetchTournamentsPaginated(
-  status: string | null,
-  gameMode: string | null,
-  teamFormat: string | null,
-  type: string | null,
-  page: number,
-  limit: number
-) {
-  return _fetchTournamentsPaginated(status, gameMode, teamFormat, type, page, limit);
-}
-
-export function fetchTournamentPublicData(id: string) {
-  return _fetchTournamentPublicData(id);
-}
-
-export function fetchTournamentDetail(id: string) {
-  return _fetchTournamentDetail(id);
-}
