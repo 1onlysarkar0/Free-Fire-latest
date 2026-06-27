@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  ArrowLeft, Save, Send, Eye, Copy, Loader2, Code2, Paintbrush2,
-  Mail, Settings, Variable, LayoutTemplate, AlertTriangle, Check
+  ArrowLeft, Save, Send, Copy, Loader2, Code2,
+  Mail, Settings, Variable, LayoutTemplate, Check
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -20,23 +20,6 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-
-interface UnlayerEditor {
-  exportHtml: (cb: (data: { design: unknown; html: string }) => void) => void;
-  addEventListener: (event: string, cb: () => void) => void;
-  ready: (cb: () => void) => void;
-  loadDesign: (design: unknown) => void;
-}
-
-interface WindowWithUnlayer extends Window {
-  unlayer?: {
-    createEditor: (options: {
-      id: string;
-      displayMode: string;
-      appearance: { theme: string };
-    }) => UnlayerEditor;
-  };
-}
 
 export interface TemplateData {
   id: string;
@@ -79,9 +62,6 @@ export default function EmailDesignerClient({
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
 
-  // Sub-tabs for the Design Tab: 'visual' | 'code' | 'preview'
-  const [activeSubTab, setActiveSubTab] = useState<"visual" | "code" | "preview">("visual");
-
   // HTML editor content
   const [htmlContent, setHtmlContent] = useState(initialTemplate.bodyHtml);
 
@@ -89,10 +69,6 @@ export default function EmailDesignerClient({
   const [variablesSchema, setVariablesSchema] = useState(
     initialTemplate.variablesSchema ?? "[]"
   );
-
-  // Unlayer script loading state
-  const [unlayerLoaded, setUnlayerLoaded] = useState(false);
-  const unlayerRef = useRef<UnlayerEditor | null>(null);
 
   // Local compiled preview HTML
   const [previewHtml, setPreviewHtml] = useState("");
@@ -109,101 +85,14 @@ export default function EmailDesignerClient({
     markDirty();
   }
 
-  // Load the official Unlayer script dynamically on mount
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const win = window as unknown as WindowWithUnlayer;
-
-    if (win.unlayer) {
-      setUnlayerLoaded(true);
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = "https://editor.unlayer.com/embed.js?2";
-    script.async = true;
-    script.onload = () => {
-      setUnlayerLoaded(true);
-    };
-    script.onerror = () => {
-      toast.error("Failed to load visual editor script. Check your internet connection.");
-    };
-    document.body.appendChild(script);
-
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
-    };
-  }, []);
-
-  // Initialize Unlayer instance when loaded and visual mode is active
-  const initUnlayer = useCallback(() => {
-    if (typeof window === "undefined") return;
-    const win = window as unknown as WindowWithUnlayer;
-    if (!win.unlayer) return;
-
-    const container = document.getElementById("editor-container");
-    if (!container) return;
-    container.innerHTML = ""; // Clear loader text
-
-    try {
-      const editor = win.unlayer.createEditor({
-        id: "editor-container",
-        displayMode: "email",
-        appearance: { theme: "light" },
-      });
-
-      unlayerRef.current = editor;
-
-      editor.addEventListener("design:updated", () => {
-        setDirty(true);
-      });
-
-      editor.ready(() => {
-        if (template.designJson) {
-          try {
-            editor.loadDesign(JSON.parse(template.designJson));
-          } catch {
-            // invalid JSON — skip
-          }
-        }
-      });
-    } catch (err) {
-      console.error("Error creating unlayer editor:", err);
-    }
-  }, [template.designJson]);
-
-  // Handle mounting container
-  useEffect(() => {
-    if (unlayerLoaded && activeSubTab === "visual") {
-      const timer = setTimeout(() => {
-        initUnlayer();
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [unlayerLoaded, activeSubTab, initUnlayer]);
-
-  // Synchronize the design blocks to raw HTML
-  const syncFromVisual = useCallback((): Promise<{ html: string; designJson: string | null }> => {
-    return new Promise((resolve) => {
-      if (unlayerRef.current) {
-        unlayerRef.current.exportHtml((data: { design: unknown; html: string }) => {
-          const designStr = JSON.stringify(data.design);
-          setHtmlContent(data.html);
-          setTemplate(t => ({ ...t, bodyHtml: data.html, designJson: designStr }));
-          resolve({ html: data.html, designJson: designStr });
-        });
-      } else {
-        resolve({ html: htmlContent, designJson: template.designJson });
-      }
-    });
-  }, [htmlContent, template.designJson]);
-
   // Generate sample preview payload
   const getRenderedHtmlLocal = useCallback((rawHtml: string) => {
     const samplePayload: Record<string, string> = {
-      siteName: "1onlysarkar",
+      siteName: "1OnlySarkar",
+      siteLogo: "/assets/logo.webp",
+      copyrightText: `© ${new Date().getFullYear()} 1OnlySarkar. All rights reserved.`,
+      contactEmail: "support@1onlysarkar.shop",
+      companyAddress: "New Delhi, India",
     };
     if (variablesSchema) {
       try {
@@ -216,31 +105,14 @@ export default function EmailDesignerClient({
     return renderTemplateLocal(rawHtml, samplePayload);
   }, [variablesSchema]);
 
-  // Handle switching editor tabs
-  async function handleSubTabChange(tab: "visual" | "code" | "preview") {
-    if (activeSubTab === "visual" && (tab === "code" || tab === "preview")) {
-      const { html } = await syncFromVisual();
-      if (tab === "preview") {
-        setPreviewHtml(getRenderedHtmlLocal(html));
-      }
-    } else if (activeSubTab === "code" && tab === "preview") {
-      setPreviewHtml(getRenderedHtmlLocal(htmlContent));
-    }
-    setActiveSubTab(tab);
-  }
-
-  // Final HTML exporter helper
-  async function getExportedHtml(): Promise<{ html: string; designJson: string | null }> {
-    if (activeSubTab === "visual" && unlayerRef.current) {
-      return syncFromVisual();
-    }
-    return { html: htmlContent, designJson: template.designJson };
-  }
+  // Update preview when HTML or variables changes
+  useEffect(() => {
+    setPreviewHtml(getRenderedHtmlLocal(htmlContent));
+  }, [htmlContent, getRenderedHtmlLocal]);
 
   async function handleSave() {
     setSaving(true);
     try {
-      const { html, designJson } = await getExportedHtml();
       const res = await fetch(`/api/admin/email-templates/${template.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -248,10 +120,10 @@ export default function EmailDesignerClient({
           name: template.name,
           subject: template.subject,
           previewText: template.previewText,
-          bodyHtml: html,
-          designJson: designJson,
+          bodyHtml: htmlContent,
+          designJson: null, // Clear visual editor JSON since visual editor is removed
           category: template.category,
-          editorType: "visual", // Unlayer visual editor is the primary editor type
+          editorType: "html",
           isActive: template.isActive,
           variablesSchema,
           description: template.description,
@@ -283,14 +155,14 @@ export default function EmailDesignerClient({
     if (!testEmail) return;
     setTestLoading(true);
     try {
-      const { html } = await getExportedHtml();
       // Save changes first
       await fetch(`/api/admin/email-templates/${template.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          bodyHtml: html,
-          designJson: template.designJson,
+          bodyHtml: htmlContent,
+          designJson: null,
+          editorType: "html",
           subject: template.subject,
         }),
       });
@@ -332,7 +204,7 @@ export default function EmailDesignerClient({
             <div>
               <p className="text-sm font-semibold text-foreground leading-tight">{template.name}</p>
               <p className="text-xs text-muted-foreground leading-tight capitalize mt-0.5">
-                Visual Designer · {template.category}
+                HTML Editor · {template.category}
               </p>
             </div>
           </div>
@@ -361,8 +233,8 @@ export default function EmailDesignerClient({
       <Tabs defaultValue="design" className="w-full">
         <TabsList className="mb-6 flex h-auto gap-1 rounded-2xl bg-accent/60 p-1 w-fit">
           <TabsTrigger value="design" className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:shadow-sm">
-            <Paintbrush2 className="h-3.5 w-3.5" />
-            Design Workspace
+            <Code2 className="h-3.5 w-3.5" />
+            HTML Workspace
           </TabsTrigger>
           <TabsTrigger value="meta" className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:shadow-sm">
             <Mail className="h-3.5 w-3.5" />
@@ -379,112 +251,44 @@ export default function EmailDesignerClient({
         </TabsList>
 
         {/* DESIGN TAB */}
-        <TabsContent value="design" className="space-y-4 outline-none">
-          {/* Visual / Code / Preview Switcher */}
-          <div className="flex items-center justify-between bg-accent/40 rounded-2xl p-2 border border-border/10">
-            <p className="text-xs text-muted-foreground ml-2 font-medium">
-              {activeSubTab === "visual" ? "Visual Drag & Drop Designer" : activeSubTab === "code" ? "Raw HTML Code Editor" : "Live Local Preview"}
-            </p>
-            <div className="flex items-center gap-1.5">
-              <Button
-                variant={activeSubTab === "visual" ? "default" : "ghost"}
-                size="sm"
-                className="h-8 text-xs font-semibold"
-                onClick={() => handleSubTabChange("visual")}
-              >
-                <Paintbrush2 className="h-3.5 w-3.5 mr-1" />
-                Visual
-              </Button>
-              <Button
-                variant={activeSubTab === "code" ? "default" : "ghost"}
-                size="sm"
-                className="h-8 text-xs font-semibold"
-                onClick={() => handleSubTabChange("code")}
-              >
-                <Code2 className="h-3.5 w-3.5 mr-1" />
-                Code
-              </Button>
-              <Button
-                variant={activeSubTab === "preview" ? "default" : "ghost"}
-                size="sm"
-                className="h-8 text-xs font-semibold"
-                onClick={() => handleSubTabChange("preview")}
-              >
-                <Eye className="h-3.5 w-3.5 mr-1" />
-                Preview
-              </Button>
+        <TabsContent value="design" className="outline-none">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* HTML Editor Column */}
+            <div className="lg:col-span-6 space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium text-foreground">Edit HTML Source Code</Label>
+                <span className="text-xs text-muted-foreground">Supports global & template variables</span>
+              </div>
+              <textarea
+                value={htmlContent}
+                onChange={(e) => { setHtmlContent(e.target.value); markDirty(); }}
+                className="w-full rounded-2xl border border-border/20 bg-accent/40 p-4 font-mono text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 resize-y min-h-[600px] lg:min-h-[700px]"
+                spellCheck={false}
+              />
             </div>
-          </div>
 
-          {/* Sub Tab Contents */}
-          <div className="min-h-[600px] w-full">
-            {activeSubTab === "visual" && (
-              <div className="rounded-2xl border border-border/20 overflow-hidden bg-white shadow-xs">
-                {!unlayerLoaded ? (
-                  <div className="flex h-[600px] items-center justify-center bg-accent/20">
-                    <div className="flex flex-col items-center gap-3">
-                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                      <p className="text-sm text-muted-foreground">Loading designer engine...</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div
-                    id="editor-container"
-                    style={{ height: 750 }}
-                    className="w-full bg-white"
-                  >
-                    <div className="flex h-full items-center justify-center">
-                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                    </div>
-                  </div>
-                )}
+            {/* Live Preview Column */}
+            <div className="lg:col-span-6 space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium text-foreground">Live Desktop Preview</Label>
+                <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 font-semibold">
+                  Active
+                </Badge>
               </div>
-            )}
-
-            {activeSubTab === "code" && (
-              <div className="space-y-4">
-                <div className="flex items-start gap-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 p-4 text-amber-800">
-                  <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-semibold">Warning: Design Overwrite</p>
-                    <p className="text-xs text-amber-700 mt-0.5">
-                      Edits to the raw HTML below are supported, but they cannot be converted back into visual drag-and-drop blocks. 
-                      If you switch back to the Visual Designer, any HTML changes you make here will be overwritten by the visual design blocks on save.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Raw Template HTML</Label>
-                  <textarea
-                    value={htmlContent}
-                    onChange={(e) => { setHtmlContent(e.target.value); markDirty(); }}
-                    className="w-full rounded-2xl border border-border/20 bg-accent/40 p-4 font-mono text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 resize-y"
-                    style={{ minHeight: 600 }}
-                    spellCheck={false}
-                  />
-                </div>
-              </div>
-            )}
-
-            {activeSubTab === "preview" && (
-              <div className="rounded-2xl border border-border/20 overflow-hidden bg-white shadow-xs h-[750px] flex flex-col">
-                <div className="bg-accent/30 border-b border-border/10 px-4 py-2 flex items-center justify-between text-xs text-muted-foreground">
-                  <p>Rendered Email Client Preview (Sample Data Applied)</p>
-                  <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 font-semibold">
-                    <Check className="h-3 w-3 mr-1" /> Ready
-                  </Badge>
+              <div className="rounded-2xl border border-border/20 overflow-hidden bg-white shadow-xs min-h-[600px] lg:min-h-[700px] flex flex-col">
+                <div className="bg-accent/30 border-b border-border/10 px-4 py-2 text-xs text-muted-foreground">
+                  Rendered Email Client Preview (Sample Variables Evaluated)
                 </div>
                 <div className="flex-1 bg-white">
                   <iframe
                     srcDoc={previewHtml}
-                    className="h-full w-full"
+                    className="h-full w-full min-h-[550px] lg:min-h-[650px]"
                     title="Live Email Preview"
                     sandbox="allow-same-origin"
                   />
                 </div>
               </div>
-            )}
+            </div>
           </div>
         </TabsContent>
 

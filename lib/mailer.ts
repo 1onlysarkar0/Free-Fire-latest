@@ -1,6 +1,6 @@
 import "server-only";
 import { db } from "@/db/drizzle";
-import { smtpProviders, smtpConfig, emailTemplate } from "@/db/schema";
+import { smtpProviders, smtpConfig, emailTemplate, siteConfig } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import nodemailer from "nodemailer";
 
@@ -115,8 +115,25 @@ export async function sendEmail({ to, templateName, variables = {} }: SendEmailO
     );
   }
 
-  const subject = renderTemplate(template.subject, variables);
-  const html = renderTemplate(template.bodyHtml, variables);
+  // Retrieve site config global fallbacks
+  const configs = await db
+    .select()
+    .from(siteConfig)
+    .where(eq(siteConfig.id, "default"))
+    .limit(1);
+  const config = configs[0];
+
+  const mergedVariables = {
+    siteName: config?.logoTitle ?? "1OnlySarkar",
+    siteLogo: config?.logoSrc ?? "/assets/logo.webp",
+    copyrightText: config?.copyrightText ?? `© ${new Date().getFullYear()} 1OnlySarkar. All rights reserved.`,
+    contactEmail: config?.contactEmail ?? "support@1onlysarkar.shop",
+    companyAddress: config?.companyAddress ?? "",
+    ...variables,
+  };
+
+  const subject = renderTemplate(template.subject, mergedVariables);
+  const html = renderTemplate(template.bodyHtml, mergedVariables);
 
   const { transporter, from, replyTo } = await getSmtpTransporter();
 

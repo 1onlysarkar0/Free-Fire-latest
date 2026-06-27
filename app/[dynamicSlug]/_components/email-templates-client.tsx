@@ -315,7 +315,6 @@ export default function EmailTemplatesClient({
               <tr>
                 <th>Template</th>
                 <th className="hidden md:table-cell">Category</th>
-                <th className="hidden lg:table-cell">Editor</th>
                 <th className="hidden sm:table-cell">Updated</th>
                 <th>Status</th>
                 <th className="text-right">Actions</th>
@@ -355,11 +354,6 @@ export default function EmailTemplatesClient({
                         }`}
                       >
                         {t.category}
-                      </span>
-                    </td>
-                    <td className="hidden lg:table-cell">
-                      <span className="text-xs text-muted-foreground capitalize">
-                        {t.editorType.replace("_", " ")}
                       </span>
                     </td>
                     <td className="hidden sm:table-cell">
@@ -452,34 +446,20 @@ export default function EmailTemplatesClient({
                 placeholder="Welcome to {{site_name}}!"
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>Category</Label>
-                <Select value={form.category} onValueChange={(v) => setF("category", v)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CATEGORIES.slice(1).map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {c.charAt(0).toUpperCase() + c.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Editor Type</Label>
-                <Select value={form.editorType} onValueChange={(v) => setF("editorType", v)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="html">HTML Editor</SelectItem>
-                    <SelectItem value="visual">Visual Builder</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-2">
+              <Label>Category</Label>
+              <Select value={form.category} onValueChange={(v) => setF("category", v)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.slice(1).map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c.charAt(0).toUpperCase() + c.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label>Description (optional)</Label>
