@@ -463,7 +463,7 @@
   border: 1px solid hsl(var(--border) / 0.2);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-sm);
-  overflow: hidden;
+  overflow: visible;
 }
 
 @utility card-widget {
