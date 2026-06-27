@@ -339,9 +339,60 @@ Set `is_admin = true` on your user in the database, then visit the admin route (
 
 ---
 
-## Design System
+## Design System & UI Consistency Guidelines
 
-### Color Tokens (CSS Variables)
+To ensure that all pages (including the Admin Panel, Dashboards, and public views) share a unified look and feel rather than looking mismatched, developers must strictly adhere to the following design system tokens and component layout rules.
+
+### 1. Global Page Layout & Padding
+* **Page Wrapper Padding**: Page wrappers must NOT define duplicate paddings. Padding is handled globally by parent layouts (e.g., `layout.tsx` defines `p-4 md:p-6 lg:p-8 w-full min-w-0 bg-background` for the `<main>` container).
+* **Inner Page Containers**: Pages or client components should start with a clean layout class:
+  ```tsx
+  return (
+    <div className="w-full min-w-0 space-y-6 animate-in fade-in duration-200">
+      {/* Page Content */}
+    </div>
+  );
+  ```
+
+### 2. Standard Header Components
+All page headers must follow a uniform style:
+* **Icon container**: A `rounded-xl bg-primary/10 p-2.5` container with a `h-5 w-5` brand-colored icon.
+* **Title size**: `text-xl font-bold tracking-tight text-foreground`.
+* **Description spacing**: `text-sm text-muted-foreground mt-0.5`.
+* **Header bottom divider**: `border-b border-border/10 pb-6`.
+* **Action buttons**: Positioned on the right side using a flex row with `flex items-center gap-2`.
+
+```tsx
+<div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/10 pb-6">
+  <div className="flex items-center gap-4">
+    <div className="rounded-xl bg-primary/10 p-2.5">
+      <Trophy className="h-5 w-5 text-primary" />
+    </div>
+    <div>
+      <h1 className="text-xl font-bold tracking-tight text-foreground">Page Title</h1>
+      <p className="text-sm text-muted-foreground mt-0.5">Description text.</p>
+    </div>
+  </div>
+</div>
+```
+
+### 3. Card Types & Design Tokens
+Cards are the primary structural block of the UI and have three specific use cases:
+
+| Card Role | CSS Styling classes | Typical Use Case |
+| :--- | :--- | :--- |
+| **Listings & Grids** | `rounded-2xl bg-accent/40 border border-border/20 shadow-sm overflow-hidden` | Tables, user lists, tournament schedules, search filters. |
+| **Settings & Inputs** | `rounded-2xl bg-accent/60 border border-border/20 shadow-sm overflow-hidden` | Configuration panels (e.g., SMTP Config, Wallet settings). |
+| **Grid Items / Widgets** | `rounded-2xl bg-accent/60 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 border-0` | Dashboard statistics, quick access cards, roles. |
+
+### 4. Tables & Lists
+To maintain consistency in data representations:
+* **Table Header**: Use `<thead className="bg-accent/40 border-b border-border/10">`.
+* **Table Dividers**: Use `<tbody className="divide-y divide-border/10">`.
+* **Row Hover States**: Apply `<tr className="hover:bg-accent/15 transition-colors">` to list rows.
+* **Pills & Badges**: Use `inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border` for state indicators.
+
+### 5. Color Tokens (CSS Variables)
 | Token | Value | Usage |
 |-------|-------|-------|
 | `--primary` | `hsl(14, 100%, 50%)` | Brand orange (#FF5A1F) |
@@ -354,22 +405,13 @@ Set `is_admin = true` on your user in the database, then visit the admin route (
 | `--warning` | `hsl(38, 92%, 50%)` | Warning states |
 | `--info` | `hsl(211, 100%, 57%)` | Information |
 
-### Shadows
+### 6. Shadows
 | Token | Value |
 |-------|-------|
 | `--shadow-xs` | `0 1px 2px hsl(225 5% 22% / 0.06)` |
 | `--shadow-sm` | `0 1px 3px hsl(225 5% 22% / 0.08)` |
 | `--shadow-md` | `0 4px 12px hsl(225 5% 22% / 0.1)` |
 | `--shadow-lg` | `0 12px 28px hsl(225 5% 22% / 0.12)` |
-
-### Custom Utilities
-- `card` — White card with shadow-xs, rounded-xl, padding
-- `card-coral` — Primary gradient card
-- `card-inset` — Accent tint inset card
-- `input` — Styled input with focus ring
-- `btn` / `btn-primary` / `btn-secondary` — Base button utilities
-- `badge` / `badge-success` / `badge-warning` / `badge-error` / `badge-muted` — Status badges
-- `title-md` / `body-md` / `caption` — Typography utilities
 
 ---
 

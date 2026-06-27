@@ -28,6 +28,9 @@ import dynamic from "next/dynamic";
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false });
 const MDPreview = dynamic(() => import("@uiw/react-markdown-preview"), { ssr: false });
 
+import "@uiw/react-md-editor/markdown-editor.css";
+import "@uiw/react-markdown-preview/markdown.css";
+
 interface WithdrawConfig {
   minWithdrawAmount: number;
   dailyWithdrawLimit: number;
@@ -107,10 +110,9 @@ export default function WithdrawAdminClient() {
   async function loadConfig() {
     try {
       const res = await fetch("/api/admin/withdraw/config");
-      if (res.ok) {
-        const data = await res.json();
-        if (data.data) setConfig(data.data);
-      }
+      if (!res.ok) throw new Error("Failed to load config");
+      const data = await res.json();
+      if (data.data) setConfig(data.data);
     } catch {
       toast.error("Failed to load config settings");
     }
@@ -144,12 +146,11 @@ export default function WithdrawAdminClient() {
       const params = new URLSearchParams({ page: String(p), limit: "50" });
       if (activeFilter) params.set("status", activeFilter);
       const res = await fetch(`/api/admin/withdraw/requests?${params}`);
-      if (res.ok) {
-        const data = await res.json();
-        setRequests(data.data ?? []);
-        setTotalPages(data.pagination?.totalPages ?? 1);
-        setPage(p);
-      }
+      if (!res.ok) throw new Error("Failed to load requests");
+      const data = await res.json();
+      setRequests(data.data ?? []);
+      setTotalPages(data.pagination?.totalPages ?? 1);
+      setPage(p);
     } catch {
       toast.error("Failed to load requests list");
     } finally {
@@ -205,32 +206,31 @@ export default function WithdrawAdminClient() {
   const cancelledCount = requests.filter(r => r.status === "CANCELLED").length;
 
   return (
-    <div className="w-full min-w-0 bg-background p-4 md:p-6 lg:p-8 animate-in fade-in duration-200">
-      <div className="mx-auto max-w-7xl space-y-6">
-        
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/40 pb-6">
-          <div className="flex items-center gap-4">
-            <div className="rounded-2xl bg-primary/10 p-3 ring-8 ring-primary/5">
-              <ArrowUpFromLine className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">Withdrawals</h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                Process withdrawal requests and configure minimum limits or daily caps.
-              </p>
-            </div>
+    <div className="w-full min-w-0 space-y-6 animate-in fade-in duration-200">
+      
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/10 pb-6">
+        <div className="flex items-center gap-4">
+          <div className="rounded-xl bg-primary/10 p-2.5">
+            <ArrowUpFromLine className="h-5 w-5 text-primary" />
           </div>
-
-          <div className="flex items-center gap-2">
-            {!config.enabled && (
-              <div className="flex items-center gap-1.5 rounded-xl border border-destructive/20 bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive">
-                <ShieldAlert className="h-3.5 w-3.5" />
-                System Offline
-              </div>
-            )}
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-foreground">Withdrawals</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Process withdrawal requests and configure minimum limits or daily caps.
+            </p>
           </div>
         </div>
+
+        <div className="flex items-center gap-2">
+          {!config.enabled && (
+            <div className="flex items-center gap-1.5 rounded-xl border border-destructive/20 bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive">
+              <ShieldAlert className="h-3.5 w-3.5" />
+              System Offline
+            </div>
+          )}
+        </div>
+      </div>
 
         {/* Tab Selection */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "requests" | "config")} className="w-full space-y-6">
@@ -248,58 +248,58 @@ export default function WithdrawAdminClient() {
             
             {/* Quick Metrics Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card className="rounded-2xl bg-card border border-border/30 hover:border-border/60 transition-all">
-                <CardContent className="p-4 flex items-center justify-between">
-                  <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Queue Total</p>
-                    <p className="text-xl font-bold">{requests.length}</p>
+              <Card className="rounded-2xl bg-accent/40 shadow-sm border border-border/20 hover:border-border/40 transition-all duration-200">
+                <CardContent className="p-5 flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="text-xl font-semibold tracking-tight text-foreground">{requests.length}</div>
+                    <div className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground mt-1">Queue Total</div>
                   </div>
-                  <div className="rounded-xl bg-primary/10 p-2 text-primary">
-                    <ArrowUpFromLine className="h-4 w-4" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-2xl bg-card border border-border/30 hover:border-border/60 transition-all">
-                <CardContent className="p-4 flex items-center justify-between">
-                  <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Pending</p>
-                    <p className="text-xl font-bold text-amber-500">{pendingCount}</p>
-                  </div>
-                  <div className="rounded-xl bg-amber-500/10 p-2 text-amber-500">
-                    <Loader2 className="h-4 w-4 animate-spin text-amber-500 bg-transparent" />
+                  <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 bg-primary/10 text-primary">
+                    <ArrowUpFromLine className="h-5 w-5" />
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="rounded-2xl bg-card border border-border/30 hover:border-border/60 transition-all">
-                <CardContent className="p-4 flex items-center justify-between">
-                  <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Completed</p>
-                    <p className="text-xl font-bold text-emerald-500">{completedCount}</p>
+              <Card className="rounded-2xl bg-accent/40 shadow-sm border border-border/20 hover:border-border/40 transition-all duration-200">
+                <CardContent className="p-5 flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="text-xl font-semibold tracking-tight text-amber-500">{pendingCount}</div>
+                    <div className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground mt-1">Pending</div>
                   </div>
-                  <div className="rounded-xl bg-emerald-500/10 p-2 text-emerald-500">
-                    <CheckCircle className="h-4 w-4" />
+                  <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 bg-amber-500/10 text-amber-500">
+                    <Loader2 className="h-5 w-5 animate-spin" />
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="rounded-2xl bg-card border border-border/30 hover:border-border/60 transition-all">
-                <CardContent className="p-4 flex items-center justify-between">
-                  <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Cancelled</p>
-                    <p className="text-xl font-bold text-rose-500">{cancelledCount}</p>
+              <Card className="rounded-2xl bg-accent/40 shadow-sm border border-border/20 hover:border-border/40 transition-all duration-200">
+                <CardContent className="p-5 flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="text-xl font-semibold tracking-tight text-emerald-500">{completedCount}</div>
+                    <div className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground mt-1">Completed</div>
                   </div>
-                  <div className="rounded-xl bg-rose-500/10 p-2 text-rose-500">
-                    <XCircle className="h-4 w-4" />
+                  <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 bg-emerald-500/10 text-emerald-500">
+                    <CheckCircle className="h-5 w-5" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="rounded-2xl bg-accent/40 shadow-sm border border-border/20 hover:border-border/40 transition-all duration-200">
+                <CardContent className="p-5 flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="text-xl font-semibold tracking-tight text-rose-500">{cancelledCount}</div>
+                    <div className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground mt-1">Cancelled</div>
+                  </div>
+                  <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 bg-rose-500/10 text-rose-500">
+                    <XCircle className="h-5 w-5" />
                   </div>
                 </CardContent>
               </Card>
             </div>
 
             {/* Queue Table Card */}
-            <Card className="rounded-2xl bg-card border border-border/30 shadow-sm overflow-hidden">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border-b border-border/40 bg-accent/10">
+            <Card className="rounded-2xl bg-accent/40 border border-border/20 shadow-sm overflow-hidden">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border-b border-border/10 bg-accent/20">
                 
                 {/* Dynamic Filters Pills */}
                 <div className="flex flex-wrap items-center gap-1.5">
@@ -328,7 +328,7 @@ export default function WithdrawAdminClient() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-9 rounded-xl border border-border/40 bg-background hover:bg-accent px-4 text-xs font-semibold inline-flex items-center gap-2 self-end sm:self-center"
+                  className="h-9 rounded-xl border border-border/20 bg-background/50 hover:bg-accent px-4 text-xs font-semibold inline-flex items-center gap-2 self-end sm:self-center"
                   onClick={() => loadRequests(page)}
                   disabled={requestsLoading}
                 >
@@ -488,7 +488,7 @@ export default function WithdrawAdminClient() {
                   {/* Desktop Table View */}
                   <div className="hidden xl:block overflow-x-auto">
                     <table className="w-full text-sm border-collapse">
-                      <thead className="bg-accent/40 border-b border-border/30">
+                      <thead className="bg-accent/40 border-b border-border/10">
                         <tr>
                           <th className="text-left px-5 py-4 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Request Details</th>
                           <th className="text-left px-5 py-4 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">UPI ID</th>
@@ -499,7 +499,7 @@ export default function WithdrawAdminClient() {
                           <th className="text-right px-5 py-4 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-border/20">
+                      <tbody className="divide-y divide-border/10">
                         {requests.map((r) => {
                           const style = STATUS_STYLES[r.status] || { badge: "bg-muted text-muted-foreground", dot: "bg-muted-foreground" };
                           return (
@@ -629,11 +629,11 @@ export default function WithdrawAdminClient() {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-4 border-t border-border/40 bg-accent/5">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-4 border-t border-border/10 bg-accent/10">
                   <span className="text-xs text-muted-foreground font-semibold">Page {page} of {totalPages}</span>
                   <div className="flex gap-2 w-full sm:w-auto">
-                    <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => loadRequests(page - 1)} className="flex-1 sm:flex-none h-9 rounded-lg">Previous</Button>
-                    <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => loadRequests(page + 1)} className="flex-1 sm:flex-none h-9 rounded-lg">Next</Button>
+                    <Button variant="outline" size="sm" disabled={requestsLoading || page <= 1} onClick={() => loadRequests(page - 1)} className="flex-1 sm:flex-none h-9 rounded-lg">Previous</Button>
+                    <Button variant="outline" size="sm" disabled={requestsLoading || page >= totalPages} onClick={() => loadRequests(page + 1)} className="flex-1 sm:flex-none h-9 rounded-lg">Next</Button>
                   </div>
                 </div>
               )}
@@ -642,7 +642,7 @@ export default function WithdrawAdminClient() {
 
           {/* Tab Content: System Settings */}
           <TabsContent value="config" className="outline-none">
-            <Card className="rounded-2xl bg-card border border-border/30 shadow-sm overflow-hidden">
+            <Card className="rounded-2xl bg-accent/60 border border-border/20 shadow-sm overflow-hidden">
               <div className="p-4 md:p-6 space-y-6">
                 
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border/20 pb-6">
@@ -730,7 +730,6 @@ export default function WithdrawAdminClient() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
 
       {/* Confirmation Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
