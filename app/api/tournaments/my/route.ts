@@ -5,6 +5,8 @@ import { tournament, tournamentParticipant, tournamentSlot } from "@/db/schema";
 import { eq, desc, inArray, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);

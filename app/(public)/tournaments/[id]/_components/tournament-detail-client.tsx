@@ -43,7 +43,7 @@ export default function TournamentDetailClient({ id, initialData }: Props) {
     } catch (err) { console.error(err); }
   }, [id]);
 
-  useEffect(() => { if (!initialData) load(); }, [load, initialData]);
+  useEffect(() => { load(); }, [load]);
 
   // Poll every 15s for real-time updates
   useEffect(() => {

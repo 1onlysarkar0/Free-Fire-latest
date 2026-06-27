@@ -38,7 +38,7 @@ export default function TournamentsClient({
     const params = new URLSearchParams({ limit: "100" });
     if (statusFilter !== "ALL") params.set("status", statusFilter);
 
-    fetch(`/api/tournaments?${params}`)
+    fetch(`/api/tournaments?_=${Date.now()}&${params}`)
       .then((r) => r.json())
       .then((d) => {
         if (d.data) setTournaments(d.data);

@@ -6,6 +6,8 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { fetchTournamentPublicData } from "@/lib/tournaments";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;

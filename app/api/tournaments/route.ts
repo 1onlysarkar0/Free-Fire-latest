@@ -6,6 +6,8 @@ import { tournamentParticipant } from "@/db/schema";
 import { and, eq, inArray } from "drizzle-orm";
 import { headers } from "next/headers";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
