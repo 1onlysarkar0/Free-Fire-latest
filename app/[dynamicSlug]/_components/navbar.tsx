@@ -39,7 +39,7 @@ export default function AdminNavbar({ userName, userImage, isAdmin }: AdminNavba
   }
 
   return (
-    <header className="h-14 bg-background flex items-center px-3 md:px-6 gap-3 shrink-0">
+    <header className="sticky top-0 z-40 h-14 bg-background/95 backdrop-blur-md border-b border-border/10 flex items-center px-3 md:px-6 gap-3 shrink-0">
       {/* Sidebar toggle — visible on all sizes */}
       <SidebarTrigger className="shrink-0 text-foreground hover:text-foreground hover:bg-muted rounded-lg p-1.5 transition-colors" />
 
