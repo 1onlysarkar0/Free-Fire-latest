@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
-import { Trophy, Search, Clock, Zap, ChevronRight, Filter, Users2, UserCheck } from "lucide-react";
+import { Trophy, Search, Clock, Zap, ChevronRight, Filter, Users2, UserCheck, CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -15,10 +15,12 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/co
 
 export default function TournamentsClient({ 
   initialData = [], 
-  initialFilter = "ACTIVE,UPCOMING,ROOM_REVEALED,LIVE" 
+  initialFilter = "ACTIVE,UPCOMING,ROOM_REVEALED,LIVE",
+  initialJoinedIds = [],
 }: { 
   initialData?: TournamentListItem[], 
-  initialFilter?: string 
+  initialFilter?: string,
+  initialJoinedIds?: string[],
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -28,17 +30,19 @@ export default function TournamentsClient({
   const [statusFilter, setStatusFilter] = useState(initialFilter);
   const [gameModeFilter, setGameModeFilter] = useState<string>("ALL");
   const [entryFeeFilter, setEntryFeeFilter] = useState<string>("ALL");
+  const [joinedIds, setJoinedIds] = useState<Set<string>>(() => new Set(initialJoinedIds));
 
   useEffect(() => {
     setTournaments(initialData);
     setStatusFilter(initialFilter);
-  }, [initialData, initialFilter]);
+    setJoinedIds(new Set(initialJoinedIds));
+  }, [initialData, initialFilter, initialJoinedIds]);
 
   const load = useCallback(() => {
     const params = new URLSearchParams({ limit: "100" });
     if (statusFilter !== "ALL") params.set("status", statusFilter);
 
-    fetch(`/api/tournaments?${params}`)
+    fetch(`/api/tournaments?${params}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => {
         if (d.data) setTournaments(d.data);
@@ -202,6 +206,7 @@ export default function TournamentsClient({
               {filtered.map((t) => {
                 const teamSize = t.teamFormat === "squad" ? 4 : t.teamFormat === "duo" ? 2 : 1;
                 const isTeamFormat = t.teamFormat === "duo" || t.teamFormat === "squad";
+                const isJoined = joinedIds.has(t.id);
 
                 return (
                   <Link
@@ -213,12 +218,20 @@ export default function TournamentsClient({
                     <div className="p-5 md:p-6 flex-1 flex flex-col">
                       {/* Top Row: Status & Prize */}
                       <div className="flex justify-between items-center mb-5">
-                        <span className={cn(
-                          "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider",
-                          TOURNAMENT_STATUS_COLORS[t.status] || "bg-muted text-muted-foreground"
-                        )}>
-                          {TOURNAMENT_STATUS_LABELS[t.status] || t.status.replace(/_/g, " ")}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={cn(
+                            "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider",
+                            TOURNAMENT_STATUS_COLORS[t.status] || "bg-muted text-muted-foreground"
+                          )}>
+                            {TOURNAMENT_STATUS_LABELS[t.status] || t.status.replace(/_/g, " ")}
+                          </span>
+                          {isJoined && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-success/15 text-success">
+                              <CheckCircle2 className="h-3 w-3" />
+                              Joined
+                            </span>
+                          )}
+                        </div>
                         <div className="text-right">
                           <div className="flex items-center justify-end gap-1.5 text-primary font-lora">
                             <Trophy className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -283,7 +296,7 @@ export default function TournamentsClient({
                           <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden mt-1.5">
                             <div 
                               className="h-full bg-primary transition-all duration-500 rounded-full" 
-                              style={{ width: `${(t.bookedSlots / t.totalSlots) * 100}%` }}
+                              style={{ width: `${Math.min(100, (t.bookedSlots / t.totalSlots) * 100)}%` }}
                             />
                           </div>
                         </div>
@@ -291,10 +304,28 @@ export default function TournamentsClient({
 
                       {/* Action */}
                       <div className="mt-auto">
-                        <Button className="w-full rounded-xl group/btn h-10 text-xs font-semibold" variant={t.status === "UPCOMING" && t.availableSlots > 0 ? "default" : "secondary"}>
-                          {t.status === "UPCOMING" ? (t.availableSlots > 0 ? "Join Tournament" : "Registration Full") : "View Results"}
-                          <ChevronRight className="h-4 w-4 ml-1.5 group-hover/btn:translate-x-0.5 transition-transform" />
-                        </Button>
+                        {isJoined ? (
+                          <Button
+                            className="w-full rounded-xl group/btn h-10 text-xs font-semibold"
+                            variant="secondary"
+                          >
+                            <CheckCircle2 className="h-4 w-4 mr-1.5 text-success" />
+                            You&apos;re Registered
+                            <ChevronRight className="h-4 w-4 ml-1.5 group-hover/btn:translate-x-0.5 transition-transform" />
+                          </Button>
+                        ) : (
+                          <Button
+                            className="w-full rounded-xl group/btn h-10 text-xs font-semibold"
+                            variant={t.status === "UPCOMING" && t.availableSlots > 0 ? "default" : "secondary"}
+                          >
+                            {t.status === "UPCOMING"
+                              ? t.availableSlots > 0
+                                ? "Join Tournament"
+                                : "Registration Full"
+                              : "View Results"}
+                            <ChevronRight className="h-4 w-4 ml-1.5 group-hover/btn:translate-x-0.5 transition-transform" />
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </Link>

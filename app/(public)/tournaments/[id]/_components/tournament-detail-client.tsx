@@ -13,18 +13,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { authClient } from "@/lib/auth-client";
-import { TournamentDetail } from "@/lib/tournaments";
+import { ViewerTournamentDetail } from "@/lib/tournaments";
 import { TOURNAMENT_STATUS_COLORS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
-interface TournamentData extends TournamentDetail {
-  userParticipant?: { slotId: string };
-  userSlot?: { id: string; slotNumber: number; teamName?: string; ignList: string[] };
-  roomId?: string | null;
-  roomPassword?: string | null;
-}
+type TournamentData = ViewerTournamentDetail;
 
-interface Props { id: string; initialData: TournamentDetail | null }
+interface Props { id: string; initialData: ViewerTournamentDetail | null }
 
 export default function TournamentDetailClient({ id, initialData }: Props) {
   const router = useRouter();
@@ -32,20 +27,20 @@ export default function TournamentDetailClient({ id, initialData }: Props) {
   const [t, setT] = useState<TournamentData | null>(initialData as TournamentData | null);
   const [joining, setJoining] = useState(false);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
+  const [userDataLoaded, setUserDataLoaded] = useState(true);
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch(`/api/tournaments/${id}`);
+      const res = await fetch(`/api/tournaments/${id}`, { cache: "no-store" });
       if (!res.ok) return;
       const data = await res.json();
       if (!data.success) return;
       setT(data.data);
+      setUserDataLoaded(true);
     } catch (err) { console.error(err); }
   }, [id]);
 
-  useEffect(() => { if (!initialData) load(); }, [load, initialData]);
-
-  // Poll every 15s for real-time updates
+  // Poll for changes after the server-rendered first payload.
   useEffect(() => {
     const interval = setInterval(load, 15_000);
     return () => clearInterval(interval);
@@ -76,10 +71,11 @@ export default function TournamentDetailClient({ id, initialData }: Props) {
 
   if (!t) return null;
 
-  const isParticipant = !!t.userParticipant;
+  const isParticipant = userDataLoaded && !!t.userParticipant;
   const isRegistrationOpen = t.status === "UPCOMING" && new Date() < new Date(t.registrationDeadline);
-  const canJoin = isRegistrationOpen && !isParticipant && t.availableSlots > 0;
-  const showCredentials = ["ROOM_REVEALED", "LIVE", "FINISHED", "COMPLETED"].includes(t.status) && isParticipant;
+  // Only show canJoin AFTER user-specific data has loaded — avoids flashing the join card for existing participants
+  const canJoin = userDataLoaded && isRegistrationOpen && !isParticipant && t.availableSlots > 0;
+  const showCredentials = userDataLoaded && ["ROOM_REVEALED", "LIVE", "FINISHED", "COMPLETED"].includes(t.status) && isParticipant;
 
   const descContent = t.descriptionMarkdown || t.descriptionHtml;
   const rulesContent = t.rulesMarkdown || t.rulesHtml;
@@ -222,8 +218,7 @@ export default function TournamentDetailClient({ id, initialData }: Props) {
                                 {w.placement}
                               </span>
                               <div>
-                                <p className="font-semibold text-foreground">{w.userName}</p>
-                                {w.userGameName && <p className="text-xs text-muted-foreground">{w.userGameName}</p>}
+                                <p className="font-semibold text-foreground">{w.userGameName || w.userName}</p>
                               </div>
                             </div>
                             {w.prizeAmount > 0 && (
@@ -393,7 +388,7 @@ export default function TournamentDetailClient({ id, initialData }: Props) {
 
           {/* Sidebar */}
           <div className="space-y-4">
-            
+
             {/* Room Credentials */}
             {showCredentials && (
               <div className="bg-accent/40 rounded-2xl border border-primary/25 p-5 shadow-sm">
@@ -429,6 +424,9 @@ export default function TournamentDetailClient({ id, initialData }: Props) {
                     <p className="text-2xl font-black text-success">{t.userSlot.teamName}</p>
                   ) : (
                     <p className="text-4xl font-black text-success">#{t.userSlot.slotNumber}</p>
+                  )}
+                  {t.userSlot.displayName && (
+                    <p className="text-sm text-muted-foreground mt-2 font-medium">{t.userSlot.displayName}</p>
                   )}
                 </div>
               </div>
@@ -493,8 +491,8 @@ export default function TournamentDetailClient({ id, initialData }: Props) {
               </div>
             )}
 
-            {/* Full / Deadline Passed */}
-            {t.status === "UPCOMING" && !canJoin && !isParticipant && (
+            {/* Full / Deadline Passed — only shown after user data is confirmed (avoids flash for participants) */}
+            {userDataLoaded && t.status === "UPCOMING" && !canJoin && !isParticipant && (
               <div className="bg-accent/40 rounded-2xl border border-border/80 p-5 text-center shadow-sm">
                 {t.availableSlots === 0 ? (
                   <>

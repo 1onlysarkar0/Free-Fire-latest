@@ -1,9 +1,13 @@
 import { Metadata } from "next";
 import TournamentDetailClient from "./_components/tournament-detail-client";
-import { getTournamentDetail } from "@/lib/tournaments";
+import { getTournamentDetail, getViewerTournamentDetail } from "@/lib/tournaments";
 import { getAdminSiteConfigCached } from "@/lib/admin-data";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -43,8 +47,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function TournamentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
+
   const [initialData, siteConfig] = await Promise.all([
-    getTournamentDetail(id).catch(() => null),
+    getViewerTournamentDetail(id, session?.user?.id).catch(() => null),
     getAdminSiteConfigCached().catch(() => null),
   ]);
 

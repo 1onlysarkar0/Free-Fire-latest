@@ -32,7 +32,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         teamName: s.teamName,
         ignList: JSON.parse((s.ignList as string) || "[]"),
         bookedAt: s.bookedAt,
-        userName: s.status === "BOOKED" ? (s.userGameName || s.userName) : undefined,
+        userName: s.status === "BOOKED" ? (s.userGameName || "Booked") : undefined,
       })),
     });
   } catch (err) {

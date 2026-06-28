@@ -181,7 +181,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       });
     });
 
-    invalidateTournamentCache(tournamentId);
+    await invalidateTournamentCache(tournamentId);
     return apiSuccess({
       participantId,
       slotNumber: chosenSlot.slotNumber,

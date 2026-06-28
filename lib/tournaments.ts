@@ -1,6 +1,6 @@
 import "server-only";
 import { db } from "@/db/drizzle";
-import { tournament, tournamentSlot, tournamentWinner, user } from "@/db/schema";
+import { tournament, tournamentSlot, tournamentParticipant, tournamentWinner, user } from "@/db/schema";
 import { eq, desc, inArray, and, count, sql } from "drizzle-orm";
 import { unstable_cache } from "next/cache";
 import { CACHE_TAGS, tournamentCacheTag } from "@/lib/cache";
@@ -34,6 +34,21 @@ export interface TournamentDetail {
   descriptionMarkdown?: string | null; rulesHtml?: string | null; rulesMarkdown?: string | null;
   slots: SlotItem[];
   winners: { id: string; userId: string; placement: string; prizeAmount: number; userName: string; userImage?: string | null; userGameName?: string | null }[];
+}
+
+export interface ViewerTournamentDetail extends TournamentDetail {
+  userParticipant?: {
+    id: string;
+    slotId: string;
+    entryFeePaid: number;
+    createdAt: string;
+  } | null;
+  userSlot?: (SlotItem & {
+    bookedAt?: string | null;
+    displayName?: string | null;
+  }) | null;
+  roomId?: string | null;
+  roomPassword?: string | null;
 }
 
 // ─── Internal fetch functions ────────────────────────────────────────────────
@@ -219,6 +234,94 @@ async function _fetchTournamentPublicData(id: string) {
   };
 }
 
+async function _fetchViewerTournamentDetail(
+  id: string,
+  userId?: string | null
+): Promise<ViewerTournamentDetail | null> {
+  const publicData = await _fetchTournamentPublicData(id);
+  if (!publicData) return null;
+
+  const { row, slots, bookedSlots, winners } = publicData;
+  let userParticipant: ViewerTournamentDetail["userParticipant"] = null;
+  let userSlot: ViewerTournamentDetail["userSlot"] = null;
+  let roomId: string | null = null;
+  let roomPassword: string | null = null;
+
+  if (userId) {
+    const [participant] = await db
+      .select({
+        id: tournamentParticipant.id,
+        slotId: tournamentParticipant.slotId,
+        entryFeePaid: tournamentParticipant.entryFeePaid,
+        createdAt: tournamentParticipant.createdAt,
+      })
+      .from(tournamentParticipant)
+      .where(
+        and(
+          eq(tournamentParticipant.tournamentId, id),
+          eq(tournamentParticipant.userId, userId)
+        )
+      )
+      .limit(1);
+
+    if (participant) {
+      userParticipant = {
+        id: participant.id,
+        slotId: participant.slotId,
+        entryFeePaid: participant.entryFeePaid,
+        createdAt: participant.createdAt.toISOString(),
+      };
+
+      const slot = slots.find((s) => s.id === participant.slotId);
+      if (slot) {
+        userSlot = {
+          id: slot.id,
+          slotNumber: slot.slotNumber,
+          status: slot.status,
+          teamName: slot.teamName,
+          ignList: slot.ignList,
+          userId,
+          userName: slot.userGameName,
+          userGameName: slot.userGameName,
+          bookedAt: slot.bookedAt,
+          displayName: slot.userGameName,
+        };
+      }
+
+      if (["ROOM_REVEALED", "LIVE", "FINISHED", "COMPLETED"].includes(row.status)) {
+        const [credentials] = await db
+          .select({ roomId: tournament.roomId, roomPassword: tournament.roomPassword })
+          .from(tournament)
+          .where(eq(tournament.id, id))
+          .limit(1);
+        roomId = credentials?.roomId ?? null;
+        roomPassword = credentials?.roomPassword ?? null;
+      }
+    }
+  }
+
+  return {
+    ...row,
+    bookedSlots,
+    availableSlots: row.totalSlots - bookedSlots,
+    slots: slots.map((s) => ({
+      id: s.id,
+      slotNumber: s.slotNumber,
+      status: s.status,
+      teamName: s.teamName,
+      ignList: s.ignList,
+      userId: s.userId === userId ? s.userId : undefined,
+      userName: s.status === "BOOKED" ? (s.userGameName || "Booked") : undefined,
+      userGameName: undefined,
+    })),
+    winners,
+    userParticipant,
+    userSlot,
+    roomId,
+    roomPassword,
+  };
+}
+
 // ─── Direct exports (uncached) ────────────────────────────────────────────────
 
 async function _fetchUpcomingTournamentsForHomepage() {
@@ -288,6 +391,12 @@ export const getCachedTournamentsPaginated = cache((
     { tags: [CACHE_TAGS.tournaments], revalidate: 300 }
   )();
 });
+
+export const getTournamentsPaginated = _fetchTournamentsPaginated;
+
+export const getTournamentPublicData = _fetchTournamentPublicData;
+
+export const getViewerTournamentDetail = _fetchViewerTournamentDetail;
 
 export const getCachedTournamentPublicData = cache((id: string) => {
   return unstable_cache(
