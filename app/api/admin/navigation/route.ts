@@ -35,6 +35,6 @@ export async function POST(request: Request) {
     isFooter: isFooter ?? false,
     isSocial: isSocial ?? false,
   });
-  invalidatePublicCache({ tags: [CACHE_TAGS.navigation], paths: ["/"] });
+  await invalidatePublicCache({ tags: [CACHE_TAGS.navigation], paths: ["/"] });
   return Response.json({ ok: true, id });
 }

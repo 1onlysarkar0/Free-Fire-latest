@@ -28,7 +28,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     isFooter: isFooter ?? false,
     isSocial: isSocial ?? false,
   }).where(eq(navigationItem.id, id));
-  invalidatePublicCache({ tags: [CACHE_TAGS.navigation], paths: ["/"] });
+  await invalidatePublicCache({ tags: [CACHE_TAGS.navigation], paths: ["/"] });
 
   return Response.json({ ok: true });
 }
@@ -39,6 +39,6 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
   const { id } = await params;
   await db.delete(navigationItem).where(eq(navigationItem.id, id));
-  invalidatePublicCache({ tags: [CACHE_TAGS.navigation], paths: ["/"] });
+  await invalidatePublicCache({ tags: [CACHE_TAGS.navigation], paths: ["/"] });
   return Response.json({ ok: true });
 }

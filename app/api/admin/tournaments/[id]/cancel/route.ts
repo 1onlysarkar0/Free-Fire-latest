@@ -104,7 +104,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }).catch((err) => console.error("[cancel] Notification error:", err));
 
 
-    invalidateTournamentCache(tournamentId);
+    await invalidateTournamentCache(tournamentId);
     return NextResponse.json({
       success: true,
       cancellationId,

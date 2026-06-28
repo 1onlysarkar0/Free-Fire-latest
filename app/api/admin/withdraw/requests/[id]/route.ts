@@ -5,6 +5,7 @@ import { withdrawRequest } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { creditWallet } from "@/lib/wallet";
 import { z } from "zod";
+import { invalidateAdminCache } from "@/lib/cache";
 
 const schema = z.object({
   action: z.enum(["complete", "cancel"]),
@@ -56,6 +57,7 @@ export async function POST(
         })
         .where(eq(withdrawRequest.id, id));
 
+      await invalidateAdminCache();
       return NextResponse.json({ success: true, message: "Withdrawal request completed." });
     } else {
       // Cancel
@@ -86,6 +88,7 @@ export async function POST(
         })
         .where(eq(withdrawRequest.id, id));
 
+      await invalidateAdminCache();
       return NextResponse.json({
         success: true,
         message: refundOnCancel

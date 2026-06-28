@@ -53,7 +53,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     }).catch((err) => console.error("[room-credentials] Notification error:", err));
 
 
-    invalidateTournamentCache(id);
+    await invalidateTournamentCache(id);
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[API/admin/tournaments/room-credentials] PATCH:", err);

@@ -30,7 +30,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await db.update(seoConfig).set(update as any).where(eq(seoConfig.id, id));
-  invalidatePublicCache({ tags: [CACHE_TAGS.seo], paths: ["/", `/${id}`, "/sitemap.xml"] });
+  await invalidatePublicCache({ tags: [CACHE_TAGS.seo], paths: ["/", `/${id}`, "/sitemap.xml"] });
   return Response.json({ ok: true });
 }
 
@@ -41,6 +41,6 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   const { id } = await params;
   if (id === "global") return Response.json({ error: "Cannot delete global SEO config" }, { status: 400 });
   await db.delete(seoConfig).where(eq(seoConfig.id, id));
-  invalidatePublicCache({ tags: [CACHE_TAGS.seo], paths: ["/", `/${id}`, "/sitemap.xml"] });
+  await invalidatePublicCache({ tags: [CACHE_TAGS.seo], paths: ["/", `/${id}`, "/sitemap.xml"] });
   return Response.json({ ok: true });
 }

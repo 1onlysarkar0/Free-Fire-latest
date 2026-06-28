@@ -7,6 +7,7 @@ import { db } from "@/db/drizzle";
 import { chatbot_knowledge } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireAdminOrRole } from "@/lib/admin-auth";
+import { invalidateAdminCache } from "@/lib/cache";
 
 export const dynamic = "force-dynamic";
 
@@ -49,6 +50,7 @@ export async function PUT(
     );
   }
 
+  await invalidateAdminCache();
   return NextResponse.json({ success: true, data: result[0] });
 }
 
@@ -63,5 +65,6 @@ export async function DELETE(
 
   await db.delete(chatbot_knowledge).where(eq(chatbot_knowledge.id, id));
 
+  await invalidateAdminCache();
   return NextResponse.json({ success: true });
 }

@@ -35,17 +35,15 @@ export default async function DynamicSlugLayout({
           permissions={authState.permissions}
           panelSlug={dynamicSlug}
         />
-        <SidebarInset>
-          <div className="flex-1 flex flex-col min-w-0 overflow-hidden min-h-screen bg-background">
-            <AdminNavbar
-              userName={authState.user.name}
-              userImage={authState.user.image ?? null}
-              isAdmin={authState.isAdmin}
-            />
-            <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8 w-full">
-              {children}
-            </main>
-          </div>
+        <SidebarInset className="min-h-screen">
+          <AdminNavbar
+            userName={authState.user.name}
+            userImage={authState.user.image ?? null}
+            isAdmin={authState.isAdmin}
+          />
+          <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8 w-full">
+            {children}
+          </main>
         </SidebarInset>
       </SidebarProvider>
     );

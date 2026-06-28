@@ -36,7 +36,7 @@ export async function PATCH(
     }
 
     await db.update(tournamentSlot).set(updates).where(eq(tournamentSlot.id, slotId));
-    invalidateTournamentCache(id);
+    await invalidateTournamentCache(id);
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[API/admin/tournaments/slots/[slotId]] PATCH:", err);

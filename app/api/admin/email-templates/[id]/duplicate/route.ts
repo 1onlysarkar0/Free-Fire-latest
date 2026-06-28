@@ -2,6 +2,7 @@ import { requireAdminOrRole } from "@/lib/admin-auth";
 import { db } from "@/db/drizzle";
 import { emailTemplate } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { invalidateAdminCache } from "@/lib/cache";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -32,5 +33,6 @@ export async function POST(request: Request, { params }: Params) {
     updatedAt: new Date(),
   });
 
+  await invalidateAdminCache();
   return Response.json({ ok: true, id: newId, name: newName });
 }

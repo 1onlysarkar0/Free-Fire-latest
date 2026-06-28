@@ -3,6 +3,7 @@ import { db } from "@/db/drizzle";
 import { smtpProviders } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
+import { invalidateAdminCache } from "@/lib/cache";
 
 const MASKED = "••••••••";
 
@@ -80,6 +81,7 @@ export async function PUT(request: Request, { params }: Params) {
     updatedAt: new Date(),
   }).where(eq(smtpProviders.id, id));
 
+  await invalidateAdminCache();
   return Response.json({ ok: true });
 }
 
@@ -90,5 +92,6 @@ export async function DELETE(request: Request, { params }: Params) {
   const { id } = await params;
   await db.delete(smtpProviders).where(eq(smtpProviders.id, id));
 
+  await invalidateAdminCache();
   return Response.json({ ok: true });
 }

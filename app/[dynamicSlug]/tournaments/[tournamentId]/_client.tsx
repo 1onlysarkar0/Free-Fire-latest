@@ -221,7 +221,7 @@ export default function ManageTournamentClient({ id: tournamentId, initialData, 
     <div className="p-6 max-w-5xl">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <Link href={`/${dynamicSlug}/tournaments`} prefetch={true}>
+        <Link href={`/${dynamicSlug}/tournaments`} prefetch={false}>
           <Button variant="ghost" size="icon" className="h-8 w-8"><ArrowLeft className="h-4 w-4" /></Button>
         </Link>
         <div className="flex-1 min-w-0">

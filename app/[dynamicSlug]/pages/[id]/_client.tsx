@@ -92,7 +92,7 @@ export default function EditPageClient({ id, initialData, dynamicSlug: panelSlug
       {/* Header */}
       <div className="flex items-center gap-3 flex-wrap">
         <Button variant="outline" size="icon" asChild>
-          <Link href={`/${panelSlug}/pages`} prefetch={true}><ArrowLeft className="h-4 w-4" /></Link>
+          <Link href={`/${panelSlug}/pages`} prefetch={false}><ArrowLeft className="h-4 w-4" /></Link>
         </Button>
         <div className="flex-1 min-w-0">
           <h1 className="text-3xl font-bold text-foreground font-lora truncate">{title || "Edit Page"}</h1>

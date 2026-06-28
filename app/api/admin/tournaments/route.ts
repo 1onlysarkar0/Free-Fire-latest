@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
       await tx.insert(tournamentSlot).values(slotRows);
     });
 
-    invalidateTournamentCache(id);
+    await invalidateTournamentCache(id);
 
     return NextResponse.json({ success: true, id }, { status: 201 });
   } catch (err) {

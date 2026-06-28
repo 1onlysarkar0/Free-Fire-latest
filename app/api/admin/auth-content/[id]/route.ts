@@ -22,7 +22,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   await db.update(authPageContent)
     .set({ quote, subtext, updatedAt: new Date() })
     .where(eq(authPageContent.id, id));
-  invalidatePublicCache({ tags: [CACHE_TAGS.authContent], paths: [`/${id}`] });
+  await invalidatePublicCache({ tags: [CACHE_TAGS.authContent], paths: [`/${id}`] });
 
   return Response.json({ ok: true });
 }

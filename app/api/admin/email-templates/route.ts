@@ -2,6 +2,7 @@ import { requireAdminOrRole } from "@/lib/admin-auth";
 import { db } from "@/db/drizzle";
 import { emailTemplate } from "@/db/schema";
 import { desc } from "drizzle-orm";
+import { invalidateAdminCache } from "@/lib/cache";
 
 export async function GET(request: Request) {
   const admin = await requireAdminOrRole(request, "email_templates:view");
@@ -63,6 +64,6 @@ export async function POST(request: Request) {
     editorType: editorType ?? "html",
     isActive: isActive !== false,
   });
-
+  await invalidateAdminCache();
   return Response.json({ ok: true, id });
 }

@@ -71,9 +71,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Invalidate cache
-    for (const id of targetIds) {
-      invalidateTournamentCache(id);
-    }
+    await Promise.all(targetIds.map(id => invalidateTournamentCache(id)));
     revalidateTag("site-config");
 
     return NextResponse.json({ success: true, count: targetIds.length });

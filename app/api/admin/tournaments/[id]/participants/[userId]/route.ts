@@ -71,7 +71,7 @@ export async function DELETE(
       } else {
       }
 
-      invalidateTournamentCache(tournamentId);
+      await invalidateTournamentCache(tournamentId);
       return NextResponse.json({
         success: true,
         refunded: refundResult.success,
@@ -79,7 +79,7 @@ export async function DELETE(
       });
     }
 
-    invalidateTournamentCache(tournamentId);
+    await invalidateTournamentCache(tournamentId);
     return NextResponse.json({ success: true, refunded: false });
   } catch (err) {
     console.error("[API/admin/tournaments/participants/[userId]] DELETE:", err);

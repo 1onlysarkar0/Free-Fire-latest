@@ -3,6 +3,7 @@ import { db } from "@/db/drizzle";
 import { user, adminUserRole, account, adminRole } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { userUpdateSchema } from "@/lib/schemas/admin";
+import { invalidateAdminCache } from "@/lib/cache";
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const admin = await requireAdminOrRole(request);
@@ -126,6 +127,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       }
     }
 
+    await invalidateAdminCache();
     return Response.json({ ok: true });
   } catch (err) {
     console.error("[API/admin/users/[id]] PUT error:", err);
@@ -161,5 +163,6 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   });
 
 
+  await invalidateAdminCache();
   return Response.json({ ok: true });
 }

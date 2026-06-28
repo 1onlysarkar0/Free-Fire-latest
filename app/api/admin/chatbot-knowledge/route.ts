@@ -7,6 +7,7 @@ import { db } from "@/db/drizzle";
 import { chatbot_knowledge } from "@/db/schema";
 import { asc } from "drizzle-orm";
 import { requireAdminOrRole } from "@/lib/admin-auth";
+import { invalidateAdminCache } from "@/lib/cache";
 
 export const dynamic = "force-dynamic";
 
@@ -48,5 +49,6 @@ export async function POST(request: NextRequest) {
     .values(parsed.data)
     .returning();
 
+  await invalidateAdminCache();
   return NextResponse.json({ success: true, data: result[0] }, { status: 201 });
 }

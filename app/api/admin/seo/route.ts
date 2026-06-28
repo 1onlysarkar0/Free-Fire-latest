@@ -29,6 +29,6 @@ export async function POST(request: Request) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await db.insert(seoConfig).values(values as any).onConflictDoNothing();
-  invalidatePublicCache({ tags: [CACHE_TAGS.seo], paths: ["/", "/sitemap.xml"] });
+  await invalidatePublicCache({ tags: [CACHE_TAGS.seo], paths: ["/", "/sitemap.xml"] });
   return Response.json({ ok: true });
 }

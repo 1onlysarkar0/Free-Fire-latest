@@ -2,6 +2,7 @@ import { requireAdminOrRole } from "@/lib/admin-auth";
 import { db } from "@/db/drizzle";
 import { smtpProviders } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { invalidateAdminCache } from "@/lib/cache";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -21,5 +22,6 @@ export async function POST(request: Request, { params }: Params) {
     .set({ isDefault: true, updatedAt: new Date() })
     .where(eq(smtpProviders.id, id));
 
+  await invalidateAdminCache();
   return Response.json({ ok: true });
 }

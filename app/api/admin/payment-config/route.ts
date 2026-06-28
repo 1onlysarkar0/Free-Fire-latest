@@ -4,6 +4,7 @@ import { db } from "@/db/drizzle";
 import { paymentConfig } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
+import { invalidateAdminCache } from "@/lib/cache";
 
 const updateSchema = z.object({
   gmailEmail: z.string().email("Invalid Gmail address"),
@@ -122,5 +123,6 @@ export async function PUT(request: NextRequest) {
       .where(eq(paymentConfig.id, "default"));
   }
 
+  await invalidateAdminCache();
   return NextResponse.json({ success: true, message: "Payment config saved." });
 }

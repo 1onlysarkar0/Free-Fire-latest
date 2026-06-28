@@ -109,7 +109,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
 
 
-    invalidateTournamentCache(tournamentId);
+    await invalidateTournamentCache(tournamentId);
     return NextResponse.json({ success: true, data: results });
   } catch (err) {
     console.error("[API/admin/tournaments/declare-winners] POST:", err);

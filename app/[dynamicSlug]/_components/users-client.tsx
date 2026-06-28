@@ -194,7 +194,7 @@ export default function UsersPage({ initialData }: { initialData: User[] }) {
                     <td className="text-right">
                       <div className="flex justify-end gap-1">
                         <Button size="sm" variant="outline" asChild className="h-7 px-2.5 text-xs gap-1">
-                          <Link href={`/${panelSlug}/users/${u.id}`} prefetch={true}>
+                          <Link href={`/${panelSlug}/users/${u.id}`} prefetch={false}>
                             <Pencil className="h-3 w-3" />Edit
                           </Link>
                         </Button>

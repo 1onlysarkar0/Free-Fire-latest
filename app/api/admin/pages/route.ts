@@ -42,7 +42,7 @@ export async function POST(request: Request) {
       updatedAt: new Date(),
     }).returning();
 
-    invalidatePublicCache({
+    await invalidatePublicCache({
       tags: [CACHE_TAGS.pages, CACHE_TAGS.seo],
       paths: [`/${cleanSlug}`, "/sitemap.xml"],
     });

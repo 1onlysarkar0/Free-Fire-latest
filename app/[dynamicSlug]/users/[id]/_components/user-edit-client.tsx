@@ -218,7 +218,7 @@ export default function UserEditClient({
     <div className="w-full max-w-4xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
-          <Link href={`/${dynamicSlug}/users`} prefetch={true}><ArrowLeft className="h-4 w-4" /></Link>
+          <Link href={`/${dynamicSlug}/users`} prefetch={false}><ArrowLeft className="h-4 w-4" /></Link>
         </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-foreground font-lora flex items-center gap-3">

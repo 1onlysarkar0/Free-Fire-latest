@@ -210,7 +210,7 @@ export default function EmailDesignerClient({
       {/* Top Action Bar */}
       <div className="sticky top-0 z-30 -mx-4 px-4 md:-mx-6 md:px-6 lg:-mx-8 lg:px-8 bg-background/95 backdrop-blur-md border-b border-border/10 pb-4 mb-6 pt-4 -mt-4 md:pt-6 md:-mt-6 lg:pt-8 lg:-mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <Link href={`/${adminSlug}/email-templates`}>
+          <Link href={`/${adminSlug}/email-templates`} prefetch={false}>
             <Button variant="ghost" size="sm" className="gap-2">
               <ArrowLeft className="h-4 w-4" />
               Templates

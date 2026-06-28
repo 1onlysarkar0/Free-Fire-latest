@@ -4,6 +4,7 @@ import { db } from "@/db/drizzle";
 import { withdrawConfig } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { withdrawConfigUpdateSchema } from "@/lib/schemas/admin";
+import { invalidateAdminCache } from "@/lib/cache";
 
 export async function GET(req: NextRequest) {
   const adminUser = await requireAdminOrRole(req, "withdraw:view");
@@ -48,6 +49,7 @@ export async function PUT(req: NextRequest) {
       .set(updateData)
       .where(eq(withdrawConfig.id, "default"));
 
+    await invalidateAdminCache();
     return NextResponse.json({ success: true, message: "Withdrawal config updated." });
   } catch (err) {
     console.error("[API/admin/withdraw/config] PUT error:", err);

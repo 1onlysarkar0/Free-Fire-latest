@@ -86,7 +86,7 @@ export async function PUT(request: Request) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await db.update(siteConfig).set(update as any).where(eq(siteConfig.id, "default"));
-  invalidatePublicCache({
+  await invalidatePublicCache({
     tags: [CACHE_TAGS.siteConfig, CACHE_TAGS.navigation, CACHE_TAGS.seo],
     paths: ["/", "/sign-in", "/sign-up", "/dashboard"],
   });

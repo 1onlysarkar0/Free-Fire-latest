@@ -41,7 +41,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       .where(eq(customPage.id, id))
       .limit(1);
     await db.update(customPage).set(update).where(eq(customPage.id, id));
-    invalidatePublicCache({
+    await invalidatePublicCache({
       tags: [CACHE_TAGS.pages, CACHE_TAGS.seo],
       paths: [existing ? `/${existing.slug}` : "/", update.slug ? `/${String(update.slug)}` : "/", "/sitemap.xml"],
     });
@@ -65,7 +65,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     .where(eq(customPage.id, id))
     .limit(1);
   await db.delete(customPage).where(eq(customPage.id, id));
-  invalidatePublicCache({
+  await invalidatePublicCache({
     tags: [CACHE_TAGS.pages, CACHE_TAGS.seo],
     paths: [existing ? `/${existing.slug}` : "/", "/sitemap.xml"],
   });

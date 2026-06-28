@@ -2,6 +2,7 @@ import { requireAdminOrRole } from "@/lib/admin-auth";
 import { db } from "@/db/drizzle";
 import { adminRole } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { invalidateAdminCache } from "@/lib/cache";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const admin = await requireAdminOrRole(request, "roles:view");
@@ -53,6 +54,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     updatedAt: new Date(),
   }).where(eq(adminRole.id, id));
 
+  await invalidateAdminCache();
   return Response.json({ ok: true });
 }
 
@@ -71,5 +73,6 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
   await db.delete(adminRole).where(eq(adminRole.id, id));
 
+  await invalidateAdminCache();
   return Response.json({ ok: true });
 }

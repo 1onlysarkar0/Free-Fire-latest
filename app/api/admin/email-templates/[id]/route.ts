@@ -2,6 +2,7 @@ import { requireAdminOrRole } from "@/lib/admin-auth";
 import { db } from "@/db/drizzle";
 import { emailTemplate } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { invalidateAdminCache } from "@/lib/cache";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -55,6 +56,7 @@ export async function PUT(request: Request, { params }: Params) {
     updatedAt: new Date(),
   }).where(eq(emailTemplate.id, id));
 
+  await invalidateAdminCache();
   return Response.json({ ok: true });
 }
 
@@ -65,5 +67,6 @@ export async function DELETE(request: Request, { params }: Params) {
   const { id } = await params;
   await db.delete(emailTemplate).where(eq(emailTemplate.id, id));
 
+  await invalidateAdminCache();
   return Response.json({ ok: true });
 }

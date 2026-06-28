@@ -8,6 +8,7 @@ import { chatbot_config } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireAdminOrRole } from "@/lib/admin-auth";
 import { getChatbotConfig } from "@/lib/chatbot";
+import { invalidateAdminCache } from "@/lib/cache";
 
 export const dynamic = "force-dynamic";
 
@@ -86,5 +87,6 @@ export async function PUT(request: NextRequest) {
     .set(updateData)
     .where(eq(chatbot_config.id, "default"));
 
+  await invalidateAdminCache();
   return NextResponse.json({ success: true, message: "Chatbot config updated successfully." });
 }

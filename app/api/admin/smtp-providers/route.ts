@@ -2,6 +2,7 @@ import { requireAdminOrRole } from "@/lib/admin-auth";
 import { db } from "@/db/drizzle";
 import { smtpProviders } from "@/db/schema";
 import { z } from "zod";
+import { invalidateAdminCache } from "@/lib/cache";
 
 const MASKED = "••••••••";
 
@@ -69,6 +70,6 @@ export async function POST(request: Request) {
     isDefault: data.isDefault,
     isActive: data.isActive,
   });
-
+  await invalidateAdminCache();
   return Response.json({ ok: true, id });
 }

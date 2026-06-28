@@ -2,6 +2,7 @@ import { requireAdminOrRole } from "@/lib/admin-auth";
 import { db } from "@/db/drizzle";
 import { adminRole, adminUserRole } from "@/db/schema";
 import { count } from "drizzle-orm";
+import { invalidateAdminCache } from "@/lib/cache";
 
 export async function GET(request: Request) {
   const admin = await requireAdminOrRole(request, "roles:view");
@@ -52,5 +53,6 @@ export async function POST(request: Request) {
     permissions: JSON.stringify(permissionArray),
   });
 
+  await invalidateAdminCache();
   return Response.json({ ok: true, id });
 }

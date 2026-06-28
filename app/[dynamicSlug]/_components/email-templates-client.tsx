@@ -380,7 +380,7 @@ export default function EmailTemplatesClient({
                     </td>
                     <td>
                       <div className="flex items-center justify-end gap-1">
-                        <Link href={`/${adminSlug}/email-templates/${t.id}`}>
+                        <Link href={`/${adminSlug}/email-templates/${t.id}`} prefetch={false}>
                           <Button variant="ghost" size="icon" className="h-8 w-8" title="Open designer">
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>

@@ -94,7 +94,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     }
 
     await db.update(tournament).set(updates).where(eq(tournament.id, id));
-    invalidateTournamentCache(id);
+    await invalidateTournamentCache(id);
 
     return NextResponse.json({ success: true });
   } catch (err) {
@@ -126,7 +126,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
         })
         .where(eq(siteConfig.id, "default"));
     });
-    invalidateTournamentCache(id);
+    await invalidateTournamentCache(id);
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[API/admin/tournaments/[id]] DELETE:", err);
