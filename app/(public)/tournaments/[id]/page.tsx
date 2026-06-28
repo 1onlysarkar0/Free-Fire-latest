@@ -84,7 +84,11 @@ export default async function TournamentDetailPage({ params }: { params: Promise
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
       )}
-      <TournamentDetailClient id={id} initialData={initialData} />
+      <TournamentDetailClient
+        id={id}
+        initialData={initialData}
+        initialIsLoggedIn={!!session?.user}
+      />
     </div>
   );
 }

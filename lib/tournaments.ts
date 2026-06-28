@@ -147,7 +147,7 @@ async function _fetchTournamentsPaginated(
         registrationDeadline: tournament.registrationDeadline,
         status: tournament.status,
         createdAt: tournament.createdAt,
-        bookedSlots: sql<number>`(SELECT count(*) FROM ${tournamentSlot} WHERE ${tournamentSlot.tournamentId} = ${tournament.id} AND ${tournamentSlot.status} = 'BOOKED')::int`,
+        bookedSlots: sql<number>`(SELECT count(*)::int FROM "tournament_slots" WHERE "tournament_slots"."tournament_id" = "tournaments"."id" AND "tournament_slots"."status" = 'BOOKED')`,
       })
       .from(tournament)
       .where(where)
@@ -338,7 +338,7 @@ async function _fetchUpcomingTournamentsForHomepage() {
       gameMode: tournament.gameMode,
       teamFormat: tournament.teamFormat,
       maps: tournament.maps,
-      bookedSlots: sql<number>`(SELECT count(*) FROM ${tournamentSlot} WHERE ${tournamentSlot.tournamentId} = ${tournament.id} AND ${tournamentSlot.status} = 'BOOKED')::int`,
+      bookedSlots: sql<number>`(SELECT count(*)::int FROM "tournament_slots" WHERE "tournament_slots"."tournament_id" = "tournaments"."id" AND "tournament_slots"."status" = 'BOOKED')`,
     })
     .from(tournament)
     .where(inArray(tournament.status, ["UPCOMING", "ACTIVE", "ROOM_REVEALED", "LIVE"]))

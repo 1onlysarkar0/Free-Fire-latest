@@ -174,7 +174,7 @@ async function _fetchUserTournaments(userId: string): Promise<UserTournamentItem
       registrationDeadline: tournament.registrationDeadline,
       status: tournament.status,
       bookedSlots:
-        sql<number>`(SELECT count(*)::int FROM ${tournamentSlot} WHERE ${tournamentSlot.tournamentId} = ${tournament.id} AND ${tournamentSlot.status} = 'BOOKED')`,
+        sql<number>`(SELECT count(*)::int FROM "tournament_slots" WHERE "tournament_slots"."tournament_id" = "tournaments"."id" AND "tournament_slots"."status" = 'BOOKED')`,
     })
     .from(tournament)
     .where(inArray(tournament.id, tournamentIds))

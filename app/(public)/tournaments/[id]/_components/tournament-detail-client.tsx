@@ -19,11 +19,16 @@ import { cn } from "@/lib/utils";
 
 type TournamentData = ViewerTournamentDetail;
 
-interface Props { id: string; initialData: ViewerTournamentDetail | null }
+interface Props {
+  id: string;
+  initialData: ViewerTournamentDetail | null;
+  initialIsLoggedIn: boolean;
+}
 
-export default function TournamentDetailClient({ id, initialData }: Props) {
+export default function TournamentDetailClient({ id, initialData, initialIsLoggedIn }: Props) {
   const router = useRouter();
-  const { data: session } = authClient.useSession();
+  const { data: session, isPending } = authClient.useSession();
+  const isLoggedIn = isPending ? initialIsLoggedIn : !!session?.user;
   const [t, setT] = useState<TournamentData | null>(initialData as TournamentData | null);
   const [joining, setJoining] = useState(false);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
@@ -465,7 +470,7 @@ export default function TournamentDetailClient({ id, initialData }: Props) {
                     </div>
                   )}
 
-                  {!session?.user ? (
+                  {!isLoggedIn ? (
                     <Link href={`/sign-in?returnTo=/tournaments/${t.id}`} prefetch={true}>
                       <Button className="w-full bg-primary hover:bg-primary/90 text-white font-semibold">
                         Sign in to Join
