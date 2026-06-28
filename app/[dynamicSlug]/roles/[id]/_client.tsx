@@ -78,7 +78,7 @@ export default function EditRoleClient({ id, initialRole, dynamicSlug: panelSlug
   return (
     <div className="w-full space-y-8">
       <div className="flex items-center gap-4">
-        <Link href={`/${panelSlug}/roles`} prefetch={false}>
+        <Link href={`/${panelSlug}/roles`} prefetch={true}>
           <Button variant="outline" size="icon">
             <ArrowLeft className="h-4 w-4" />
           </Button>

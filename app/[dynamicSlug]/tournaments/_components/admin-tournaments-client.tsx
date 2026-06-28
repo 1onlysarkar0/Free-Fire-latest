@@ -200,7 +200,7 @@ export default function AdminTournamentsClient({
           <Button variant="outline" onClick={openCleanup}>
             <Trash className="h-4 w-4 mr-1.5" />Cleanup Old
           </Button>
-          <Link href={`/${dynamicSlug}/tournaments/new`} prefetch={false}>
+          <Link href={`/${dynamicSlug}/tournaments/new`} prefetch={true}>
             <Button><Plus className="h-4 w-4" />New Tournament</Button>
           </Link>
         </div>
@@ -324,7 +324,7 @@ export default function AdminTournamentsClient({
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem asChild>
-                            <Link href={`/${dynamicSlug}/tournaments/${t.id}`} prefetch={false}>
+                            <Link href={`/${dynamicSlug}/tournaments/${t.id}`} prefetch={true}>
                               <Pencil className="h-4 w-4 mr-2" /> Manage
                             </Link>
                           </DropdownMenuItem>

@@ -44,7 +44,7 @@ function StatCard({
       </CardContent>
     </Card>
   );
-  return href ? <Link href={href} prefetch={false} className="block">{inner}</Link> : inner;
+  return href ? <Link href={href} prefetch={true} className="block">{inner}</Link> : inner;
 }
 
 interface Props {
@@ -164,7 +164,7 @@ export default function AdminDashboardHome({
             {QUICK_LINKS.map((link) => {
               const Icon = link.icon;
               return (
-                <Link key={link.href} href={link.href} prefetch={false}
+                <Link key={link.href} href={link.href} prefetch={true}
                   className="card-widget p-5 flex items-center gap-4 group cursor-pointer">
                   <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${link.color}`}>
                     <Icon className="h-5 w-5" />

@@ -66,7 +66,7 @@ function NavItemLink({
           <TooltipTrigger asChild>
             <Link
               href={item.href}
-              prefetch={false}
+              prefetch={true}
               className={cn(
                 "flex items-center justify-center h-9 w-9 rounded-lg transition-colors mx-auto",
                 isActive
@@ -88,7 +88,7 @@ function NavItemLink({
   return (
     <Link
       href={item.href}
-      prefetch={false}
+      prefetch={true}
       className={cn(
         "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors group w-full",
         isActive
@@ -122,13 +122,13 @@ export default function AppSidebarShell({
         {collapsed ? (
           <div className="flex items-center justify-center w-full">
             {logoSrc && (
-              <Link href={logoUrl} prefetch={false}>
+              <Link href={logoUrl} prefetch={true}>
                 <Image src={logoSrc} alt={logoAlt} width={28} height={28} className="h-7 w-7 object-contain" />
               </Link>
             )}
           </div>
         ) : (
-          <Link href={logoUrl} prefetch={false} className="flex items-center gap-2.5 min-w-0 w-full">
+          <Link href={logoUrl} prefetch={true} className="flex items-center gap-2.5 min-w-0 w-full">
             {logoSrc && (
               <Image src={logoSrc} alt={logoAlt} width={28} height={28} className="h-7 w-7 object-contain shrink-0" />
             )}

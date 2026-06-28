@@ -173,7 +173,7 @@ export default function NewTournamentClient({ dynamicSlug }: NewTournamentClient
   return (
     <div className="p-6 max-w-4xl">
       <div className="flex items-center gap-3 mb-6">
-        <Link href={`/${dynamicSlug}/tournaments`} prefetch={false}>
+        <Link href={`/${dynamicSlug}/tournaments`} prefetch={true}>
           <Button variant="ghost" size="icon" className="h-8 w-8">
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -432,7 +432,7 @@ export default function NewTournamentClient({ dynamicSlug }: NewTournamentClient
               </>
             )}
           </Button>
-          <Link href={`/${dynamicSlug}/tournaments`} prefetch={false}>
+          <Link href={`/${dynamicSlug}/tournaments`} prefetch={true}>
             <Button type="button" variant="outline">Cancel</Button>
           </Link>
         </div>

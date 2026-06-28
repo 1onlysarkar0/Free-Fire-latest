@@ -87,7 +87,7 @@ export default function PagesListClient({ initialData }: { initialData: CustomPa
           </div>
         </div>
         <Button asChild>
-          <Link href={`/${panelSlug}/pages/new`} prefetch={false}><Plus className="h-4 w-4" />New Page</Link>
+          <Link href={`/${panelSlug}/pages/new`} prefetch={true}><Plus className="h-4 w-4" />New Page</Link>
         </Button>
       </div>
 
@@ -120,7 +120,7 @@ export default function PagesListClient({ initialData }: { initialData: CustomPa
           <h4 className="text-sm font-semibold text-foreground">No custom pages yet</h4>
           <Muted className="mt-1 text-sm mb-4">Create your first page to publish content at a custom URL.</Muted>
           <Button asChild size="sm">
-            <Link href={`/${panelSlug}/pages/new`} prefetch={false}><Plus className="h-3.5 w-3.5" />Create First Page</Link>
+            <Link href={`/${panelSlug}/pages/new`} prefetch={true}><Plus className="h-3.5 w-3.5" />Create First Page</Link>
           </Button>
         </div>
       ) : (
@@ -163,7 +163,7 @@ export default function PagesListClient({ initialData }: { initialData: CustomPa
                     <td className="text-right">
                       <div className="flex justify-end gap-1">
                         <Button size="sm" variant="outline" asChild className="h-7 px-2.5 text-xs gap-1">
-                          <Link href={`/${panelSlug}/pages/${page.id}`} prefetch={false}><Pencil className="h-3 w-3" />Edit</Link>
+                          <Link href={`/${panelSlug}/pages/${page.id}`} prefetch={true}><Pencil className="h-3 w-3" />Edit</Link>
                         </Button>
                         <button
                           onClick={() => toggleStatus(page)}

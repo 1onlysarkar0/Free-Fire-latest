@@ -116,7 +116,7 @@ export default function AdminSidebar({
         const linkEl = (
           <Link
             href="/dashboard"
-            prefetch={false}
+            prefetch={true}
             className={cn(
               "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full group",
               "text-muted-foreground hover:bg-secondary hover:text-foreground",

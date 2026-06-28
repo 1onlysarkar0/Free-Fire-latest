@@ -62,7 +62,7 @@ export default function RolesPage({ initialData }: { initialData: Role[] }) {
             <p className="text-sm text-muted-foreground mt-0.5">Create roles, assign permissions, then assign roles to users.</p>
           </div>
         </div>
-        <Link href={`/${panelSlug}/roles/new`} prefetch={false}>
+        <Link href={`/${panelSlug}/roles/new`} prefetch={true}>
           <Button><Plus className="h-4 w-4" />New Role</Button>
         </Link>
       </div>
@@ -74,7 +74,7 @@ export default function RolesPage({ initialData }: { initialData: Role[] }) {
           <p className="font-semibold">How RBAC works</p>
           <ol className="list-decimal list-inside space-y-0.5">
             <li>Create a role and select which admin sections & actions it can access.</li>
-            <li>Go to <Link href={`/${panelSlug}/users`} prefetch={false} className="underline">Users</Link> and assign the role to a user.</li>
+            <li>Go to <Link href={`/${panelSlug}/users`} prefetch={true} className="underline">Users</Link> and assign the role to a user.</li>
             <li>That user can now access only their permitted sections in the admin panel.</li>
           </ol>
         </div>
@@ -103,7 +103,7 @@ export default function RolesPage({ initialData }: { initialData: Role[] }) {
           <Shield className="mb-4 h-6 w-6 text-foreground" />
           <h4 className="text-sm font-semibold text-foreground">No roles yet</h4>
           <Muted className="mt-1 text-sm mb-4">Create your first role to get started.</Muted>
-          <Link href={`/${panelSlug}/roles/new`} prefetch={false}>
+          <Link href={`/${panelSlug}/roles/new`} prefetch={true}>
             <Button variant="outline"><Plus className="h-4 w-4" />Create Role</Button>
           </Link>
         </div>
@@ -137,7 +137,7 @@ export default function RolesPage({ initialData }: { initialData: Role[] }) {
                     )}
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
-                    <Link href={`/${panelSlug}/roles/${role.id}`} prefetch={false}>
+                    <Link href={`/${panelSlug}/roles/${role.id}`} prefetch={true}>
                       <Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button>
                     </Link>
                     <Button variant="ghost" size="icon" onClick={() => handleDelete(role.id, role.name)} className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
