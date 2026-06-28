@@ -114,7 +114,7 @@ export default function MyTournamentsClient({
           </Muted>
 
           <Button asChild className="mt-6">
-            <Link href="/tournaments" prefetch>
+            <Link href="/tournaments" prefetch={true}>
               Explore tournaments
               <ArrowUpRight className="h-4 w-4 text-foreground" />
             </Link>
@@ -138,7 +138,7 @@ export default function MyTournamentsClient({
             <Link
               key={tournament.id}
               href={`/tournaments/${tournament.id}`}
-              prefetch
+              prefetch={true}
               className="group block"
             >
               <Card className="card-widget p-4">
