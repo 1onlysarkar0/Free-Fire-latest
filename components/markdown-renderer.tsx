@@ -16,7 +16,7 @@ import { CopyWrapper } from "@/components/copy-button";
 import { MermaidChart } from "@/components/mermaid-chart";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { CircleArrowOutUpRight } from "lucide-react";
+import { CircleArrowOutUpRight, Link2 } from "lucide-react";
 import Prism from "prismjs";
 import "prismjs/components/prism-javascript";
 import "prismjs/components/prism-typescript";
@@ -87,30 +87,95 @@ const customSchema = {
 function preprocessMarkdown(content: string): string {
   if (!content) return content;
 
-  // Search for graph TD, flowchart LR, etc. at the start of a line (allowing leading whitespace)
+  // 1. Convert ==highlighted== to <mark>highlighted</mark>
+  let processed = content.replace(/==([^=]+)==/g, "<mark>$1</mark>");
+
+  // 2. Convert LaTeX style block delimiters \[ ... \] to $$ ... $$
+  processed = processed.replace(/\\\[([\s\S]*?)\\\]/g, (_, math) => {
+    return `\n$$\n${math.trim()}\n$$\n`;
+  });
+
+  // 3. Convert LaTeX style inline delimiters \( ... \) to $ ... $
+  processed = processed.replace(/\\\(([\s\S]*?)\\\)/g, (_, math) => {
+    return `$${math.trim()}$`;
+  });
+
+  // 4. Convert custom admonition block directives (:::note, :::warning, :::info) to standard blockquote callouts (> [!NOTE], etc.)
+  processed = processed.replace(/:::(note|tip|warning|important|caution|info)([\s\S]*?):::/gi, (_, type, blockContent) => {
+    const calloutType = type.toUpperCase() === "INFO" ? "NOTE" : type.toUpperCase();
+    const lines = blockContent.split("\n").map((line: string) => `> ${line}`).join("\n");
+    return `\n> [!${calloutType}]\n${lines}\n`;
+  });
+
+  // 5. Convert markdown definition lists (Term\n: Definition) to HTML dl/dt/dd tags
+  const lines = processed.split("\n");
+  const resultLines: string[] = [];
+  let inDl = false;
+  
+  for (let i = 0; i < lines.length; i++) {
+    const currentLine = lines[i];
+    const nextLine = lines[i + 1] || "";
+    
+    const currentTrim = currentLine.trim();
+    const nextTrim = nextLine.trim();
+    
+    const isTerm = currentTrim && 
+                   !currentTrim.startsWith(":") && 
+                   !currentTrim.startsWith("-") && 
+                   !currentTrim.startsWith("*") && 
+                   !currentTrim.startsWith("#") && 
+                   !/^\d+\./.test(currentTrim) &&
+                   nextTrim.startsWith(":");
+
+    if (isTerm) {
+      if (!inDl) {
+        resultLines.push("<dl>");
+        inDl = true;
+      }
+      resultLines.push(`  <dt>${currentTrim}</dt>`);
+    } else if (currentTrim.startsWith(":")) {
+      if (!inDl) {
+        resultLines.push("<dl>");
+        inDl = true;
+      }
+      const definition = currentLine.trim().substring(1).trim();
+      resultLines.push(`  <dd>${definition}</dd>`);
+      
+      if (!nextTrim.startsWith(":")) {
+        resultLines.push("</dl>");
+        inDl = false;
+      }
+    } else {
+      if (inDl) {
+        resultLines.push("</dl>");
+        inDl = false;
+      }
+      resultLines.push(currentLine);
+    }
+  }
+  processed = resultLines.join("\n");
+
+  // 6. Wrap raw Mermaid diagrams in standard ```mermaid blocks
   const mermaidRegex = /^(\s*)(graph\s+(?:TD|LR|TB|BT|RL)|flowchart\s+(?:TD|LR|TB|BT|RL)|sequenceDiagram|classDiagram|stateDiagram|erDiagram|gantt|pie|journey|mindmap|timeline|gitGraph)\b/im;
   
-  const match = content.match(mermaidRegex);
+  const match = processed.match(mermaidRegex);
   if (match && match.index !== undefined) {
     const startIndex = match.index;
     
-    // Check if it's already inside a code block by looking backwards
-    const beforeText = content.substring(0, startIndex);
+    const beforeText = processed.substring(0, startIndex);
     const openTicks = (beforeText.match(/```/g) || []).length;
     
-    // If openTicks is odd, it's already inside a code block, so keep searching in the remainder
     if (openTicks % 2 !== 0) {
-      const afterText = content.substring(startIndex);
+      const afterText = processed.substring(startIndex);
       const closeTickIndex = afterText.indexOf("```");
       if (closeTickIndex !== -1) {
         const nextSearchIndex = startIndex + closeTickIndex + 3;
-        return content.substring(0, nextSearchIndex) + preprocessMarkdown(content.substring(nextSearchIndex));
+        return processed.substring(0, nextSearchIndex) + preprocessMarkdown(processed.substring(nextSearchIndex));
       }
-      return content;
+      return processed;
     }
 
-    // We are NOT in a code block. We need to wrap it.
-    const afterText = content.substring(startIndex);
+    const afterText = processed.substring(startIndex);
     const lines = afterText.split("\n");
     
     const diagramLines: string[] = [];
@@ -123,9 +188,6 @@ function preprocessMarkdown(content: string): string {
       
       if (i > 0) {
         const isIndented = line.startsWith(" ") || line.startsWith("\t");
-        // Detect lines that clearly aren't part of a mermaid diagram:
-        // common English sentence starters, error/label prefixes, blank lines,
-        // or any ALL-CAPS word followed by a colon.
         const isNormalText = /^(Summary|Note|Here|This|We|You|They|I|The|A|In|Out|To|From|For|With|By|At|As|An|Or|If|It|Is|No|So|Do|Up|On|Off|All|Any|Can|Has|Had|Have|Be|But|Not|What|When|Where|Who|Why|How|Let|Get|Set|Put|Run|Use|Try|Make|Take|Give|Send|Find|Keep|Start|Stop|Show|View|Edit|Add|Save|Open|Close|Join|Leave|Click|Tap|Type|Enter|Press|Hold|Drag|Drop|Scroll|Zoom|Pinch)\b/i.test(trimmed) && 
                              !trimmed.includes("-->") && 
                              !trimmed.includes("---") && 
@@ -133,8 +195,6 @@ function preprocessMarkdown(content: string): string {
                              !trimmed.includes("-.->") &&
                              !/[\[\({]/.test(trimmed) &&
                              !isIndented;
-        // Also treat ANY line that starts with an ALL-CAPS word followed by
-        // a colon (like "ERROR:", "WARNING:", "NOTE:") as normal text boundary.
         const isAllCapsLabel = /^[A-Z][A-Z]+:/.test(trimmed) && !trimmed.includes("-->") && !trimmed.includes("==>") && !/[\[\({]/.test(trimmed);
         
         const startsWithCodeBlock = trimmed.startsWith("```");
@@ -158,7 +218,7 @@ function preprocessMarkdown(content: string): string {
     return beforeText + "\n```mermaid\n" + diagramContent + "\n```\n" + preprocessMarkdown(remainingContent);
   }
   
-  return content;
+  return processed;
 }
 
 export function MarkdownRenderer({ content, className, variant = "default", isStreaming = false }: MarkdownRendererProps) {
@@ -180,12 +240,12 @@ export function MarkdownRenderer({ content, className, variant = "default", isSt
   // Memoize components object to prevent ReactMarkdown from tearing down and remounting components on every render
   const components: Components = React.useMemo(() => {
     return {
-      h1: ({ node: _, id, ...props }) => <H1 id={id} className={cn("group relative", isChat ? "mt-4 mb-2 text-xl" : "mt-10 mb-6 font-lora text-foreground")} {...props}>{props.children}{id && <a href={`#${id}`} className="absolute -left-6 opacity-0 group-hover:opacity-100 transition-opacity text-primary font-normal select-none pr-2" aria-label="Anchor">#</a>}</H1>,
-      h2: ({ node: _, id, ...props }) => <H2 id={id} className={cn("group relative", isChat ? "mt-4 mb-2 text-lg" : "mt-10 mb-4 font-lora text-foreground")} {...props}>{props.children}{id && <a href={`#${id}`} className="absolute -left-6 opacity-0 group-hover:opacity-100 transition-opacity text-primary font-normal select-none pr-2" aria-label="Anchor">#</a>}</H2>,
-      h3: ({ node: _, id, ...props }) => <H3 id={id} className={cn("group relative", isChat ? "mt-3 mb-2 text-base" : "mt-8 mb-4 font-lora text-foreground")} {...props}>{props.children}{id && <a href={`#${id}`} className="absolute -left-6 opacity-0 group-hover:opacity-100 transition-opacity text-primary font-normal select-none pr-2" aria-label="Anchor">#</a>}</H3>,
-      h4: ({ node: _, id, ...props }) => <H4 id={id} className={cn("group relative", isChat ? "mt-3 mb-2 text-sm" : "mt-8 mb-4 font-lora text-foreground")} {...props}>{props.children}{id && <a href={`#${id}`} className="absolute -left-6 opacity-0 group-hover:opacity-100 transition-opacity text-primary font-normal select-none pr-2" aria-label="Anchor">#</a>}</H4>,
-      h5: ({ node: _, id, ...props }) => <h5 id={id} className={cn("group relative scroll-m-20 text-sm font-semibold tracking-tight", isChat ? "mt-2 mb-1" : "mt-6 mb-2 text-foreground font-lora font-medium")} {...props}>{props.children}{id && <a href={`#${id}`} className="absolute -left-5 opacity-0 group-hover:opacity-100 transition-opacity text-primary font-normal select-none pr-1" aria-label="Anchor">#</a>}</h5>,
-      h6: ({ node: _, id, ...props }) => <h6 id={id} className={cn("group relative scroll-m-20 text-xs font-semibold tracking-tight uppercase", isChat ? "mt-2 mb-1" : "mt-6 mb-2 text-foreground font-lora font-medium")} {...props}>{props.children}{id && <a href={`#${id}`} className="absolute -left-5 opacity-0 group-hover:opacity-100 transition-opacity text-primary font-normal select-none pr-1" aria-label="Anchor">#</a>}</h6>,
+      h1: ({ node: _, id, ...props }) => <H1 id={id} className={cn("group relative", isChat ? "mt-4 mb-2 text-xl" : "mt-10 mb-6 font-lora text-foreground")} {...props}>{props.children}{id && <a href={`#${id}`} className="opacity-0 group-hover:opacity-100 transition-opacity text-primary select-none align-middle ml-1.5 inline-block md:absolute md:-left-6 md:ml-0 md:pr-2 md:top-1/2 md:-translate-y-1/2" aria-label="Anchor"><Link2 className="h-4 w-4" /></a>}</H1>,
+      h2: ({ node: _, id, ...props }) => <H2 id={id} className={cn("group relative", isChat ? "mt-4 mb-2 text-lg" : "mt-10 mb-4 font-lora text-foreground")} {...props}>{props.children}{id && <a href={`#${id}`} className="opacity-0 group-hover:opacity-100 transition-opacity text-primary select-none align-middle ml-1.5 inline-block md:absolute md:-left-6 md:ml-0 md:pr-2 md:top-1/2 md:-translate-y-1/2" aria-label="Anchor"><Link2 className="h-4 w-4" /></a>}</H2>,
+      h3: ({ node: _, id, ...props }) => <H3 id={id} className={cn("group relative", isChat ? "mt-3 mb-2 text-base" : "mt-8 mb-4 font-lora text-foreground")} {...props}>{props.children}{id && <a href={`#${id}`} className="opacity-0 group-hover:opacity-100 transition-opacity text-primary select-none align-middle ml-1.5 inline-block md:absolute md:-left-6 md:ml-0 md:pr-2 md:top-1/2 md:-translate-y-1/2" aria-label="Anchor"><Link2 className="h-4 w-4" /></a>}</H3>,
+      h4: ({ node: _, id, ...props }) => <H4 id={id} className={cn("group relative", isChat ? "mt-3 mb-2 text-sm" : "mt-8 mb-4 font-lora text-foreground")} {...props}>{props.children}{id && <a href={`#${id}`} className="opacity-0 group-hover:opacity-100 transition-opacity text-primary select-none align-middle ml-1.5 inline-block md:absolute md:-left-6 md:ml-0 md:pr-2 md:top-1/2 md:-translate-y-1/2" aria-label="Anchor"><Link2 className="h-4 w-4" /></a>}</H4>,
+      h5: ({ node: _, id, ...props }) => <h5 id={id} className={cn("group relative scroll-m-20 text-sm font-semibold tracking-tight", isChat ? "mt-2 mb-1" : "mt-6 mb-2 text-foreground font-lora font-medium")} {...props}>{props.children}{id && <a href={`#${id}`} className="opacity-0 group-hover:opacity-100 transition-opacity text-primary select-none align-middle ml-1.5 inline-block md:absolute md:-left-5 md:ml-0 md:pr-1 md:top-1/2 md:-translate-y-1/2" aria-label="Anchor"><Link2 className="h-3.5 w-3.5" /></a>}</h5>,
+      h6: ({ node: _, id, ...props }) => <h6 id={id} className={cn("group relative scroll-m-20 text-xs font-semibold tracking-tight uppercase", isChat ? "mt-2 mb-1" : "mt-6 mb-2 text-foreground font-lora font-medium")} {...props}>{props.children}{id && <a href={`#${id}`} className="opacity-0 group-hover:opacity-100 transition-opacity text-primary select-none align-middle ml-1.5 inline-block md:absolute md:-left-5 md:ml-0 md:pr-1 md:top-1/2 md:-translate-y-1/2" aria-label="Anchor"><Link2 className="h-3 w-3" /></a>}</h6>,
       p: ({ node: _, ...props }) => <P {...props} className={cn(isChat ? "mb-2 !mt-0 font-medium text-foreground leading-snug" : "mb-6 font-ibm text-muted-foreground leading-relaxed")} />,
       blockquote: ({ node: _, children, ...props }) => {
         let calloutType: string | null = null;
@@ -381,9 +441,17 @@ export function MarkdownRenderer({ content, className, variant = "default", isSt
       td: ({ node: _, ...props }) => <TableCell className={cn("align-middle text-muted-foreground", isChat ? "p-2" : "p-4")} {...props} />,
       a: ({ node: _, href, children, ...props }) => {
         const isInternal = href?.startsWith("/");
+        const isHash = !href || href.startsWith("#");
         
         if (isChat) {
           const linkClasses = "inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-colors my-0.5 mx-0.5 align-baseline";
+          if (isHash) {
+            return (
+              <a {...props} href={href || "#"} className={linkClasses} title={href}>
+                {children}
+              </a>
+            );
+          }
           if (isInternal) {
             return (
               <Link href={href || "#"} className={linkClasses} title={href}>
@@ -402,6 +470,13 @@ export function MarkdownRenderer({ content, className, variant = "default", isSt
 
         // Default global variant
         const globalLinkClasses = "font-semibold text-primary underline underline-offset-4 hover:text-primary/80 transition-colors";
+        if (isHash) {
+          return (
+            <a {...props} href={href || "#"} className={globalLinkClasses}>
+              {children}
+            </a>
+          );
+        }
         if (isInternal) {
           return (
             <Link href={href || "#"} className={globalLinkClasses}>
