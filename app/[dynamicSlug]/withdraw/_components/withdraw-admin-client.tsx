@@ -27,10 +27,9 @@ import {
 import dynamic from "next/dynamic";
 
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false });
-const MDPreview = dynamic(() => import("@uiw/react-markdown-preview"), { ssr: false });
+import { MarkdownRenderer } from "@/components/markdown-renderer";
 
 import "@uiw/react-md-editor/markdown-editor.css";
-import "@uiw/react-markdown-preview/markdown.css";
 
 interface WithdrawConfig {
   minWithdrawAmount: number;
@@ -716,8 +715,8 @@ export default function WithdrawAdminClient() {
                   </div>
                   
                   {previewContent ? (
-                    <div className="min-h-[300px] bg-background rounded-2xl border border-border/30 p-6 prose prose-sm max-w-none dark:prose-invert">
-                      <MDPreview source={config.description} />
+                    <div className="min-h-[300px] bg-background rounded-2xl border border-border/30 p-6">
+                      <MarkdownRenderer content={config.description} />
                     </div>
                   ) : (
                     <div data-color-mode="light" className="rounded-xl overflow-hidden border border-border/30">

@@ -4,6 +4,8 @@ import ReactMarkdown from "react-markdown";
 import type { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
+import remarkEmoji from "remark-emoji";
+import remarkBreaks from "remark-breaks";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import rehypeSlug from "rehype-slug";
@@ -41,11 +43,44 @@ const customSchema = {
   ...defaultSchema,
   tagNames: [
     ...(defaultSchema.tagNames || []),
-    ...safeHtmlSubset
+    ...safeHtmlSubset,
+    "input", "section"
   ],
   attributes: {
     ...defaultSchema.attributes,
-    // defaultSchema strictly prohibits scripts, iframes, styles, inline event handlers (e.g. onclick).
+    input: [
+      ["type", "checkbox"],
+      ["disabled", true],
+      ["checked", true]
+    ],
+    a: [
+      ...(defaultSchema.attributes?.a || []),
+      "data-footnote-ref", "aria-describedby", "class"
+    ],
+    section: ["data-footnotes", "class"],
+    li: [
+      ...(defaultSchema.attributes?.li || []),
+      "id", "class"
+    ],
+    ol: [
+      ...(defaultSchema.attributes?.ol || []),
+      "class"
+    ],
+    ul: [
+      ...(defaultSchema.attributes?.ul || []),
+      "class"
+    ],
+    sup: ["id", "class"],
+    sub: ["class"],
+    mark: ["class"],
+    kbd: ["class"],
+    details: ["class", "open"],
+    summary: ["class"],
+    figure: ["class"],
+    figcaption: ["class"],
+    abbr: ["class", "title"],
+    cite: ["class"],
+    time: ["class", "datetime"],
   }
 };
 
@@ -145,12 +180,93 @@ export function MarkdownRenderer({ content, className, variant = "default", isSt
   // Memoize components object to prevent ReactMarkdown from tearing down and remounting components on every render
   const components: Components = React.useMemo(() => {
     return {
-      h1: ({ node: _, ...props }) => <H1 {...props} className={cn(isChat ? "mt-4 mb-2 text-xl" : "mt-10 mb-6 font-lora text-foreground")} />,
-      h2: ({ node: _, ...props }) => <H2 {...props} className={cn(isChat ? "mt-4 mb-2 text-lg" : "mt-10 mb-4 font-lora text-foreground")} />,
-      h3: ({ node: _, ...props }) => <H3 {...props} className={cn(isChat ? "mt-3 mb-2 text-base" : "mt-8 mb-4 font-lora text-foreground")} />,
-      h4: ({ node: _, ...props }) => <H4 {...props} className={cn(isChat ? "mt-3 mb-2 text-sm" : "mt-8 mb-4 font-lora text-foreground")} />,
+      h1: ({ node: _, id, ...props }) => <H1 id={id} className={cn("group relative", isChat ? "mt-4 mb-2 text-xl" : "mt-10 mb-6 font-lora text-foreground")} {...props}>{props.children}{id && <a href={`#${id}`} className="absolute -left-6 opacity-0 group-hover:opacity-100 transition-opacity text-primary font-normal select-none pr-2" aria-label="Anchor">#</a>}</H1>,
+      h2: ({ node: _, id, ...props }) => <H2 id={id} className={cn("group relative", isChat ? "mt-4 mb-2 text-lg" : "mt-10 mb-4 font-lora text-foreground")} {...props}>{props.children}{id && <a href={`#${id}`} className="absolute -left-6 opacity-0 group-hover:opacity-100 transition-opacity text-primary font-normal select-none pr-2" aria-label="Anchor">#</a>}</H2>,
+      h3: ({ node: _, id, ...props }) => <H3 id={id} className={cn("group relative", isChat ? "mt-3 mb-2 text-base" : "mt-8 mb-4 font-lora text-foreground")} {...props}>{props.children}{id && <a href={`#${id}`} className="absolute -left-6 opacity-0 group-hover:opacity-100 transition-opacity text-primary font-normal select-none pr-2" aria-label="Anchor">#</a>}</H3>,
+      h4: ({ node: _, id, ...props }) => <H4 id={id} className={cn("group relative", isChat ? "mt-3 mb-2 text-sm" : "mt-8 mb-4 font-lora text-foreground")} {...props}>{props.children}{id && <a href={`#${id}`} className="absolute -left-6 opacity-0 group-hover:opacity-100 transition-opacity text-primary font-normal select-none pr-2" aria-label="Anchor">#</a>}</H4>,
+      h5: ({ node: _, id, ...props }) => <h5 id={id} className={cn("group relative scroll-m-20 text-sm font-semibold tracking-tight", isChat ? "mt-2 mb-1" : "mt-6 mb-2 text-foreground font-lora font-medium")} {...props}>{props.children}{id && <a href={`#${id}`} className="absolute -left-5 opacity-0 group-hover:opacity-100 transition-opacity text-primary font-normal select-none pr-1" aria-label="Anchor">#</a>}</h5>,
+      h6: ({ node: _, id, ...props }) => <h6 id={id} className={cn("group relative scroll-m-20 text-xs font-semibold tracking-tight uppercase", isChat ? "mt-2 mb-1" : "mt-6 mb-2 text-foreground font-lora font-medium")} {...props}>{props.children}{id && <a href={`#${id}`} className="absolute -left-5 opacity-0 group-hover:opacity-100 transition-opacity text-primary font-normal select-none pr-1" aria-label="Anchor">#</a>}</h6>,
       p: ({ node: _, ...props }) => <P {...props} className={cn(isChat ? "mb-2 !mt-0 font-medium text-foreground leading-snug" : "mb-6 font-ibm text-muted-foreground leading-relaxed")} />,
-      blockquote: ({ node: _, ...props }) => <Blockquote {...props} className={cn("border-primary text-muted-foreground bg-primary/5 py-1 pr-4 rounded-r-lg", isChat ? "mt-2 mb-2" : "")} />,
+      blockquote: ({ node: _, children, ...props }) => {
+        let calloutType: string | null = null;
+        let cleanChildren = children;
+
+        const childrenArray = React.Children.toArray(children);
+        const firstChild = childrenArray[0];
+
+        if (
+          React.isValidElement(firstChild) &&
+          firstChild.props &&
+          typeof firstChild.props === "object"
+        ) {
+          const firstChildProps = firstChild.props as { children?: React.ReactNode };
+          const pChildrenArray = React.Children.toArray(firstChildProps.children);
+          const firstPChild = pChildrenArray[0];
+
+          if (typeof firstPChild === "string") {
+            const match = firstPChild.match(/^\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*(?:\r?\n)?/i);
+            if (match) {
+              calloutType = match[1].toUpperCase();
+              const remainingText = firstPChild.slice(match[0].length);
+              
+              const newPChildren = [remainingText, ...pChildrenArray.slice(1)];
+              const newFirstChild = React.cloneElement(firstChild as React.ReactElement<{ children?: React.ReactNode }>, {
+                ...firstChild.props,
+                children: newPChildren
+              });
+              
+              cleanChildren = [newFirstChild, ...childrenArray.slice(1)];
+            }
+          }
+        }
+
+        if (calloutType) {
+          let bgClass = "bg-info/5 text-foreground";
+          let borderClass = "border-l-4 border-info";
+          let title = "Note";
+          let icon = "ℹ️";
+          
+          if (calloutType === "TIP") {
+            bgClass = "bg-success/5 text-foreground";
+            borderClass = "border-l-4 border-success";
+            title = "Tip";
+            icon = "💡";
+          } else if (calloutType === "IMPORTANT") {
+            bgClass = "bg-primary/5 text-foreground";
+            borderClass = "border-l-4 border-primary";
+            title = "Important";
+            icon = "⚠️";
+          } else if (calloutType === "WARNING") {
+            bgClass = "bg-warning/5 text-foreground";
+            borderClass = "border-l-4 border-warning";
+            title = "Warning";
+            icon = "⚠️";
+          } else if (calloutType === "CAUTION") {
+            bgClass = "bg-destructive/5 text-foreground";
+            borderClass = "border-l-4 border-destructive";
+            title = "Caution";
+            icon = "🚨";
+          }
+
+          return (
+            <div className={cn("p-4 rounded-r-xl my-4", bgClass, borderClass)}>
+              <div className="flex items-center gap-2 font-bold mb-1 text-sm uppercase tracking-wide">
+                <span>{icon}</span>
+                <span>{title}</span>
+              </div>
+              <div className="text-sm leading-relaxed text-muted-foreground [&>p]:!my-1">
+                {cleanChildren}
+              </div>
+            </div>
+          );
+        }
+
+        return (
+          <Blockquote {...props} className={cn("border-primary text-muted-foreground bg-primary/5 py-1 pr-4 rounded-r-lg", isChat ? "mt-2 mb-2" : "")}>
+            {children}
+          </Blockquote>
+        );
+      },
       pre: ({ node: _, children, ...props }) => {
         const childrenArray = React.Children.toArray(children);
         const codeEl = childrenArray.find(
@@ -221,6 +337,36 @@ export function MarkdownRenderer({ content, className, variant = "default", isSt
       ol: ({ node: _, ...props }) => (
         <ol className={cn("ml-6 list-decimal [&>li]:mt-1 marker:text-primary", isChat ? "my-2 text-foreground font-medium" : "my-6 font-ibm text-muted-foreground")} {...props} />
       ),
+      input: ({ node: _, ...props }) => {
+        if (props.type === "checkbox") {
+          return <input {...props} className="mr-2 h-4 w-4 rounded border border-border text-primary focus:ring-primary accent-primary cursor-default align-middle" />;
+        }
+        return <input {...props} />;
+      },
+      section: ({ node: _, className, ...props }) => {
+        if (className === "footnotes") {
+          return <section className="footnotes mt-12 border-t border-border/60 pt-6 text-sm text-muted-foreground" {...props} />;
+        }
+        return <section {...props} />;
+      },
+      dl: ({ node: _, ...props }) => <dl className="my-6 space-y-3" {...props} />,
+      dt: ({ node: _, ...props }) => <dt className="font-bold text-foreground" {...props} />,
+      dd: ({ node: _, ...props }) => <dd className="ml-6 text-muted-foreground" {...props} />,
+      img: ({ node: _, src, alt, title, ...props }) => (
+        <span className="block my-6 text-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={src}
+            alt={alt}
+            title={title}
+            className="mx-auto rounded-xl max-w-full h-auto border border-border/40 shadow-sm"
+            {...props}
+          />
+          {alt && <span className="block text-xs text-muted-foreground italic mt-2">{alt}</span>}
+        </span>
+      ),
+      hr: ({ node: _, ...props }) => <hr className="my-8 border-t border-border/60" {...props} />,
+      del: ({ node: _, ...props }) => <del className="line-through text-muted-foreground/70" {...props} />,
       table: ({ node: _, ...props }) => (
         <CopyWrapper className={isChat ? "my-3" : "my-8"}>
           <div className="w-full overflow-x-auto rounded-xl border border-border shadow-sm bg-card">
@@ -269,7 +415,6 @@ export function MarkdownRenderer({ content, className, variant = "default", isSt
           </a>
         );
       },
-      // Approved safe HTML inline tags styling
       sup: ({ node: _, ...props }) => <sup className="text-[0.75em] leading-none vertical-align-super font-mono" {...props} />,
       sub: ({ node: _, ...props }) => <sub className="text-[0.75em] leading-none vertical-align-sub font-mono" {...props} />,
       mark: ({ node: _, ...props }) => <mark className="bg-warning/20 text-warning px-1 py-0.5 rounded font-medium" {...props} />,
@@ -287,7 +432,7 @@ export function MarkdownRenderer({ content, className, variant = "default", isSt
   return (
     <div className={cn("w-full max-w-none", className)}>
       <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkMath] as any}
+        remarkPlugins={[remarkGfm, remarkMath, remarkEmoji, remarkBreaks] as any}
         rehypePlugins={[rehypeRaw, [rehypeSanitize, customSchema], rehypeSlug, rehypeKatex] as any}
         components={components}
       >

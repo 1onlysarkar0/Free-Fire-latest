@@ -6,7 +6,6 @@ import { X, Eye, EyeOff, Save, Loader2, Code } from "lucide-react";
 import dynamic from "next/dynamic";
 import { cn } from "@/lib/utils";
 import "@uiw/react-md-editor/markdown-editor.css";
-import "@uiw/react-markdown-preview/markdown.css";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false });
@@ -115,7 +114,7 @@ export default function FullscreenEditor({
           "flex-1 flex flex-col transition-all duration-300",
           livePreview ? "hidden md:flex border-r border-border" : "flex"
         )}>
-          <div className="flex-1 overflow-auto p-0 md:p-6 editor-fullscreen-container">
+          <div className="flex-1 flex flex-col overflow-hidden p-0 md:p-6 editor-fullscreen-container">
             <style>{`
               @media (min-width: 768px) {
                 .editor-fullscreen-container .markdown-textarea {

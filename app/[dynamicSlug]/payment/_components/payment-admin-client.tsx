@@ -18,7 +18,7 @@ import { QRCodeSVG } from "qrcode.react";
 import dynamic from "next/dynamic";
 
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false });
-const MDPreview = dynamic(() => import("@uiw/react-markdown-preview"), { ssr: false });
+import { MarkdownRenderer } from "@/components/markdown-renderer";
 
 interface PaymentConfigData {
   gmailEmail: string;
@@ -428,8 +428,8 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
                   </Button>
                 </div>
                 {previewContent ? (
-                  <div className="min-h-64 bg-background rounded-xl border p-6 prose prose-sm max-w-none">
-                    <MDPreview source={config.pageContent} />
+                  <div className="min-h-64 bg-background rounded-xl border p-6">
+                    <MarkdownRenderer content={config.pageContent} />
                   </div>
                 ) : (
                   <div data-color-mode="light">

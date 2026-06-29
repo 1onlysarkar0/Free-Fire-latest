@@ -618,3 +618,149 @@ pre[class*="language-"] {
 .token.italic {
   font-style: italic;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   MARKDOWN EDITOR CUSTOM THEME & GLITCH FIXES
+═══════════════════════════════════════════════════════════ */
+
+/* Isolate the react-md-editor component to prevent Tailwind preflight overrides */
+.w-md-editor {
+  --md-editor-font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  border: 1px solid hsl(var(--border) / 0.5) !important;
+  border-radius: var(--radius-xl) !important;
+  overflow: hidden !important;
+  background-color: hsl(var(--card)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Force identical font-family, font-size, line-height, and padding for input textarea and code highlight pre to resolve overlapping lines and selection misalignment */
+.w-md-editor-text,
+.w-md-editor-text-pre,
+.w-md-editor-text-input,
+.w-md-editor-text-pre > code,
+.w-md-editor-text > .w-md-editor-text-pre,
+.w-md-editor-text-pre .token,
+.w-md-editor-text-pre span {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  font-size: 14px !important;
+  line-height: 22px !important; /* Fixed identical line height prevents line drift as text length grows */
+}
+
+/* Make sure container and inner editor areas share the exact same sizing and padding models */
+.w-md-editor-text {
+  padding: 12px !important;
+  box-sizing: border-box !important;
+}
+
+/* Override Tailwind resets that inject border or custom padding onto textareas */
+.w-md-editor-text-input {
+  padding: 12px !important;
+  margin: 0 !important;
+  border: 0 !important;
+  outline: none !important;
+  background-color: transparent !important;
+  box-sizing: border-box !important;
+  resize: none !important;
+}
+
+/* Resolve selection highlights: make it semi-transparent and orange/coral (primary theme),
+   and ensure selected text remains transparent so that colored text underneath is visible */
+.w-md-editor-text-input::selection {
+  background-color: hsl(var(--primary) / 0.25) !important;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+.w-md-editor-text-input::-moz-selection {
+  background-color: hsl(var(--primary) / 0.25) !important;
+  color: transparent !important;
+}
+
+/* Premium Toolbar Aesthetics */
+.w-md-editor-toolbar {
+  padding: 8px !important;
+  background-color: hsl(var(--accent) / 0.4) !important;
+  border-bottom: 1px solid hsl(var(--border) / 0.3) !important;
+}
+
+.w-md-editor-toolbar li > button {
+  height: 28px !important;
+  width: 28px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 1px !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: hsl(var(--foreground)) !important;
+  transition: all var(--transition-fast) !important;
+}
+
+.w-md-editor-toolbar li > button:hover {
+  background-color: hsl(var(--primary) / 0.1) !important;
+  color: hsl(var(--primary)) !important;
+}
+
+.w-md-editor-toolbar-divider {
+  background-color: hsl(var(--border) / 0.4) !important;
+  margin: 0 4px !important;
+}
+
+/* Premium Scrollbars for Editor Scrollable Panels */
+.w-md-editor-content::-webkit-scrollbar,
+.w-md-editor-text-input::-webkit-scrollbar,
+.w-md-editor-area::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.w-md-editor-content::-webkit-scrollbar-track,
+.w-md-editor-text-input::-webkit-scrollbar-track,
+.w-md-editor-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+.w-md-editor-content::-webkit-scrollbar-thumb,
+.w-md-editor-text-input::-webkit-scrollbar-thumb,
+.w-md-editor-area::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.2);
+  border-radius: 4px;
+}
+.w-md-editor-content::-webkit-scrollbar-thumb:hover,
+.w-md-editor-text-input::-webkit-scrollbar-thumb:hover,
+.w-md-editor-area::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.4);
+}
+
+/* Scoped nested lists overrides to resolve vertical spacing bloating */
+.w-full ul ul,
+.w-full ul ol,
+.w-full ol ul,
+.w-full ol ol {
+  margin-top: 0.25rem !important;
+  margin-bottom: 0.25rem !important;
+}
+
+/* Footnotes Section & Back-links Styling */
+.footnotes {
+  font-size: 0.875rem !important;
+  line-height: 1.5rem !important;
+}
+.footnotes .footnote-backref {
+  text-decoration: none !important;
+  margin-left: 0.35rem;
+  color: hsl(var(--primary)) !important;
+  font-family: system-ui, sans-serif !important;
+  font-weight: bold;
+}
+.footnotes .footnote-backref:hover {
+  opacity: 0.8;
+}
+
+/* KaTeX Math Equations Scrollable Container */
+.katex-display {
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding: 8px 0 !important;
+  max-width: 100% !important;
+}
