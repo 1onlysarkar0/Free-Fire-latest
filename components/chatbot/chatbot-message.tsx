@@ -244,7 +244,7 @@ export function ChatbotMessage({ message, userImage, userName }: ChatbotMessageP
                   content={typedContent}
                   variant="chat"
                   isStreaming={isStreaming}
-                  className="prose-chat [&_p]:text-foreground [&_p]:font-medium [&_li]:text-foreground [&_li]:font-medium [&_a]:text-foreground [&_a]:font-medium"
+                  className="prose-chat text-foreground"
                 />
               </div>
               {isStreaming && (
