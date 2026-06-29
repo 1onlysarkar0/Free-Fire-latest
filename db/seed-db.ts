@@ -1122,6 +1122,663 @@ From your wallet, you can withdraw to your UPI ID or bank account whenever you l
       metaDescription: "Step-by-step guide to joining Free Fire tournaments on 1OnlySarkar. Book your slot, get the Room ID, enter the custom room, and compete for real cash prizes.",
       ogImage: "",
       robots: "index, follow",
+    },
+    {
+      id: "rules",
+      slug: "rules",
+      title: "Tournament Rules & Fair Play",
+      content: `# Tournament Rules & Fair Play
+
+These rules apply to every player on 1OnlySarkar — across every tournament, every format, and every match. By registering for any event on this platform, you confirm that you have read and fully accepted what's written here.
+
+There is no negotiation on violations. Decisions are made based on available evidence, and once made, they are final.
+
+---
+
+## 1. Account and Identity
+
+- You must register with your **actual Free Fire Game Name and UID**.
+- The account you play from must exactly match what's registered in your profile.
+- Using someone else's account, a smurf account, or a fake UID is an immediate permanent ban.
+- Each person is allowed **one account only**. If multiple accounts are found belonging to the same person, all of them will be permanently banned.
+
+---
+
+## 2. Conduct and Sportsmanship
+
+- Treat other players with basic respect. Abusive language, threats, and harassment — in-room, in chat, or anywhere on the platform — will not be tolerated.
+- You are expected to play seriously. Intentionally throwing a match, going AFK, or underperforming deliberately to benefit another player is a violation.
+- You must play in the **slot you registered for**. Swapping slots without admin approval is not allowed.
+- Be ready in the custom room **at least 5 minutes before** the scheduled match time. Players who miss the start will not be given a re-entry.
+
+---
+
+## 3. Cheating and Hacking — Zero Tolerance
+
+The following are strictly prohibited. Using any of these results in a **permanent ban with no refund, no warning, and no appeal exception**:
+
+- Aimbot or any auto-aim software
+- Wallhack or ESP (the ability to see enemies through walls)
+- Speed hacks or any movement modification tool
+- Modified or unofficial versions of Free Fire (hacked APKs)
+- Anti-ban applications or emulator-based cheat tools
+- Lag switches or intentional network manipulation to gain an advantage
+- Macros, auto-clickers, or any scripted input tool
+
+There are no warnings for hacking. Evidence confirmed = permanent ban, instantly.
+
+---
+
+## 4. Teaming (Collusion)
+
+Teaming means secretly cooperating with an enemy player to help one player win, avoid elimination, or gain an unfair advantage over others in the lobby.
+
+Examples include:
+- Intentionally not killing a specific enemy when you had the opportunity
+- Coordinating positions or zone movement with opponents
+- Staging kills to hand a win to a particular player
+
+Teaming is treated as seriously as hacking. **Permanent ban, no refund.** Evidence is reviewed before any action is taken, but once confirmed, the decision is final.
+
+---
+
+## 5. Room ID and Password
+
+- Room credentials are shared **only with registered players** once the tournament is fully slotted.
+- You are **not allowed to share the Room ID or Password** with anyone outside the tournament — not on WhatsApp, not on Instagram, not anywhere.
+- Leaking credentials results in a **permanent ban** and may lead to the disqualification of the entire match.
+- Do not enter the room before the scheduled time unless the admin explicitly says otherwise.
+
+---
+
+## 6. VPN and Third-Party Software
+
+- Using a VPN during a tournament match is not permitted.
+- Any third-party software that interacts with, modifies, or assists gameplay in any way is banned.
+- Only the official Free Fire client (downloaded from Google Play Store or Apple App Store) is allowed.
+
+---
+
+## 7. Entry Fees and Refunds
+
+Entry fees are deducted at the moment you book your slot. Once a slot is booked, the fee is non-refundable — with one exception.
+
+| Situation | Refund? |
+|-----------|---------|
+| Admin cancels the tournament | ✅ Full refund to wallet |
+| You miss the match or don't show up | ❌ No refund |
+| You are disqualified for rule violations | ❌ No refund |
+| You joined the wrong slot by mistake | ❌ No refund |
+| Technical issue on your device or network | ❌ No refund |
+| Platform-side technical issue | ⚠️ Reviewed case by case |
+
+---
+
+## 8. Results and Disputes
+
+- Match results are declared by the admin and are considered final.
+- If you believe a result is incorrect, submit a dispute with **clear screenshot or video evidence** within 24 hours of the result being declared.
+- Disputes without supporting evidence will not be reviewed.
+- Attempting to claim a false result or manipulate the outcome in any way will result in a ban.
+- Prize amounts are credited to winners' wallets after results are verified.
+
+---
+
+## 9. Ban Policy
+
+| Severity | Action |
+|----------|--------|
+| Minor first offense (spam, minor misconduct) | Warning |
+| Repeated minor offenses | Temporary ban (1–7 days) |
+| Serious misconduct (abuse, slot fraud, false reports) | Temporary or permanent ban |
+| Cheating, hacking, or teaming | **Permanent ban — no exceptions** |
+| Credential leaking or account fraud | **Permanent ban** |
+
+**Ban appeals** can be sent to [sauravmiami@gmail.com](mailto:sauravmiami@gmail.com) with supporting evidence. Appeals without proof will not be considered. The admin's decision on all appeals is final.
+
+---
+
+**Have a question about the rules?** → [Contact Us](/contact) or check the [FAQ](/faq)
+
+**Spotted a cheater?** → [Submit a Report](/cheater-report)`,
+      status: "published",
+      metaTitle: "Tournament Rules & Fair Play — 1OnlySarkar",
+      metaKeywords: "free fire tournament rules india, 1onlysarkar rules, fair play policy, no hack free fire tournament, anti cheat free fire, tournament conduct policy india",
+      metaDescription: "Official rules and fair play guidelines for 1OnlySarkar Free Fire tournaments. Read before joining — violations result in an immediate permanent ban with no refund.",
+      ogImage: "",
+      robots: "index, follow",
+    },
+    {
+      id: "privacy",
+      slug: "privacy",
+      title: "Privacy Policy",
+      content: `# Privacy Policy
+
+**Effective Date: June 29, 2025**
+
+This Privacy Policy explains what information 1OnlySarkar collects from users of the platform, how that information is used, and what rights you have over your own data.
+
+By creating an account or using any feature on this platform, you agree to the practices described in this policy. If you do not agree, please do not use the platform.
+
+---
+
+## 1. Information We Collect
+
+### Account Information
+When you sign up, we collect:
+- Your **email address**
+- Your **display name or username**
+- Your **password** — stored in hashed/encrypted form. We never store plain text passwords.
+
+### Gaming Profile
+To participate in tournaments, you are required to provide:
+- Your **Free Fire Game Name**
+- Your **Free Fire UID**
+
+Without this information, tournament registration is not possible.
+
+### Payment Information
+To process deposits and withdrawals, we collect:
+- **UPI Transaction Reference Numbers (UTR)** submitted for deposit verification
+- Your **wallet transaction history** — including top-ups, entry fee deductions, and withdrawal requests
+- Your **UPI ID or bank account details** when you submit a withdrawal request
+
+We do not store full bank account numbers, debit or credit card details, or CVV codes. All payment verification is handled via UTR matching.
+
+### Technical Data
+- Your **IP address** — used for security, fraud detection, and rate limiting
+- **Browser and device information** — collected automatically during your session
+- **Login timestamps and session identifiers**
+
+### Activity Data
+- Tournaments you have registered for
+- Match results associated with your account
+- Wallet transaction history linked to your profile
+
+---
+
+## 2. How We Use Your Information
+
+| Data | Purpose |
+|------|---------|
+| Email address | Login, password reset, tournament notifications |
+| Free Fire UID | Identity verification during and after matches |
+| UTR / Payment data | Verifying deposits, processing withdrawals |
+| IP address | Security monitoring and fraud prevention |
+| Tournament history | Displaying results and issuing prize payouts |
+
+We do not use your data for advertising. We do not sell your personal information to any third party.
+
+---
+
+## 3. Third-Party Services
+
+We rely on the following third-party services to operate the platform. Each has its own privacy policy, which we encourage you to review:
+
+- **Google OAuth** — If you sign in with Google, we receive your name and email address. We never receive your Google password.
+- **PostgreSQL (Cloud-hosted)** — Your account and transaction data is stored in a secure cloud database.
+- **Vercel** — Our platform is hosted and deployed on Vercel's serverless infrastructure.
+- **SMTP / Email Service** — Used to send transactional emails such as tournament notifications and password resets.
+
+1OnlySarkar is not affiliated with or endorsed by Garena or the Free Fire brand. Free Fire is a registered trademark of Garena International.
+
+---
+
+## 4. Data Retention
+
+- Your account data is retained for as long as your account is active.
+- Wallet transaction records are kept for a minimum of **12 months** for audit and dispute resolution purposes.
+- If you request account deletion, we will remove your personal data within a reasonable timeframe — except where retention is required by applicable law or for an ongoing dispute.
+
+---
+
+## 5. Cookies and Sessions
+
+We use session cookies to keep you logged in while using the platform. These are essential to the functioning of authenticated features and cannot be disabled while you are signed in.
+
+We do not use advertising cookies, tracking pixels, or any analytics that profiles your behavior across other websites.
+
+---
+
+## 6. Your Rights
+
+As a user of this platform, you have the right to:
+
+- **Access** — Request a summary of the personal data we hold about you
+- **Correction** — Update your information at any time via [Profile Settings](/dashboard/settings)
+- **Deletion** — Request that your account and associated personal data be removed
+- **Portability** — Request your data in a readable, portable format
+
+To exercise any of these rights, contact us at [sauravmiami@gmail.com](mailto:sauravmiami@gmail.com).
+
+---
+
+## 7. Security
+
+We take the security of your data seriously. Measures in place include:
+
+- Passwords stored using secure hashing — never in plain text
+- HTTPS enforced across all pages
+- Role-based access control for admin functions
+- Wallet transactions protected against double-spend at the database level
+
+No online system can guarantee complete security. If you believe your account has been compromised, change your password immediately and contact us.
+
+---
+
+## 8. Children's Privacy
+
+This platform is intended for users aged **13 and above**. We do not knowingly collect personal data from children under the age of 13. If we become aware that a registered user is under 13, their account will be suspended and their data removed.
+
+---
+
+## 9. Changes to This Policy
+
+We may update this policy from time to time. If changes are significant, registered users will be notified by email or via a notice on the platform. Continued use of the platform after any update is considered acceptance of the revised policy.
+
+---
+
+## 10. Contact
+
+For any privacy-related queries, access requests, or data deletion requests:
+
+📧 [sauravmiami@gmail.com](mailto:sauravmiami@gmail.com)
+📸 [@1onlysarkar](https://instagram.com/1onlysarkar)`,
+      status: "published",
+      metaTitle: "Privacy Policy — 1OnlySarkar",
+      metaKeywords: "1onlysarkar privacy policy, free fire tournament data policy india, user data protection 1onlysarkar, 1onlysarkar personal information",
+      metaDescription: "Read 1OnlySarkar's Privacy Policy. Learn what data we collect, how we use it, and how your personal information is protected on our platform.",
+      ogImage: "",
+      robots: "index, follow",
+    },
+    {
+      id: "terms",
+      slug: "terms",
+      title: "Terms & Conditions",
+      content: `# Terms & Conditions
+
+**Effective Date: June 29, 2025**
+
+By creating an account or using any part of the 1OnlySarkar platform — including browsing tournaments, depositing funds, registering for matches, or withdrawing prizes — you agree to these Terms & Conditions in full.
+
+If you do not agree to these terms, please do not use this platform.
+
+---
+
+## 1. Who We Are
+
+1OnlySarkar is an online Free Fire esports tournament platform based in India. We organize and host skill-based competitive gaming events where registered players can compete for real cash prizes.
+
+1OnlySarkar is an independent community platform. We are not affiliated with, endorsed by, or officially connected to Garena or the Free Fire brand. Free Fire is a registered trademark of Garena International.
+
+---
+
+## 2. Eligibility
+
+To use this platform, you must:
+
+- Be at least **13 years of age**. Users under 18 should have parental awareness before participating in paid tournaments.
+- Own a legitimate **Free Fire account** with a valid UID.
+- Provide **accurate and truthful information** during registration.
+- Have a valid **UPI-linked bank account** if you intend to deposit or withdraw funds.
+
+Participation in tournaments involving real money may be subject to the laws of your state or region in India. It is your personal responsibility to confirm that you are legally permitted to participate.
+
+---
+
+## 3. Your Account
+
+- Each person may hold **one account only**. Creating multiple accounts — whether to bypass a ban, gain wallet bonuses, or any other reason — is a violation that results in a permanent ban of all accounts involved.
+- You are responsible for maintaining the security of your login credentials. Do not share your password with anyone.
+- All activity that takes place under your account is your responsibility, regardless of who performed it.
+- If you suspect your account has been accessed without your permission, contact us immediately at [sauravmiami@gmail.com](mailto:sauravmiami@gmail.com) and change your password right away.
+
+---
+
+## 4. Tournament Participation
+
+- By booking a slot in any tournament, you commit to being present and ready to play at the scheduled time.
+- You agree to follow the [Tournament Rules & Fair Play](/rules) guidelines, which form part of these Terms.
+- Failure to appear, playing from a different account, or submitting false profile information will result in disqualification without a refund.
+- Slots are allocated on a first-come, first-served basis. We do not guarantee a specific slot number or team placement.
+- The admin has the right to cancel or reschedule a tournament at any time. In the event of a cancellation, entry fees will be refunded to affected players' wallets.
+
+---
+
+## 5. Wallet, Deposits, and Withdrawals
+
+### Deposits
+- Funds are added to your wallet via UPI. Deposits are verified by matching your submitted UTR (transaction reference number) against our payment records.
+- Unverified deposits will not be credited. If your deposit is not reflected within a reasonable time, contact support with your UTR number and payment screenshot.
+- We are not responsible for delays or failures caused by your bank, UPI app, or payment gateway.
+
+### Entry Fees
+- Entry fees are deducted from your wallet immediately when you book a slot.
+- Fees are **non-refundable** once a slot is confirmed — except in the case of admin-initiated tournament cancellations.
+
+### Withdrawals
+- Withdrawals are processed to your registered UPI ID or bank account.
+- A minimum withdrawal threshold applies, as shown on the wallet page.
+- Withdrawal requests are processed manually and may take up to **48 hours**.
+- We reserve the right to hold a withdrawal pending investigation if suspicious activity is detected on your account.
+
+### Prizes
+- Prize amounts are credited to your wallet following result verification by the admin.
+- Prizes are only awarded to players whose identity has been confirmed and who have not violated any platform rules during the tournament.
+
+---
+
+## 6. Prohibited Activities
+
+The following are strictly not allowed on this platform:
+
+- Using cheats, hacks, bots, or any unauthorized software during a match
+- Creating or using multiple accounts to bypass bans or gain unfair advantages
+- Sharing Room IDs or Passwords with anyone outside the registered tournament players
+- Colluding or teaming with opponents to manipulate a match result
+- Playing under a different identity or using another player's Free Fire account
+- Submitting false UPI payment proofs or fabricated UTR numbers
+- Attempting to exploit, reverse-engineer, or interfere with platform functionality in any way
+
+Violations may result in immediate account termination, forfeiture of wallet balance, and — where the situation warrants it — reporting to relevant authorities.
+
+---
+
+## 7. Account Suspension and Termination
+
+We reserve the right to suspend or permanently terminate any account that:
+
+- Violates these Terms or the Tournament Rules & Fair Play guidelines
+- Is involved in fraudulent payment activity or identity misrepresentation
+- Is found to be one of multiple accounts operated by the same person
+- Poses a security, fairness, or integrity risk to the platform or its users
+
+Upon termination due to a rule violation, any wallet balance may be forfeited. In cases where the termination is not due to a rule violation, we will make reasonable efforts to return verified, unspent wallet funds.
+
+---
+
+## 8. Limitation of Liability
+
+1OnlySarkar provides a platform for skill-based gaming competitions. We are not liable for:
+
+- Financial losses resulting from tournament outcomes
+- Technical issues on your device, app, or internet connection that cause you to miss or underperform in a match
+- Delays or failures caused by third-party payment providers
+- The in-match actions of other players (cheating, teaming, etc.) that are reported but not yet actioned
+
+We will make every reasonable effort to ensure fair play and platform stability, but we do not guarantee uninterrupted or error-free service at all times.
+
+---
+
+## 9. Dispute Resolution
+
+**Match result disputes** must be submitted within **24 hours** of the result being declared, and must include clear screenshot or video evidence.
+
+**Payment disputes** must be raised within **7 days** of the relevant transaction date.
+
+All decisions made by the admin following an investigation are final. We do not offer external arbitration for gaming or tournament-related disputes.
+
+---
+
+## 10. Intellectual Property
+
+All content on this platform — including the name 1OnlySarkar, logo, design, tournament formats, and written content — is the property of the platform operator. You may not reproduce, copy, redistribute, or commercially use any part of this platform without prior written permission.
+
+---
+
+## 11. Changes to These Terms
+
+We may update these Terms & Conditions at any time. Where changes are significant, we will notify users via email or a prominent notice on the platform. Continued use of the platform after any update constitutes acceptance of the revised terms.
+
+---
+
+## 12. Governing Law
+
+These Terms are governed by the laws of the **Republic of India**. Any disputes arising from or related to the use of this platform shall be subject to the jurisdiction of the appropriate courts in India.
+
+---
+
+## 13. Contact
+
+For questions about these Terms:
+
+📧 [sauravmiami@gmail.com](mailto:sauravmiami@gmail.com)
+📸 [@1onlysarkar](https://instagram.com/1onlysarkar)`,
+      status: "published",
+      metaTitle: "Terms & Conditions — 1OnlySarkar",
+      metaKeywords: "1onlysarkar terms and conditions, free fire tournament platform terms india, tournament participation agreement, 1onlysarkar user agreement, free fire esports platform terms",
+      metaDescription: "Read the full Terms & Conditions for 1OnlySarkar. These govern your use of the platform, tournament participation, wallet transactions, and prize eligibility.",
+      ogImage: "",
+      robots: "index, follow",
+    },
+    {
+      id: "faq",
+      slug: "faq",
+      title: "Frequently Asked Questions",
+      content: `# Frequently Asked Questions
+
+Can't find what you're looking for? [Contact us directly](/contact) — we're happy to help.
+
+---
+
+## Account & Registration
+
+**Q: How do I create an account?**
+Go to the [Sign Up](/sign-up) page and register using your email address or Google account. It takes less than a minute.
+
+---
+
+**Q: Why do I need to add my Free Fire UID?**
+Your UID is how we verify your identity after a match. Without it, we can't confirm you played under the right account, which means you won't be eligible for prizes. Add it in [Profile Settings](/dashboard/settings).
+
+---
+
+**Q: Can I change my Free Fire UID or Game Name later?**
+Yes. Go to **Dashboard → Profile Settings** and update your details. Make sure any changes are done before registering for a tournament — not during one.
+
+---
+
+**Q: I signed up with Google. Can I also set a password?**
+Yes. Head to **Profile Settings** and you'll find an option to set a password for your account.
+
+---
+
+**Q: Can I have more than one account?**
+No. Each person is allowed exactly one account. Multiple accounts are a violation of our Terms & Conditions and result in a permanent ban of all accounts involved.
+
+---
+
+**Q: I forgot my password. What do I do?**
+Go to the [Forgot Password](/forgot-password) page, enter your registered email, and we'll send you a reset link.
+
+---
+
+## Wallet & Deposits
+
+**Q: How do I add money to my wallet?**
+Go to **Dashboard → My Wallet**. Scan the UPI QR code with any UPI app (GPay, PhonePe, Paytm, etc.), complete the payment, and then enter your **UTR number** on the same page to submit the deposit for verification.
+
+---
+
+**Q: What is a UTR number and where do I find it?**
+UTR stands for Unique Transaction Reference. It's a 12-digit number generated by your bank or UPI app for every transaction. You can find it in your payment app under transaction history or in the payment confirmation SMS. It's how we verify that your payment actually went through.
+
+---
+
+**Q: I paid but my wallet balance hasn't updated. What should I do?**
+First, double-check that you submitted the correct UTR number after paying. If you did and it's still not reflecting after a reasonable wait, contact us at [sauravmiami@gmail.com](mailto:sauravmiami@gmail.com) with your UTR number and a screenshot of the payment confirmation.
+
+---
+
+**Q: How long does a deposit take to reflect?**
+Most deposits are verified quickly. If there's a delay, it's usually due to high verification volume. If your balance isn't updated within a few hours, reach out to support.
+
+---
+
+**Q: My UPI payment failed but the money was debited from my account. What now?**
+In most cases, the money is automatically refunded by your bank within 3–5 business days. If it isn't, contact your bank first with the transaction details. If the issue is on our end, email us with proof of the deduction.
+
+---
+
+**Q: Is there a minimum deposit amount?**
+The minimum deposit amount is displayed on the wallet page at the time of adding funds.
+
+---
+
+## Withdrawals & Prizes
+
+**Q: How do I withdraw my winnings?**
+Go to **Dashboard → My Wallet** and submit a withdrawal request. Enter the amount you want to withdraw along with your UPI ID or bank account details. Requests are processed manually and typically take up to **48 hours**.
+
+---
+
+**Q: Is there a minimum withdrawal amount?**
+Yes. The minimum withdrawal limit is shown on the wallet page.
+
+---
+
+**Q: Where do prize winnings go?**
+Prize amounts are credited directly to your wallet after the admin verifies and declares the match result. From your wallet, you can withdraw to your UPI or bank account at any time.
+
+---
+
+**Q: When does the prize get credited after a match?**
+Prizes are credited once the admin finalizes the result. This usually happens within a few hours of the match ending, depending on how quickly results are verified.
+
+---
+
+**Q: My withdrawal was submitted but I haven't received the money yet.**
+Withdrawals can take up to 48 hours. If it's been longer than that, contact us at [sauravmiami@gmail.com](mailto:sauravmiami@gmail.com) with your registered email and the withdrawal details.
+
+---
+
+## Tournaments & Joining
+
+**Q: How do I join a tournament?**
+Check out our full step-by-step guide here → [How to Join](/how-to-join)
+
+---
+
+**Q: Do I need money in my wallet to join a free tournament?**
+No. Free tournaments have no entry fee — you can register directly without any wallet balance.
+
+---
+
+**Q: What happens to my entry fee if I can't play?**
+Entry fees are non-refundable once a slot is booked. If you can't make it, the fee is not returned. Please only register if you're sure you can play at the scheduled time.
+
+---
+
+**Q: What if the tournament is cancelled by the admin?**
+If the admin cancels a tournament, your entry fee is fully refunded to your wallet automatically.
+
+---
+
+**Q: Can I cancel my slot after joining?**
+No. Once you've booked a slot and the entry fee has been deducted, it cannot be cancelled or refunded. The only exception is an admin-side cancellation.
+
+---
+
+**Q: I joined a tournament but I can see it's full now. What does that mean?**
+It means all slots are filled. Once the tournament is full, the admin will set the Room ID and Password and you'll receive an email notification.
+
+---
+
+**Q: Can I join a tournament that's already started?**
+No. Once a match has begun, no new registrations or room entries are permitted.
+
+---
+
+**Q: How many tournaments can I join at once?**
+There is no hard limit. However, make sure you can realistically participate in all the tournaments you register for — missed matches are not refunded.
+
+---
+
+## Room ID & Password
+
+**Q: How do I get the Room ID and Password?**
+Once all slots in a tournament are filled, the admin sets the credentials and you'll receive an **email notification**. You can then view the Room ID and Password in two places:
+
+- **Tournaments page** → find your registered event → credentials will be visible on the tournament card
+- **Dashboard → My Tournaments** → open the relevant event
+
+---
+
+**Q: I didn't receive the Room ID email. What do I do?**
+Check your spam or junk folder first. If it's not there, go to the Tournaments page or your Dashboard → My Tournaments and check directly — the credentials are always visible there once set. If you still can't find them, contact support.
+
+---
+
+**Q: Can I share the Room ID and Password with a friend?**
+No. Room credentials are exclusively for registered players in that specific tournament. Sharing them with anyone outside the tournament is a violation of our rules and may result in a permanent ban.
+
+---
+
+**Q: The Room ID and Password aren't showing yet. Is something wrong?**
+Credentials are only set by the admin once all slots are filled. If slots are still open, credentials won't be available yet. Keep an eye on your email and check back closer to match time.
+
+---
+
+## Results & Disputes
+
+**Q: Where can I see the tournament result?**
+After the match, results are posted on the tournament's detail page. Go to [Tournaments](/tournaments), find the completed event, and the results will be listed there.
+
+---
+
+**Q: I think the result is wrong. How do I dispute it?**
+Submit a dispute within **24 hours** of the result being declared. You must provide clear screenshot or video evidence to support your claim. Disputes without proof will not be reviewed. Contact us at [sauravmiami@gmail.com](mailto:sauravmiami@gmail.com) to raise a dispute.
+
+---
+
+**Q: Someone cheated in my match. What should I do?**
+Report them through the [Cheater Report](/cheater-report) page. Provide as much evidence as possible — screenshots, recordings, or the player's UID. All reports are reviewed by the admin.
+
+---
+
+## Rules & Bans
+
+**Q: What happens if I'm caught cheating?**
+A permanent ban — no warnings, no refund, no exceptions. This applies to hacking, using modified APKs, aimbots, wallhacks, or any other unauthorized tools.
+
+---
+
+**Q: What is teaming and why is it banned?**
+Teaming means secretly cooperating with enemy players to manipulate the match outcome — for example, intentionally not killing a specific enemy so they can win. It's treated the same as hacking and results in a permanent ban.
+
+---
+
+**Q: Can I appeal a ban?**
+Yes, if you believe a ban was made in error. Send an appeal to [sauravmiami@gmail.com](mailto:sauravmiami@gmail.com) with your account details and any supporting evidence. Appeals without proof are not reviewed. The admin's decision on all appeals is final.
+
+---
+
+**Q: I was banned. Will I get my wallet balance back?**
+If the ban is the result of a rule violation — cheating, fraud, teaming, etc. — the wallet balance is forfeited. If the ban was an error and is overturned through an appeal, the balance will be restored.
+
+---
+
+## Technical Issues
+
+**Q: The website isn't loading properly. What should I do?**
+Try clearing your browser cache or opening the site in a different browser. If the issue continues, check our Instagram [@1onlysarkar](https://instagram.com/1onlysarkar) to see if there's a known outage. If nothing is posted, contact us via email.
+
+**Q: I'm having trouble logging in with Google. What can I do?**
+Make sure third-party cookies are enabled in your browser. Try clearing your browser cache and attempting the login again. If the issue persists, try registering with your email and password instead, or contact support.
+
+---
+
+**Still have a question?**
+
+→ [Contact Support](/contact)
+→ Instagram: [@1onlysarkar](https://instagram.com/1onlysarkar)
+→ Email: [sauravmiami@gmail.com](mailto:sauravmiami@gmail.com)`,
+      status: "published",
+      metaTitle: "Frequently Asked Questions — 1OnlySarkar",
+      metaKeywords: "1onlysarkar faq, free fire tournament questions india, how to join free fire tournament, tournament room id password, upi deposit free fire tournament, 1onlysarkar help",
+      metaDescription: "Got questions about 1OnlySarkar? Find answers about tournament registration, wallet deposits, Room ID, withdrawals, results, and more in our FAQ.",
+      ogImage: "",
+      robots: "index, follow",
     }
   ];
 

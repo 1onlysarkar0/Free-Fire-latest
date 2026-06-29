@@ -3,6 +3,11 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import type { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeRaw from "rehype-raw";
+import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
+import rehypeSlug from "rehype-slug";
+import rehypeKatex from "rehype-katex";
 import { H1, H2, H3, H4, P, Blockquote } from "@/components/ui/typography";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
 import { CopyWrapper } from "@/components/copy-button";
@@ -25,6 +30,24 @@ interface MarkdownRendererProps {
   variant?: "default" | "chat";
   isStreaming?: boolean;
 }
+
+// ─── Sanitization Schema ───────────────────────────────────────────────────
+const safeHtmlSubset = [
+  "sup", "sub", "mark", "kbd", "br", "details", "summary",
+  "figure", "figcaption", "abbr", "cite", "time"
+];
+
+const customSchema = {
+  ...defaultSchema,
+  tagNames: [
+    ...(defaultSchema.tagNames || []),
+    ...safeHtmlSubset
+  ],
+  attributes: {
+    ...defaultSchema.attributes,
+    // defaultSchema strictly prohibits scripts, iframes, styles, inline event handlers (e.g. onclick).
+  }
+};
 
 function preprocessMarkdown(content: string): string {
   if (!content) return content;
@@ -246,13 +269,26 @@ export function MarkdownRenderer({ content, className, variant = "default", isSt
           </a>
         );
       },
+      // Approved safe HTML inline tags styling
+      sup: ({ node: _, ...props }) => <sup className="text-[0.75em] leading-none vertical-align-super font-mono" {...props} />,
+      sub: ({ node: _, ...props }) => <sub className="text-[0.75em] leading-none vertical-align-sub font-mono" {...props} />,
+      mark: ({ node: _, ...props }) => <mark className="bg-warning/20 text-warning px-1 py-0.5 rounded font-medium" {...props} />,
+      kbd: ({ node: _, ...props }) => <kbd className="bg-muted border border-border px-1.5 py-0.5 rounded text-xs font-mono shadow-xs text-foreground" {...props} />,
+      details: ({ node: _, ...props }) => <details className="border border-border rounded-xl p-4 bg-muted/20 my-4 space-y-2 cursor-pointer transition-colors" {...props} />,
+      summary: ({ node: _, ...props }) => <summary className="font-semibold text-foreground select-none" {...props} />,
+      figure: ({ node: _, ...props }) => <figure className="my-6 text-center space-y-2 border border-border/40 p-4 rounded-xl bg-card" {...props} />,
+      figcaption: ({ node: _, ...props }) => <figcaption className="text-xs text-muted-foreground italic" {...props} />,
+      abbr: ({ node: _, ...props }) => <abbr className="underline decoration-dotted cursor-help text-foreground font-medium" {...props} />,
+      cite: ({ node: _, ...props }) => <cite className="text-muted-foreground italic border-l-2 border-border/60 pl-3 my-2 block" {...props} />,
+      time: ({ node: _, ...props }) => <time className="text-xs text-muted-foreground font-semibold font-mono bg-muted/65 px-1.5 py-0.5 rounded" {...props} />,
     };
   }, [isChat, isStreaming, variant]);
 
   return (
     <div className={cn("w-full max-w-none", className)}>
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={[remarkGfm, remarkMath] as any}
+        rehypePlugins={[rehypeRaw, [rehypeSanitize, customSchema], rehypeSlug, rehypeKatex] as any}
         components={components}
       >
         {processedMermaidContent}

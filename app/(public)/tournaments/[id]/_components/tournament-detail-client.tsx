@@ -33,6 +33,22 @@ export default function TournamentDetailClient({ id, initialData, initialIsLogge
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [userDataLoaded, setUserDataLoaded] = useState(true);
   const [infoOpen, setInfoOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"description" | "rules" | "winners">(
+    initialData?.descriptionMarkdown || initialData?.descriptionHtml ? "description" :
+    initialData?.rulesMarkdown || initialData?.rulesHtml ? "rules" : "winners"
+  );
+
+  useEffect(() => {
+    if (t) {
+      const desc = t.descriptionMarkdown || t.descriptionHtml;
+      const rules = t.rulesMarkdown || t.rulesHtml;
+      if (!desc && rules && activeTab === "description") {
+        setActiveTab("rules");
+      } else if (!desc && !rules && t.winners.length > 0 && activeTab !== "winners") {
+        setActiveTab("winners");
+      }
+    }
+  }, [t, activeTab]);
 
   const load = useCallback(async () => {
     try {
@@ -335,61 +351,84 @@ export default function TournamentDetailClient({ id, initialData, initialIsLogge
                       {descContent && (
                         <button
                           type="button"
-                          id="tab-description"
-                          onClick={() => {
-                            document.getElementById('panel-description')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                          }}
-                          className="px-0 py-3 mr-6 text-sm font-semibold text-primary border-b-2 border-primary shrink-0"
+                          onClick={() => setActiveTab("description")}
+                          className={cn(
+                            "bg-transparent px-0 py-3 mr-6 text-sm font-semibold transition-colors border-b-2",
+                            activeTab === "description"
+                              ? "text-primary border-primary"
+                              : "text-muted-foreground border-transparent hover:text-foreground"
+                          )}
                         >
                           Description
                         </button>
                       )}
                       {rulesContent && (
-                        <span className="px-0 py-3 mr-6 text-sm font-semibold text-muted-foreground shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab("rules")}
+                          className={cn(
+                            "bg-transparent px-0 py-3 mr-6 text-sm font-semibold transition-colors border-b-2",
+                            activeTab === "rules"
+                              ? "text-primary border-primary"
+                              : "text-muted-foreground border-transparent hover:text-foreground"
+                          )}
+                        >
                           Rules
-                        </span>
+                        </button>
                       )}
                       {t.winners.length > 0 && (
-                        <span className="px-0 py-3 mr-6 text-sm font-semibold text-muted-foreground shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab("winners")}
+                          className={cn(
+                            "bg-transparent px-0 py-3 mr-6 text-sm font-semibold transition-colors border-b-2",
+                            activeTab === "winners"
+                              ? "text-primary border-primary"
+                              : "text-muted-foreground border-transparent hover:text-foreground"
+                          )}
+                        >
                           Winners
-                        </span>
+                        </button>
                       )}
                     </div>
 
-                    {/* Content panels — stacked vertically when open */}
-                    <div className="divide-y divide-border/40">
-                      {descContent && (
-                        <div id="panel-description" className="p-6 prose prose-sm max-w-none">
-                          <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3">Description</h3>
-                          {t.descriptionMarkdown ? (
-                            <MarkdownRenderer content={t.descriptionMarkdown} />
-                          ) : (
-                            <div dangerouslySetInnerHTML={{ __html: t.descriptionHtml ?? "" }} />
-                          )}
+                    {/* Content panels */}
+                    <div className="p-6">
+                      {activeTab === "description" && descContent && (
+                        <div className="prose prose-sm max-w-none">
+                          <MarkdownRenderer content={t.descriptionMarkdown || t.descriptionHtml || ""} />
                         </div>
                       )}
 
-                      {rulesContent && (
-                        <div id="panel-rules" className="p-6 prose prose-sm max-w-none">
-                          <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3">Rules</h3>
-                          {t.rulesMarkdown ? (
-                            <MarkdownRenderer content={t.rulesMarkdown} />
-                          ) : (
-                            <div dangerouslySetInnerHTML={{ __html: t.rulesHtml ?? "" }} />
-                          )}
+                      {activeTab === "rules" && rulesContent && (
+                        <div className="prose prose-sm max-w-none">
+                          <MarkdownRenderer content={t.rulesMarkdown || t.rulesHtml || ""} />
                         </div>
                       )}
 
-                      {t.winners.length > 0 && (
-                        <div id="panel-winners" className="p-6">
-                          <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-                            <Crown className="h-4 w-4" /> Winners
-                          </h3>
+                      {activeTab === "winners" && t.winners.length > 0 && (
+                        <div>
+                          <h2 className="font-semibold text-foreground flex items-center gap-2 mb-4">
+                            <Crown className="h-5 w-5 text-foreground" /> Winners
+                          </h2>
                           <div className="space-y-3">
                             {t.winners.map((w, i) => (
-                              <div key={w.id} className={`flex items-center justify-between p-4 rounded-xl border ${i === 0 ? "bg-warning/10 border-warning/20" : i === 1 ? "bg-secondary border-border" : "bg-muted/30 border-border/40"}`}>
+                              <div
+                                key={w.id}
+                                className={cn(
+                                  "flex items-center justify-between p-4 rounded-xl border",
+                                  i === 0 ? "bg-warning/10 border-warning/20" :
+                                  i === 1 ? "bg-secondary border-border" :
+                                  "bg-muted/30 border-border/40"
+                                )}
+                              >
                                 <div className="flex items-center gap-3">
-                                  <span className={`text-2xl font-black ${i === 0 ? "text-warning" : i === 1 ? "text-muted-foreground" : "text-primary/70"}`}>
+                                  <span className={cn(
+                                    "text-2xl font-black",
+                                    i === 0 ? "text-warning" :
+                                    i === 1 ? "text-muted-foreground" :
+                                    "text-primary/70"
+                                  )}>
                                     {w.placement}
                                   </span>
                                   <p className="font-semibold text-foreground">{w.userGameName || w.userName}</p>

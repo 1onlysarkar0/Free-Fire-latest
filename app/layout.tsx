@@ -1,4 +1,5 @@
 import "./globals.css";
+import "katex/dist/katex.min.css";
 import type { Metadata, Viewport } from "next";
 import { ThemeProvider } from "@/components/provider";
 import { Toaster } from "@/components/ui/sonner";

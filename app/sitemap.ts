@@ -3,13 +3,24 @@ import { db } from "@/db/drizzle";
 import { customPage, tournament } from "@/db/schema";
 import { eq, ne } from "drizzle-orm";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || ("http://local" + "host:3000");
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://1onlysarkar.shop";
   const now = new Date();
 
+  // 1. Static Home & Tournaments Listings
   const staticRoutes: MetadataRoute.Sitemap = [
-    { url: baseUrl, lastModified: now, changeFrequency: "daily", priority: 1 },
+    { url: baseUrl, lastModified: now, changeFrequency: "always", priority: 1.0 },
     { url: `${baseUrl}/tournaments`, lastModified: now, changeFrequency: "hourly", priority: 0.9 },
+  ];
+
+  // 2. Auth Pages (Indexable for SEO discovery)
+  const authRoutes: MetadataRoute.Sitemap = [
+    { url: `${baseUrl}/sign-in`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${baseUrl}/sign-up`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${baseUrl}/forgot-password`, lastModified: now, changeFrequency: "monthly", priority: 0.4 },
   ];
 
   try {
@@ -19,27 +30,57 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .from(customPage)
         .where(eq(customPage.status, "published")),
       db
-        .select({ id: tournament.id, updatedAt: tournament.updatedAt })
+        .select({ id: tournament.id, status: tournament.status, updatedAt: tournament.updatedAt })
         .from(tournament)
         .where(ne(tournament.status, "CANCELLED")),
     ]);
 
+    // 3. Dynamic Custom Pages with custom SEO rules
+    const customPageRoutes = pages.map((page) => {
+      let priority = 0.6;
+      let changeFrequency: "daily" | "weekly" | "monthly" = "weekly";
+
+      if (page.slug === "how-to-join" || page.slug === "rules") {
+        priority = 0.8;
+        changeFrequency = "weekly";
+      } else if (page.slug === "faq" || page.slug === "contact") {
+        priority = 0.7;
+        changeFrequency = "weekly";
+      } else if (page.slug === "privacy" || page.slug === "terms") {
+        priority = 0.5;
+        changeFrequency = "monthly";
+      }
+
+      return {
+        url: `${baseUrl}/${page.slug}`,
+        lastModified: page.updatedAt ?? now,
+        changeFrequency,
+        priority,
+      };
+    });
+
+    // 4. Dynamic Tournaments (Active tournaments have higher priority and frequent crawling)
+    const tournamentRoutes = tournaments.map((item) => {
+      const isLiveOrUpcoming = ["UPCOMING", "ROOM_REVEALED", "LIVE", "ACTIVE"].includes(item.status);
+      const priority = isLiveOrUpcoming ? 0.9 : 0.6;
+      const changeFrequency = isLiveOrUpcoming ? ("hourly" as const) : ("monthly" as const);
+
+      return {
+        url: `${baseUrl}/tournaments/${item.id}`,
+        lastModified: item.updatedAt ?? now,
+        changeFrequency,
+        priority,
+      };
+    });
+
     return [
       ...staticRoutes,
-    ...pages.map((page) => ({
-      url: `${baseUrl}/${page.slug}`,
-      lastModified: page.updatedAt ?? now,
-      changeFrequency: "weekly" as const,
-      priority: 0.7,
-    })),
-    ...tournaments.map((item) => ({
-      url: `${baseUrl}/tournaments/${item.id}`,
-      lastModified: item.updatedAt ?? now,
-      changeFrequency: "daily" as const,
-      priority: 0.8,
-    })),
+      ...authRoutes,
+      ...customPageRoutes,
+      ...tournamentRoutes,
     ];
-  } catch {
-    return staticRoutes;
+  } catch (err) {
+    console.error("Error generating sitemap:", err);
+    return [...staticRoutes, ...authRoutes];
   }
 }

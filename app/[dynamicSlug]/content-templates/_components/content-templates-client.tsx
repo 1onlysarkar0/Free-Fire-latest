@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { LayoutTemplate, Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { LayoutTemplate, Plus, Pencil, Trash2, Loader2, Maximize2, FileEdit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Field, FieldLabel } from "@/components/ui/field";
+import FullscreenEditor from "@/components/fullscreen-editor";
 import {
   Dialog,
   DialogContent,
@@ -51,6 +52,7 @@ export default function ContentTemplatesClient({ initialData }: { dynamicSlug: s
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
   const [form, setForm] = useState({ name: "", type: "DESCRIPTION", contentHtml: "", contentMarkdown: "" });
 
   async function load() {
@@ -230,13 +232,25 @@ export default function ContentTemplatesClient({ initialData }: { dynamicSlug: s
                 <Badge variant="secondary" className="text-xs">Markdown</Badge>
               </div>
 
-              <textarea
-                value={form.contentMarkdown}
-                onChange={(event) => setForm((current) => ({ ...current, contentMarkdown: event.target.value }))}
-                placeholder="Write in Markdown..."
-                rows={12}
-                className="w-full rounded-lg border bg-background px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-orange-500 resize-y transition-shadow"
-              />
+              <div className="bg-card rounded-xl border border-border p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <FileEdit className="h-6 w-6 text-foreground" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-foreground">Template Content</h3>
+                    <p className="text-sm text-muted-foreground">Write, format, and preview your content template.</p>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  onClick={() => setEditorOpen(true)}
+                  className="bg-primary hover:bg-primary/90 text-white w-full md:w-auto"
+                >
+                  <Maximize2 className="h-4 w-4 mr-2" />
+                  Open Fullscreen Editor
+                </Button>
+              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
@@ -259,6 +273,14 @@ export default function ContentTemplatesClient({ initialData }: { dynamicSlug: s
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <FullscreenEditor
+          isOpen={editorOpen}
+          onClose={() => setEditorOpen(false)}
+          title={form.name}
+          content={form.contentMarkdown}
+          setContent={(val) => setForm(current => ({ ...current, contentMarkdown: val }))}
+        />
     </div>
   );
 }

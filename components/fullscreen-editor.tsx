@@ -11,6 +11,8 @@ import { MarkdownRenderer } from "@/components/markdown-renderer";
 
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false });
 
+import { useEffect } from "react";
+
 interface FullscreenEditorProps {
   isOpen: boolean;
   onClose: () => void;
@@ -41,11 +43,25 @@ export default function FullscreenEditor({
   saving,
 }: FullscreenEditorProps) {
   const [livePreview, setLivePreview] = useState(false);
+  const [localContent, setLocalContent] = useState("");
+  const [hasInitialized, setHasInitialized] = useState(false);
+
+  // Sync state only on initial open to prevent React re-renders from hijacking focus/cursor
+  useEffect(() => {
+    if (isOpen) {
+      if (!hasInitialized) {
+        setLocalContent(stripModeFlag(content));
+        setHasInitialized(true);
+      }
+    } else {
+      setHasInitialized(false);
+    }
+  }, [isOpen, content, hasInitialized]);
 
   if (!isOpen) return null;
 
-  const internalContent = stripModeFlag(content);
   const handleContentChange = (value: string) => {
+    setLocalContent(value);
     setContent("<!-- MODE:MARKDOWN -->\n" + value);
   };
 
@@ -111,29 +127,32 @@ export default function FullscreenEditor({
             `}</style>
             <div data-color-mode="light" className="h-full flex flex-col">
               <MDEditor
-                value={internalContent}
+                value={localContent}
                 onChange={(value) => handleContentChange(value || "")}
                 preview="edit"
+                extraCommands={[]}
                 height="100%"
-                className="flex-1 w-full border-0 shadow-none markdown-textarea"
+                className="flex-1 w-full border-0 shadow-none markdown-textarea font-mono"
               />
             </div>
           </div>
         </div>
 
         {livePreview && (
-          <div className="flex-1 flex flex-col bg-card overflow-hidden animate-in slide-in-from-right-4 duration-300">
+          <div className="flex-1 flex flex-col bg-background overflow-hidden animate-in slide-in-from-right-4 duration-300 border-l border-border/80">
             <div className="h-10 border-b border-border bg-secondary flex items-center px-4 shrink-0">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Live Preview</span>
             </div>
-            <div className="flex-1 overflow-y-auto p-8 md:p-12 prose prose-orange max-w-none">
-              {internalContent ? (
-                <MarkdownRenderer content={internalContent} />
-              ) : (
-                <div className="h-full flex items-center justify-center text-muted-foreground italic">
-                  Start typing to see preview...
-                </div>
-              )}
+            <div className="flex-1 overflow-y-auto p-8 md:p-12 text-foreground font-ibm">
+              <div className="max-w-3xl mx-auto">
+                {localContent ? (
+                  <MarkdownRenderer content={localContent} />
+                ) : (
+                  <div className="h-full flex items-center justify-center text-muted-foreground italic">
+                    Start typing to see preview...
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
