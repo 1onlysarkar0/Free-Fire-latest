@@ -11,11 +11,12 @@ import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import rehypeSlug from "rehype-slug";
 import rehypeKatex from "rehype-katex";
 import { H1, H2, H3, H4, P, Blockquote } from "@/components/ui/typography";
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
+import { CopyWrapper } from "@/components/copy-button";
 import { MermaidChart } from "@/components/mermaid-chart";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { CircleArrowOutUpRight, Link2, Check, Copy } from "lucide-react";
-import { toast } from "sonner";
+import { CircleArrowOutUpRight, Link2 } from "lucide-react";
 import Prism from "prismjs";
 import "prismjs/components/prism-javascript";
 import "prismjs/components/prism-typescript";
@@ -82,82 +83,6 @@ const customSchema = {
     time: ["class", "datetime"],
   }
 };
-function detectLanguage(code: string): string {
-  const trimmed = code.trim();
-  
-  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
-    try {
-      JSON.parse(trimmed);
-      return "json";
-    } catch {
-      // Ignore parsing error
-    }
-  }
-
-  // Bash/Shell commands
-  if (/^(npm |npx |yarn |pnpm |git |cd |docker |ls |mkdir |rm |echo |curl |wget |python3 |sh |bash)\b/m.test(trimmed)) {
-    return "bash";
-  }
-
-  // SQL queries
-  if (/^(SELECT|INSERT|UPDATE|DELETE|CREATE|ALTER|DROP|FROM|WHERE|JOIN|ORDER BY|GROUP BY)\b/i.test(trimmed)) {
-    return "sql";
-  }
-
-  // HTML
-  if (/^\s*<(!DOCTYPE|html|div|span|p|section|article|header|footer|aside|ul|ol|li|table|tr|td|th|form|button|input|meta|link|script)/i.test(trimmed)) {
-    return "html";
-  }
-
-  // CSS
-  if (/^[.#\w-]+\s*\{[^}]*:[^}]*\}/m.test(trimmed)) {
-    return "css";
-  }
-
-  // Python
-  if (/^(def\s+\w+\(|import\s+[\w, ]+(\s+as\s+\w+)?|from\s+\w+\s+import|print\s*\()|elif\s+|for\s+\w+\s+in\s+range/m.test(trimmed)) {
-    return "python";
-  }
-
-  // JavaScript/TypeScript
-  if (/\b(const|let|var|function|class|import\s+.*\s+from|export\s+default|console\.log|async\s+function|interface|type\s+\w+\s*=)\b/m.test(trimmed)) {
-    return "javascript";
-  }
-
-  return "markup"; // Default fallback
-}
-
-function MarkdownCopyButton({ value }: { value: string }) {
-  const [copied, setCopied] = React.useState(false);
-
-  const onCopy = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!value) return;
-    try {
-      await navigator.clipboard.writeText(value);
-      setCopied(true);
-      toast.success("Copied to clipboard!");
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      toast.error("Failed to copy code.");
-    }
-  };
-
-  return (
-    <button
-      onClick={onCopy}
-      className={cn(
-        "absolute right-2 top-2 z-10 p-1.5 rounded-lg bg-muted/80 backdrop-blur-xs border border-border/40 shadow-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer opacity-100 md:opacity-0 group-hover:opacity-100",
-        copied && "text-success border-success/30"
-      )}
-      aria-label="Copy code"
-      title="Copy code"
-    >
-      {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-    </button>
-  );
-}
 
 function preprocessMarkdown(content: string): string {
   if (!content) return content;
@@ -416,36 +341,28 @@ export function MarkdownRenderer({ content, className, variant = "default", isSt
             typeof child.props === "object"
         ) as React.ReactElement<{ className?: string; children?: React.ReactNode }> | undefined;
 
-        let codeContent = "";
-        let isMermaid = false;
-
         if (codeEl) {
           const className = codeEl.props.className ?? "";
-          codeContent = String(codeEl.props.children || "");
+          const codeContent = String(codeEl.props.children || "").trim();
           
-          isMermaid = 
+          const isMermaid = 
             className.includes("language-mermaid") || 
             /^(graph\b|flowchart\b|sequenceDiagram\b|classDiagram\b|stateDiagram\b|erDiagram\b|gantt\b|pie\b|journey\b|mindmap\b|timeline\b|gitGraph\b)/i.test(codeContent);
 
           if (isMermaid) {
-            return <MermaidChart code={codeContent.trim()} isStreaming={isStreaming} variant={variant} />;
+            return <MermaidChart code={codeContent} isStreaming={isStreaming} variant={variant} />;
           }
-        } else {
-          codeContent = React.Children.toArray(children)
-            .map(child => (typeof child === "string" || typeof child === "number") ? String(child) : "")
-            .join("");
         }
 
         return (
-          <div className="relative group">
-            <MarkdownCopyButton value={codeContent} />
+          <CopyWrapper>
             <pre 
               className={cn("bg-card border border-border shadow-xs p-4 rounded-xl overflow-x-auto text-sm font-mono text-foreground [&>code]:!bg-transparent [&>code]:!p-0 [&>code]:!text-inherit [&>code]:!font-normal", isChat ? "my-3" : "my-8")} 
               {...props} 
             >
               {children}
             </pre>
-          </div>
+          </CopyWrapper>
         );
       },
       code: ({ node: _, className, children, ...props }) => {
@@ -460,15 +377,13 @@ export function MarkdownRenderer({ content, className, variant = "default", isSt
           );
         }
 
+        const lang = match ? match[1] : "markup";
         const codeString = String(children).replace(/\n$/, "");
-        const lang = match ? match[1] : detectLanguage(codeString);
         
         let highlighted = codeString;
         try {
           if (Prism.languages[lang]) {
             highlighted = Prism.highlight(codeString, Prism.languages[lang], lang);
-          } else if (Prism.languages.markup) {
-            highlighted = Prism.highlight(codeString, Prism.languages.markup, "markup");
           }
         } catch (e) {
           console.error("Prism error:", e);
@@ -517,88 +432,18 @@ export function MarkdownRenderer({ content, className, variant = "default", isSt
       ),
       hr: ({ node: _, ...props }) => <hr className="my-8 border-t border-border/60" {...props} />,
       del: ({ node: _, ...props }) => <del className="line-through text-muted-foreground/70" {...props} />,
-      table: ({ node: _, className, ...props }) => (
-        <div className={cn("relative w-full overflow-x-auto rounded-xl border border-border/50 shadow-xs bg-card", isChat ? "my-3" : "my-8")} data-slot="table-container">
-          <table
-            className={cn(
-              "w-full caption-bottom in-data-[slot=frame]:border-separate in-data-[slot=frame]:border-spacing-0 text-sm",
-              className
-            )}
-            data-slot="table"
-            {...props}
-          />
-        </div>
+      table: ({ node: _, ...props }) => (
+        <CopyWrapper className={isChat ? "my-3" : "my-8"}>
+          <div className="w-full overflow-x-auto rounded-xl border border-border shadow-sm bg-card">
+            <Table {...props} className="w-full text-left border-collapse" />
+          </div>
+        </CopyWrapper>
       ),
-      thead: ({ node: _, className, ...props }) => (
-        <thead
-          className={cn(
-            "[&_tr]:border-b in-data-[slot=frame]:**:[th]:h-9 in-data-[slot=frame]:*:[tr]:border-none in-data-[slot=frame]:*:[tr]:hover:bg-transparent",
-            className
-          )}
-          data-slot="table-header"
-          {...props}
-        />
-      ),
-      tbody: ({ node: _, className, ...props }) => (
-        <tbody
-          className={cn(
-            "relative in-data-[slot=frame]:rounded-xl in-data-[slot=frame]:shadow-xs/5 before:pointer-events-none before:absolute before:inset-px not-in-data-[slot=frame]:before:hidden before:rounded-[calc(var(--radius-xl)-1px)] before:shadow-[0_1px_--theme(--color-black/4%)] dark:before:shadow-[0_-1px_--theme(--color-white/8%)] [&_tr:last-child]:border-0 in-data-[slot=frame]:*:[tr]:border-0 in-data-[slot=frame]:*:[tr]:*:[td]:border-b in-data-[slot=frame]:*:[tr]:*:[td]:bg-background in-data-[slot=frame]:*:[tr]:*:[td]:bg-clip-padding in-data-[slot=frame]:*:[tr]:first:*:[td]:first:rounded-ss-xl in-data-[slot=frame]:*:[tr]:*:[td]:first:border-s in-data-[slot=frame]:*:[tr]:first:*:[td]:border-t in-data-[slot=frame]:*:[tr]:last:*:[td]:last:rounded-ee-xl in-data-[slot=frame]:*:[tr]:*:[td]:last:border-e in-data-[slot=frame]:*:[tr]:first:*:[td]:last:rounded-se-xl in-data-[slot=frame]:*:[tr]:last:*:[td]:first:rounded-es-xl in-data-[slot=frame]:*:[tr]:hover:*:[td]:bg-transparent in-data-[slot=frame]:*:[tr]:data-[state=selected]:*:[td]:bg-muted/72",
-            className
-          )}
-          data-slot="table-body"
-          {...props}
-        />
-      ),
-      tfoot: ({ node: _, className, ...props }) => (
-        <tfoot
-          className={cn(
-            "border-t in-data-[slot=frame]:border-none bg-muted/72 in-data-[slot=frame]:bg-transparent font-medium [&>tr]:last:border-b-0 in-data-[slot=frame]:*:[tr]:hover:bg-transparent",
-            className
-          )}
-          data-slot="table-footer"
-          {...props}
-        />
-      ),
-      tr: ({ node: _, className, ...props }) => (
-        <tr
-          className={cn(
-            "border-b transition-colors hover:bg-muted/72 in-data-[slot=frame]:hover:bg-transparent data-[state=selected]:bg-muted/72 in-data-[slot=frame]:data-[state=selected]:bg-transparent",
-            className
-          )}
-          data-slot="table-row"
-          {...props}
-        />
-      ),
-      th: ({ node: _, className, ...props }) => (
-        <th
-          className={cn(
-            "h-10 whitespace-nowrap px-2.5 text-left align-middle font-medium text-muted-foreground leading-none has-[[role=checkbox]]:w-px has-[[role=checkbox]]:pe-0",
-            className
-          )}
-          data-slot="table-head"
-          {...props}
-        />
-      ),
-      td: ({ node: _, className, ...props }) => (
-        <td
-          className={cn(
-            "whitespace-nowrap p-2.5 align-middle leading-none in-data-[slot=frame]:first:p-[calc(--spacing(2.5)-1px)] in-data-[slot=frame]:last:p-[calc(--spacing(2.5)-1px)] has-[[role=checkbox]]:pe-0",
-            className
-          )}
-          data-slot="table-cell"
-          {...props}
-        />
-      ),
-      caption: ({ node: _, className, ...props }) => (
-        <caption
-          className={cn(
-            "in-data-[slot=frame]:my-4 mt-4 text-muted-foreground text-sm",
-            className
-          )}
-          data-slot="table-caption"
-          {...props}
-        />
-      ),
+      thead: ({ node: _, ...props }) => <TableHeader className="bg-muted/60 border-b border-border" {...props} />,
+      tbody: ({ node: _, ...props }) => <TableBody className="divide-y divide-border" {...props} />,
+      tr: ({ node: _, ...props }) => <TableRow className="hover:bg-muted/40 transition-colors" {...props} />,
+      th: ({ node: _, ...props }) => <TableHead className={cn("font-semibold text-foreground align-middle", isChat ? "p-2" : "p-4")} {...props} />,
+      td: ({ node: _, ...props }) => <TableCell className={cn("align-middle text-muted-foreground", isChat ? "p-2" : "p-4")} {...props} />,
       a: ({ node: _, href, children, ...props }) => {
         const isInternal = href?.startsWith("/");
         const isHash = !href || href.startsWith("#");
