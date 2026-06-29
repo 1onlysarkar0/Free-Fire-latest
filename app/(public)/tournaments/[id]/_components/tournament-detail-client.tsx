@@ -156,90 +156,8 @@ export default function TournamentDetailClient({ id, initialData, initialIsLogge
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {(descContent || rulesContent || t.winners.length > 0) && (
-              <Tabs defaultValue={descContent ? "description" : rulesContent ? "rules" : "winners"}>
-                <TabsList className="bg-transparent border-none flex-wrap h-auto gap-6 p-0 shadow-none text-muted-foreground mb-4">
-                  {descContent && (
-                    <TabsTrigger
-                      value="description"
-                      className="bg-transparent px-0 py-1.5 shadow-none border-none text-sm font-semibold text-muted-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent hover:text-foreground transition-colors"
-                    >
-                      Description
-                    </TabsTrigger>
-                  )}
-                  {rulesContent && (
-                    <TabsTrigger
-                      value="rules"
-                      className="bg-transparent px-0 py-1.5 shadow-none border-none text-sm font-semibold text-muted-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent hover:text-foreground transition-colors"
-                    >
-                      Rules
-                    </TabsTrigger>
-                  )}
-                  {t.winners.length > 0 && (
-                    <TabsTrigger
-                      value="winners"
-                      className="bg-transparent px-0 py-1.5 shadow-none border-none text-sm font-semibold text-muted-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent hover:text-foreground transition-colors"
-                    >
-                      Winners
-                    </TabsTrigger>
-                  )}
-                </TabsList>
-
-                {descContent && (
-                  <TabsContent value="description">
-                    <div className="bg-accent/40 rounded-2xl border border-border/80 p-6 prose prose-sm max-w-none shadow-sm">
-                      {t.descriptionMarkdown ? (
-                        <MarkdownRenderer content={t.descriptionMarkdown} />
-                      ) : (
-                        <div dangerouslySetInnerHTML={{ __html: t.descriptionHtml ?? "" }} />
-                      )}
-                    </div>
-                  </TabsContent>
-                )}
-
-                {rulesContent && (
-                  <TabsContent value="rules">
-                    <div className="bg-accent/40 rounded-2xl border border-border/80 p-6 prose prose-sm max-w-none shadow-sm">
-                      {t.rulesMarkdown ? (
-                        <MarkdownRenderer content={t.rulesMarkdown} />
-                      ) : (
-                        <div dangerouslySetInnerHTML={{ __html: t.rulesHtml ?? "" }} />
-                      )}
-                    </div>
-                  </TabsContent>
-                )}
-
-                {t.winners.length > 0 && (
-                  <TabsContent value="winners">
-                    <div className="bg-accent/40 rounded-2xl border border-border/80 p-6 shadow-sm">
-                      <h2 className="font-semibold text-foreground flex items-center gap-2 mb-4">
-                        <Crown className="h-5 w-5 text-foreground" /> Winners
-                      </h2>
-                      <div className="space-y-3">
-                        {t.winners.map((w, i) => (
-                          <div key={w.id} className={`flex items-center justify-between p-4 rounded-xl border ${i === 0 ? "bg-warning/10 border-warning/20" : i === 1 ? "bg-secondary border-border" : "bg-primary/10/30 border-primary/10"}`}>
-                            <div className="flex items-center gap-3">
-                              <span className={`text-2xl font-black ${i === 0 ? "text-warning" : i === 1 ? "text-muted-foreground" : "text-primary/70"}`}>
-                                {w.placement}
-                              </span>
-                              <div>
-                                <p className="font-semibold text-foreground">{w.userGameName || w.userName}</p>
-                              </div>
-                            </div>
-                            {w.prizeAmount > 0 && (
-                              <span className="font-bold text-primary">₹{w.prizeAmount}</span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </TabsContent>
-                )}
-              </Tabs>
-            )}
-
             {/* Slots section (Always Visible) */}
-            <div className="bg-accent/40 rounded-2xl border border-border/80 p-6 shadow-sm mt-6">
+            <div className="bg-accent/40 rounded-2xl border border-border/80 p-6 shadow-sm">
               <h2 className="font-semibold text-foreground mb-1">
                 {isTeamFormat ? "Team Slots" : "Player Slots"}
               </h2>
@@ -389,6 +307,88 @@ export default function TournamentDetailClient({ id, initialData, initialIsLogge
                 </span>
               </div>
             </div>
+
+            {(descContent || rulesContent || t.winners.length > 0) && (
+              <Tabs defaultValue={descContent ? "description" : rulesContent ? "rules" : "winners"}>
+                <TabsList className="bg-transparent border-none flex-wrap h-auto gap-6 p-0 shadow-none text-muted-foreground mb-4">
+                  {descContent && (
+                    <TabsTrigger
+                      value="description"
+                      className="bg-transparent px-0 py-1.5 shadow-none border-none text-sm font-semibold text-muted-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent hover:text-foreground transition-colors"
+                    >
+                      Description
+                    </TabsTrigger>
+                  )}
+                  {rulesContent && (
+                    <TabsTrigger
+                      value="rules"
+                      className="bg-transparent px-0 py-1.5 shadow-none border-none text-sm font-semibold text-muted-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent hover:text-foreground transition-colors"
+                    >
+                      Rules
+                    </TabsTrigger>
+                  )}
+                  {t.winners.length > 0 && (
+                    <TabsTrigger
+                      value="winners"
+                      className="bg-transparent px-0 py-1.5 shadow-none border-none text-sm font-semibold text-muted-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent hover:text-foreground transition-colors"
+                    >
+                      Winners
+                    </TabsTrigger>
+                  )}
+                </TabsList>
+
+                {descContent && (
+                  <TabsContent value="description">
+                    <div className="bg-accent/40 rounded-2xl border border-border/80 p-6 prose prose-sm max-w-none shadow-sm">
+                      {t.descriptionMarkdown ? (
+                        <MarkdownRenderer content={t.descriptionMarkdown} />
+                      ) : (
+                        <div dangerouslySetInnerHTML={{ __html: t.descriptionHtml ?? "" }} />
+                      )}
+                    </div>
+                  </TabsContent>
+                )}
+
+                {rulesContent && (
+                  <TabsContent value="rules">
+                    <div className="bg-accent/40 rounded-2xl border border-border/80 p-6 prose prose-sm max-w-none shadow-sm">
+                      {t.rulesMarkdown ? (
+                        <MarkdownRenderer content={t.rulesMarkdown} />
+                      ) : (
+                        <div dangerouslySetInnerHTML={{ __html: t.rulesHtml ?? "" }} />
+                      )}
+                    </div>
+                  </TabsContent>
+                )}
+
+                {t.winners.length > 0 && (
+                  <TabsContent value="winners">
+                    <div className="bg-accent/40 rounded-2xl border border-border/80 p-6 shadow-sm">
+                      <h2 className="font-semibold text-foreground flex items-center gap-2 mb-4">
+                        <Crown className="h-5 w-5 text-foreground" /> Winners
+                      </h2>
+                      <div className="space-y-3">
+                        {t.winners.map((w, i) => (
+                          <div key={w.id} className={`flex items-center justify-between p-4 rounded-xl border ${i === 0 ? "bg-warning/10 border-warning/20" : i === 1 ? "bg-secondary border-border" : "bg-primary/10/30 border-primary/10"}`}>
+                            <div className="flex items-center gap-3">
+                              <span className={`text-2xl font-black ${i === 0 ? "text-warning" : i === 1 ? "text-muted-foreground" : "text-primary/70"}`}>
+                                {w.placement}
+                              </span>
+                              <div>
+                                <p className="font-semibold text-foreground">{w.userGameName || w.userName}</p>
+                              </div>
+                            </div>
+                            {w.prizeAmount > 0 && (
+                              <span className="font-bold text-primary">₹{w.prizeAmount}</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </TabsContent>
+                )}
+              </Tabs>
+            )}
           </div>
 
           {/* Sidebar */}
