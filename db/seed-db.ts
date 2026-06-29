@@ -899,6 +899,260 @@ async function seedChatbotConfig() {
   console.log("✅ chatbot_config seeded (disabled — configure Gemini API key before going live).");
 }
 
+// ─── 12. Custom Pages ─────────────────────────────────────────────────────────
+
+async function seedCustomPages() {
+  console.log("💾 Seeding custom_pages...");
+
+  const pages = [
+    {
+      id: "contact",
+      slug: "contact",
+      title: "Contact",
+      content: `# Contact
+
+Have a question, a payment issue, or something else on your mind? Here's how to reach us.
+
+---
+
+## About 1OnlySarkar
+
+1OnlySarkar is an Indian Free Fire esports platform where players compete in daily Solo, Duo, and Squad tournaments for real cash prizes. We're built around fair competition, quick payouts, and making competitive gaming accessible to everyone.
+
+---
+
+## Contact Details
+
+| | |
+|---|---|
+| **Name** | 1OnlySarkar |
+| **Instagram** | [@1onlysarkar](https://instagram.com/1onlysarkar) |
+| **Email** | [sauravmiami@gmail.com](mailto:sauravmiami@gmail.com) |
+| **Website** | [1onlysarkar.shop](https://1onlysarkar.shop) |
+
+---
+
+## Instagram — Fastest Response
+
+For anything urgent — a match-day query, a quick question, or something that just can't wait — Instagram DM is the fastest way to get hold of us.
+
+**[@1onlysarkar](https://instagram.com/1onlysarkar)**
+
+We also post tournament schedules, winner announcements, and platform updates there. Follow us to stay in the loop.
+
+---
+
+## Email Support
+
+For anything that needs more detail — a payment dispute, an account issue, a ban appeal, or a formal query — email is the better channel.
+
+**[sauravmiami@gmail.com](mailto:sauravmiami@gmail.com)**
+
+To help us respond faster, please include:
+
+- Your **registered email address**
+- Your **Free Fire UID**
+- A clear description of the issue
+
+---
+
+## Response Times
+
+| Channel | Typical Response |
+|---------|-----------------|
+| Instagram DM | 1 – 6 hours |
+| Email | 12 – 24 hours |
+
+Response times may be longer on weekends and late at night.
+
+---
+
+## Reporting a Cheater
+
+To report a player for cheating, hacking, or teaming, use the dedicated reporting form — not a direct message. This ensures the report is logged and reviewed properly.
+
+→ [Submit a Cheater Report](/cheater-report)
+
+---
+
+## Check These First
+
+A lot of common questions are already answered in our help pages:
+
+- [How to Join a Tournament](/how-to-join)
+- [Payment Help Guide](/payment-help)
+- [Tournament Rules & Fair Play](/rules)
+- [Frequently Asked Questions](/faq)`,
+      status: "published",
+      metaTitle: "Contact Us — 1OnlySarkar",
+      metaKeywords: "1onlysarkar contact, free fire tournament support india, 1onlysarkar instagram, contact 1onlysarkar, tournament help india",
+      metaDescription: "Get in touch with 1OnlySarkar for tournament support, payment issues, or general questions. Reach us on Instagram or via email — we respond fast.",
+      ogImage: "",
+      robots: "index, follow",
+    },
+    {
+      id: "how-to-join",
+      slug: "how-to-join",
+      title: "How to Join a Tournament",
+      content: `# How to Join a Tournament
+
+Joining a tournament on 1OnlySarkar takes less than a minute once your account is set up. This guide walks you through everything — from registration to entering the custom room on match day.
+
+---
+
+## Step 1: Create Your Account
+
+Go to the [Sign Up](/sign-up) page and register using your email address or Google account.
+
+Once you're in, head to [Profile Settings](/dashboard/settings) and fill in:
+
+- Your **Free Fire Game Name**
+- Your **Free Fire UID**
+
+These are required before you can join any tournament. Your UID is how the admin verifies your identity after the match — so make sure it's correct.
+
+Already have an account? Just [Sign In](/sign-in) and double-check that your UID is up to date.
+
+---
+
+## Step 2: Add Balance to Your Wallet (Paid Tournaments)
+
+If you're joining a paid tournament, you'll need funds in your wallet before you can book a slot.
+
+Go to **Dashboard → My Wallet**, scan the UPI QR code, complete the payment, and enter your **UTR number** to verify the transaction. Your balance will be updated once verified.
+
+For free tournaments, you can skip this step entirely — no balance required.
+
+---
+
+## Step 3: Browse and Find a Tournament
+
+Head to the [Tournaments](/tournaments) page. Every active, upcoming, and completed event is listed there.
+
+Use the filters on the left to find what suits you:
+
+**By Entry Fee**
+- All Fees
+- Free Entry
+- Paid Entry
+
+**By Team Format**
+- Solo Only
+- Duo Only
+- Squad Only
+
+The tabs at the top — **All Events · Live Now · Upcoming · Active · Completed** — let you sort by match status so you can quickly find something that's about to go live.
+
+---
+
+## Step 4: Check the Tournament Details
+
+Click on any tournament card to open the full details. Read through everything before registering:
+
+| Field | What It Tells You |
+|-------|-------------------|
+| Prize Pool | Total winnings on offer |
+| Entry Fee | Amount deducted from your wallet |
+| Date & Time | When the match starts |
+| Slots Available | Remaining spots |
+| Format | Solo / Duo / Squad |
+| Rules & Description | Any specific instructions from the admin |
+
+---
+
+## Step 5: Book Your Slot
+
+### Solo Tournaments
+You'll see a list of numbered slots. Pick any available slot and hit **Join**. Your entry fee is deducted from your wallet at this point.
+
+### Duo Tournaments
+Teams of two are listed. Find a team with one open spot, select your slot within that team, and confirm. Entry fee is deducted immediately.
+
+### Squad Tournaments
+Teams have four slots each. Pick a team that has room, choose your slot, and join. Entry fee comes out of your wallet right away.
+
+> **Note:** If your wallet balance is less than the entry fee, the system will not let you proceed. Top up first via **Dashboard → My Wallet**.
+
+---
+
+## Step 6: Getting Your Room ID and Password
+
+Once every slot in the tournament is filled, the admin will set the **Room ID** and **Room Password** for the custom match.
+
+You'll get an **email notification** as soon as the credentials are available.
+
+You can view them in two places:
+
+**Option 1 — Tournaments Page**
+Go to [Tournaments](/tournaments), find your registered event, and the Room ID and Password will appear on the tournament card or its detail page.
+
+**Option 2 — Your Dashboard**
+Go to **Dashboard → My Tournaments**. All your joined tournaments are listed there. Open the event and you'll find the room credentials inside.
+
+---
+
+## Step 7: Enter the Room and Play
+
+1. Open Free Fire on your device.
+2. Navigate to the **Custom Room** section.
+3. Enter the **Room ID** and **Password** exactly as shown.
+4. Your **slot number** tells you which position you occupy — keep that in mind.
+5. Wait for the host to start the match and play your best.
+
+> Do not share your Room ID or Password with anyone outside the tournament. Leaking credentials is a violation of our rules and may get your account banned.
+
+---
+
+## Step 8: Results and Prize Payout
+
+After the match, results are posted on the tournament's detail page. If you finish in a winning position, your prize is **automatically credited to your wallet** — no need to claim it manually.
+
+From your wallet, you can withdraw to your UPI ID or bank account whenever you like.
+
+---
+
+## Something Not Working?
+
+- [FAQ](/faq) — Answers to the most common questions about slots, payments, and room keys
+- [Payment Help](/payment-help) — Detailed guide for UPI deposits and UTR verification
+- [Contact Support](/contact) — Reach out directly if you're stuck`,
+      status: "published",
+      metaTitle: "How to Join a Tournament — 1OnlySarkar",
+      metaKeywords: "how to join free fire tournament, 1onlysarkar tournament guide, free fire custom room india, solo duo squad free fire tournament, free fire tournament registration",
+      metaDescription: "Step-by-step guide to joining Free Fire tournaments on 1OnlySarkar. Book your slot, get the Room ID, enter the custom room, and compete for real cash prizes.",
+      ogImage: "",
+      robots: "index, follow",
+    }
+  ];
+
+  for (const page of pages) {
+    await db
+      .insert(customPage)
+      .values({
+        ...page,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: customPage.id,
+        set: {
+          slug: page.slug,
+          title: page.title,
+          content: page.content,
+          status: page.status,
+          metaTitle: page.metaTitle,
+          metaDescription: page.metaDescription,
+          metaKeywords: page.metaKeywords,
+          ogImage: page.ogImage,
+          robots: page.robots,
+          updatedAt: new Date(),
+        },
+      });
+  }
+
+  console.log("✅ custom_pages seeded.");
+}
+
 async function main() {
   console.log("🚀 Starting database seed...\n");
 
@@ -913,6 +1167,7 @@ async function main() {
   await seedWithdrawConfig();
   await seedTopPlayers();
   await seedChatbotConfig();
+  await seedCustomPages();
 
   console.log("\n✅ All tables seeded successfully.");
   await client.end();
