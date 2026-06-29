@@ -73,8 +73,8 @@ export async function generateMetadata(): Promise<Metadata> {
       ],
     };
 
-    const ogImageFallback = seo.ogImage || "/assets/og-image.webp";
-    const twitterImageFallback = seo.twitterImage || seo.ogImage || "/assets/og-image.webp";
+    const ogImageFallback = seo.ogImage || "/assets/og-image.png";
+    const twitterImageFallback = seo.twitterImage || seo.ogImage || "/assets/og-image.png";
 
     if (seo.ogTitle || seo.ogDescription || ogImageFallback || siteName) {
       metadata.openGraph = {
@@ -137,28 +137,16 @@ export default async function RootLayout({
       suppressHydrationWarning
       className={`${lora.variable} ${ibmPlex.variable}`}
     >
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* eslint-disable-next-line @next/next/google-font-preconnect */}
-        <link
-          rel="preload"
-          href="https://fonts.gstatic.com/s/momotrustdisplay/v2/WWXPlieNYgyPZLyBUuEkKZFhFHyjqb1emGZJ.ttf"
-          as="font"
-          type="font/ttf"
-          crossOrigin="anonymous"
-        />
-        {structuredData && (
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: structuredData }}
-          />
-        )}
-      </head>
       <body
         className="antialiased min-h-screen bg-background font-sans"
         suppressHydrationWarning
       >
+        {structuredData && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: structuredData.replace(/</g, "\\u003c") }}
+          />
+        )}
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

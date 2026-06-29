@@ -1,15 +1,15 @@
 /* TEAM */
 Developer: 1onlysarkar
-Site: 1onlysarkar.com
+Site: development.1onlysarkar.shop
 Instagram: https://www.instagram.com/1onlysarkar/
 Location: India
 
 /* THANKS */
-Next.js, Drizzle ORM, Better Auth, Radix UI, Tailwind CSS
+Next.js 16, React 19, Better Auth, Drizzle ORM, Radix UI, Tailwind CSS v4, Motion
 
 /* SITE */
-Last update: 2026/06/25
-Language: English (India)
+Last update: 2026/06/29
+Language: English (IBM)
 Doctype: HTML5
 IDE: VS Code
-Standards: HTML5, CSS3, TypeScript
+Standards: HTML5, CSS3, TypeScript, React 19, Next.js 16, Tailwind CSS v4

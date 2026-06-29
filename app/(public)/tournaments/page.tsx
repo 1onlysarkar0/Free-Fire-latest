@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { Metadata } from "next";
 import TournamentsClient from "./_components/tournaments-client";
@@ -10,7 +11,6 @@ import { db } from "@/db/drizzle";
 import { tournamentParticipant } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
-export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   const [seo, config] = await Promise.all([
@@ -22,6 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function TournamentsPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
+  await connection();
   const params = await searchParams;
   const statusFilter = params.status || "ACTIVE,UPCOMING,ROOM_REVEALED,LIVE";
   const sessionPromise = auth.api.getSession({ headers: await headers() }).catch(() => null);

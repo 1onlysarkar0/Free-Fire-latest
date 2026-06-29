@@ -1,7 +1,7 @@
 # 1OnlySarkar Free Fire Tournaments
 
 ## About
-Join daily Free Fire tournaments on 1onlySarkar — Solo, Duo & Squad. Low entry fees, real cash prize pools, and instant UPI withdrawal. Register free and start competing today!
+Join daily Free Fire tournaments on 1onlysarkar — Solo, Duo & Squad. Low entry fees, real cash prize pools, and instant UPI withdrawal. Register free and start competing today!
 
 ## Navigation and Information Routes
 
@@ -31,8 +31,14 @@ Join daily Free Fire tournaments on 1onlySarkar — Solo, Duo & Squad. Low entry
 - **PAID Tournaments** — Requires wallet balance entry fee in INR.
 - **Prize Payouts** — Credited directly to the UPI wallet after match verification, and withdrawable via bank/UPI.
 
+## Technical Specifications
+- **Framework**: Next.js 16.2.9 (App Router)
+- **Runtime**: React 19.2.7
+- **Database**: PostgreSQL (Drizzle ORM)
+- **Styling**: Tailwind CSS v4.3.1
+- **Auth**: Better Auth 1.6.22
+
 ## Official Links
-- **Website**: [1onlysarkar.com](https://www.1onlysarkar.com)
+- **Website**: [development.1onlysarkar.shop](https://development.1onlysarkar.shop)
 - **Instagram**: [instagram.com/1onlysarkar](https://instagram.com/1onlysarkar)
-- **Support Email**: [reply@1onlysarkar.shop](mailto:reply@1onlysarkar.shop)
-- **Source Repository**: [github.com/1onlysarkar0/1onlysarkar0](https://github.com/1onlysarkar0/1onlysarkar0)
+- **Support Email**: [sauravmiami@gmail.com](mailto:sauravmiami@gmail.com)

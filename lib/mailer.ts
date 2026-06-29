@@ -124,10 +124,10 @@ export async function sendEmail({ to, templateName, variables = {} }: SendEmailO
   const config = configs[0];
 
   const mergedVariables = {
-    siteName: config?.logoTitle ?? "1OnlySarkar",
+    siteName: config?.logoTitle ?? "",
     siteLogo: config?.logoSrc ?? "/assets/logo.webp",
-    copyrightText: config?.copyrightText ?? `© ${new Date().getFullYear()} 1OnlySarkar. All rights reserved.`,
-    contactEmail: config?.contactEmail ?? "support@1onlysarkar.shop",
+    copyrightText: config?.copyrightText ?? "",
+    contactEmail: config?.contactEmail ?? "",
     companyAddress: config?.companyAddress ?? "",
     ...variables,
   };

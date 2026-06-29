@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next";
 
-export const dynamic = "force-dynamic";
 
 /**
  * Allowlist-based robots.txt.
@@ -15,8 +14,16 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/$", "/tournaments$", "/tournaments/"],
-        disallow: "/",
+        allow: ["/", "/tournaments", "/tournaments/"],
+        disallow: [
+          "/dashboard",
+          "/api",
+          "/sign-in",
+          "/sign-up",
+          "/forgot-password",
+          "/reset-password",
+          "/complete-profile",
+        ],
       },
     ],
     sitemap: baseUrl ? `${baseUrl}/sitemap.xml` : undefined,

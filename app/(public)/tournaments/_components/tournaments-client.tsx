@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
 import { Trophy, Search, Clock, Zap, ChevronRight, Filter, Users2, UserCheck, CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { TOURNAMENT_STATUS_COLORS, TOURNAMENT_STATUS_LABELS } from "@/lib/constants";
 import { TournamentListItem } from "@/lib/tournaments";
@@ -99,10 +99,10 @@ export default function TournamentsClient({
     return result;
   }, [tournaments, search, gameModeFilter, entryFeeFilter]);
 
-  const SidebarFilters = () => (
+  const renderSidebarFilters = () => (
     <div className="space-y-8">
       <div className="space-y-3">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground px-1">Entry Fee</h3>
+        <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground px-1">Entry Fee</h2>
         <Tabs value={entryFeeFilter} onValueChange={setEntryFeeFilter} className="w-full">
           <TabsList className="flex flex-col h-auto w-full">
             {[
@@ -115,11 +115,14 @@ export default function TournamentsClient({
               </TabsTrigger>
             ))}
           </TabsList>
+          {["ALL", "FREE", "PAID"].map((v) => (
+            <TabsContent key={v} value={v} className="hidden" />
+          ))}
         </Tabs>
       </div>
 
       <div className="space-y-3">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground px-1">Team Format</h3>
+        <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground px-1">Team Format</h2>
         <Tabs value={gameModeFilter} onValueChange={setGameModeFilter} className="w-full">
           <TabsList className="flex flex-col h-auto w-full">
             {[
@@ -133,6 +136,9 @@ export default function TournamentsClient({
               </TabsTrigger>
             ))}
           </TabsList>
+          {["ALL", "SOLO", "DUO", "SQUAD"].map((v) => (
+            <TabsContent key={v} value={v} className="hidden" />
+          ))}
         </Tabs>
       </div>
     </div>
@@ -171,7 +177,7 @@ export default function TournamentsClient({
                 <SheetHeader className="mb-6">
                   <SheetTitle className="font-lora">Filters</SheetTitle>
                 </SheetHeader>
-                <SidebarFilters />
+                {renderSidebarFilters()}
               </SheetContent>
             </Sheet>
           </div>
@@ -181,7 +187,7 @@ export default function TournamentsClient({
       <div className="flex flex-col lg:flex-row gap-10 items-start">
         {/* Desktop Sticky Sidebar */}
         <aside className="hidden lg:block w-64 shrink-0 sticky top-24">
-          <SidebarFilters />
+          {renderSidebarFilters()}
         </aside>
 
         {/* Main Content Area */}
@@ -252,9 +258,9 @@ export default function TournamentsClient({
                         </div>
                       </div>
 
-                      <h3 className="text-lg font-bold text-foreground leading-tight mb-3 font-lora group-hover:text-primary transition-colors line-clamp-2">
+                      <h2 className="text-lg font-bold text-foreground leading-tight mb-3 font-lora group-hover:text-primary transition-colors line-clamp-2">
                         {t.name}
-                      </h3>
+                      </h2>
 
                       {/* Metadata Badges */}
                       <div className="flex flex-wrap gap-1.5 mb-5">

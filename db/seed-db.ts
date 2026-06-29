@@ -33,6 +33,7 @@ import {
   user,
   chatbot_config,
   withdrawConfig,
+  customPage,
 } from "./schema";
 
 // ─── DB Connection ────────────────────────────────────────────────────────────
@@ -898,6 +899,55 @@ async function seedChatbotConfig() {
   console.log("✅ chatbot_config seeded (disabled — configure Gemini API key before going live).");
 }
 
+async function seedCustomPages() {
+  console.log("💾 Seeding custom_pages...");
+
+  const pages = [
+    {
+      id: "about",
+      slug: "about",
+      title: "About Us",
+      content: "<h1>About Us</h1><p>We are a premium Free Fire and esports tournament platform. Host, join, and win rewards.</p>",
+      status: "published",
+      metaTitle: "About Us — Esports Tournament Platform",
+      metaDescription: "Learn more about our premium Free Fire and esports tournament hosting platform.",
+    },
+    {
+      id: "contact",
+      slug: "contact",
+      title: "Contact Us",
+      content: "<h1>Contact Us</h1><p>For support, sponsorships, or queries, contact us at: support@yourdomain.com</p>",
+      status: "published",
+      metaTitle: "Contact Us — Esports Tournament Platform",
+      metaDescription: "Get in touch with support or admins of our gaming tournament platform.",
+    },
+    {
+      id: "privacy-policy",
+      slug: "privacy-policy",
+      title: "Privacy Policy",
+      content: "<h1>Privacy Policy</h1><p>We respect your privacy and protect your data. Your game credentials and payment verification logs are securely stored and encrypted.</p>",
+      status: "published",
+      metaTitle: "Privacy Policy — Esports Tournament Platform",
+      metaDescription: "Read the privacy policy and data protection terms for using our platform.",
+    },
+    {
+      id: "terms",
+      slug: "terms",
+      title: "Terms and Conditions",
+      content: "<h1>Terms and Conditions</h1><p>By registering on this platform, you agree to follow the tournament rules. Double-spending, cheating, or toxic behavior will result in a permanent ban.</p>",
+      status: "published",
+      metaTitle: "Terms and Conditions — Esports Tournament Platform",
+      metaDescription: "Read our rules, terms of service, and tournament participation agreements.",
+    },
+  ];
+
+  for (const page of pages) {
+    await db.insert(customPage).values(page).onConflictDoNothing();
+  }
+
+  console.log("✅ custom_pages seeded.");
+}
+
 
 
 async function main() {
@@ -914,6 +964,7 @@ async function main() {
   await seedWithdrawConfig();
   await seedTopPlayers();
   await seedChatbotConfig();
+  await seedCustomPages();
 
   console.log("\n✅ All tables seeded successfully.");
   await client.end();

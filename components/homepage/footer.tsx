@@ -31,7 +31,6 @@ export default async function FooterSection() {
         <Link
           href={logo.url}
           prefetch={true}
-          aria-label="go home"
           className="mx-auto flex items-center justify-center gap-2.5 hover:opacity-90 transition-opacity size-fit"
         >
           <Image src={logo.src} className="w-8 h-8 object-contain" alt={logo.alt} width={32} height={32} suppressHydrationWarning />
@@ -73,6 +72,17 @@ export default async function FooterSection() {
             ))}
           </div>
         )}
+
+        {/* Static Legal Links for E-E-A-T and Compliance */}
+        <div className="mt-8 flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs text-muted-foreground font-ibm">
+          <Link href="/about" prefetch={true} className="hover:text-primary transition-colors">About Us</Link>
+          <span>•</span>
+          <Link href="/contact" prefetch={true} className="hover:text-primary transition-colors">Contact</Link>
+          <span>•</span>
+          <Link href="/privacy-policy" prefetch={true} className="hover:text-primary transition-colors">Privacy Policy</Link>
+          <span>•</span>
+          <Link href="/terms" prefetch={true} className="hover:text-primary transition-colors">Terms of Service</Link>
+        </div>
 
         {/* Copyright — sourced from DB siteConfig.copyrightText */}
         <Muted

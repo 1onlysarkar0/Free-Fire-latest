@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   reactStrictMode: true,
   compress: true,
   poweredByHeader: false,
@@ -14,9 +15,6 @@ const nextConfig: NextConfig = {
   ],
   typescript: {
     ignoreBuildErrors: false,
-  },
-  eslint: {
-    ignoreDuringBuilds: false,
   },
   experimental: {
     serverActions: {

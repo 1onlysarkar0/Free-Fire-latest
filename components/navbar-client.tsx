@@ -284,14 +284,15 @@ const renderMenuItem = (item: MenuItem) => {
   }
 
   return (
-    <Link
-      key={item.title}
-      className="inline-flex w-max items-center justify-center rounded-md px-4 py-2 text-sm font-semibold text-foreground hover:text-primary hover:bg-accent transition-colors duration-150"
-      href={item.url}
-      prefetch={true}
-    >
-      {item.title}
-    </Link>
+    <NavigationMenuItem key={item.title}>
+      <Link
+        className="inline-flex w-max items-center justify-center rounded-md px-4 py-2 text-sm font-semibold text-foreground hover:text-primary hover:bg-accent transition-colors duration-150"
+        href={item.url}
+        prefetch={true}
+      >
+        {item.title}
+      </Link>
+    </NavigationMenuItem>
   );
 };
 

@@ -1,5 +1,5 @@
 import React, { useState, Children, useRef, useLayoutEffect, ReactNode } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 
 import "./stepper.css";
 
@@ -48,10 +48,10 @@ export default function Stepper({
   const currentStep = controlledStep !== undefined ? controlledStep : internalStep;
   const [direction, setDirection] = useState(0);
 
-  const lastStepRef = useRef(currentStep);
-  if (currentStep !== lastStepRef.current) {
-    setDirection(currentStep > lastStepRef.current ? 1 : -1);
-    lastStepRef.current = currentStep;
+  const [prevStep, setPrevStep] = useState(currentStep);
+  if (currentStep !== prevStep) {
+    setDirection(currentStep > prevStep ? 1 : -1);
+    setPrevStep(currentStep);
   }
 
   const stepsArray = Children.toArray(children);

@@ -10,24 +10,22 @@ Production: **https://1onlysarkar.shop**
 
 | Layer | Technology |
 | :--- | :--- |
-| Framework | Next.js 15.5 (App Router, Server Components, Server Actions) |
-| Language | TypeScript 5.9 |
-| Authentication | Better Auth 1.6 (Email+Password, Google OAuth, TOTP 2FA) |
+| Framework | Next.js 16.2 (App Router, Server Components, Server Actions) |
+| Language | TypeScript 6.0 |
+| Authentication | Better Auth 1.6.22 (Email+Password, Google OAuth, TOTP 2FA) |
 | Database | PostgreSQL (Supabase Pooler) |
 | ORM | Drizzle ORM 0.45 + Drizzle Kit 0.31 |
 | Styling | Tailwind CSS v4.3 + Radix UI + shadcn/ui (new-york style) |
-| State Management | @tanstack/react-query 5.100 |
-| Forms | react-hook-form 7.76 + Zod 3.25 validation |
-| Payment Gateway | Gmail IMAP UTR Scraper (`node-imap`, `mailparser`) |
+| Forms | Zod 3.25 validation |
+| Payment Gateway | Gmail IMAP UTR Scraper (`imapflow`, `mailparser`) |
 | QR Code | `qrcode.react` (client-side SVG) |
-| Charts | Recharts 3.8 |
 | Deployment | Vercel (serverless) / Docker |
 | Email Dispatch | Nodemailer 9.0 (SMTP credentials & multi-provider configs stored in DB) |
 | Code Editor | Monaco Editor (VS Code engine React wrapper) |
 | React Email | Standard templates compilation and static rendering (`react-dom/server`) |
 | Analytics | Vercel Analytics |
 | Instagram | Instagram Graph API v25.0 (business_discovery for avatar fetch) |
-| Animation | Framer Motion 12.40 / Motion 12.40 |
+| Animation | Motion 12.42 (Consolidated animation engine) |
 | AI Chatbot | Google Gemini API (streaming SSE, Gemini-only + custom endpoint) |
 
 ---

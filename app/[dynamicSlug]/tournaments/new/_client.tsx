@@ -56,27 +56,28 @@ export default function NewTournamentClient({ dynamicSlug }: NewTournamentClient
   const [rulesTemplates, setRulesTemplates] = useState<ContentTemplate[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(true);
 
-  const defaultStart = new Date(Date.now() + 24 * 60 * 60 * 1000);
-  const defaultDeadline = new Date(Date.now() + 22 * 60 * 60 * 1000);
-
-  const [form, setForm] = useState({
-    name: "",
-    type: "FREE",
-    joiningFee: 0,
-    prizePool: 0,
-    gameMode: "battle_royale",
-    teamFormat: "solo",
-    maps: [] as string[],
-    totalSlots: 48,
-    startTime: toDatetimeLocal(defaultStart),
-    registrationDeadline: toDatetimeLocal(defaultDeadline),
-    endTime: "",
-    descriptionTemplateId: "",
-    rulesTemplateId: "",
-    descriptionHtml: "",
-    descriptionMarkdown: "",
-    rulesHtml: "",
-    rulesMarkdown: "",
+  const [form, setForm] = useState(() => {
+    const defaultStart = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const defaultDeadline = new Date(Date.now() + 22 * 60 * 60 * 1000);
+    return {
+      name: "",
+      type: "FREE",
+      joiningFee: 0,
+      prizePool: 0,
+      gameMode: "battle_royale",
+      teamFormat: "solo",
+      maps: [] as string[],
+      totalSlots: 48,
+      startTime: toDatetimeLocal(defaultStart),
+      registrationDeadline: toDatetimeLocal(defaultDeadline),
+      endTime: "",
+      descriptionTemplateId: "",
+      rulesTemplateId: "",
+      descriptionHtml: "",
+      descriptionMarkdown: "",
+      rulesHtml: "",
+      rulesMarkdown: "",
+    };
   });
 
   useEffect(() => {

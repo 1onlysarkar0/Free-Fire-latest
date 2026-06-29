@@ -1051,6 +1051,24 @@ export function moderateInput(content: string): { safe: boolean; reason?: string
   return { safe: true };
 }
 
+/**
+ * Sanitizes and redacts potential sensitive credentials, api keys, and connection
+ * strings from assistant responses (preventing prompt-injection leaks).
+ */
+export function redactSensitiveData(text: string): string {
+  let redacted = text;
+  
+  // Redact Database connection strings
+  redacted = redacted.replace(/postgres(?:ql)?:\/\/[^\s"'<>]+/gi, "[DATABASE_URL_REDACTED]");
+  
+  // Redact common API keys/secrets
+  redacted = redacted.replace(/AIzaSy[A-Za-z0-9_\-]{35}/gi, "[API_KEY_REDACTED]");
+  redacted = redacted.replace(/SG\.[a-zA-Z0-9_\-\.]{22}\.[a-zA-Z0-9_\-\.]{43}/gi, "[SENDGRID_KEY_REDACTED]");
+  redacted = redacted.replace(/re_[a-zA-Z0-9]{8}_[a-zA-Z0-9]{24}/gi, "[RESEND_KEY_REDACTED]");
+  
+  return redacted;
+}
+
 // ═══════════════════════════════════════════════════════════
 // CONNECTION TEST
 // ═══════════════════════════════════════════════════════════

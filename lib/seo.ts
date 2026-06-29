@@ -131,8 +131,8 @@ export function buildMetadata(
     ],
   };
 
-  const ogImageFallback = seo.ogImage || "/assets/og-image.webp";
-  const twitterImageFallback = seo.twitterImage || seo.ogImage || "/assets/og-image.webp";
+  const ogImageFallback = seo.ogImage || "/assets/og-image.png";
+  const twitterImageFallback = seo.twitterImage || seo.ogImage || "/assets/og-image.png";
 
   // Open Graph
   if (seo.ogTitle || seo.ogDescription || ogImageFallback || siteName) {

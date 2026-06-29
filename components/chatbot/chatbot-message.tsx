@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useMemo } from "react";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 import { AvatarDisplay } from "@/components/ui/avatar-display";
 import { AlertCircle } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import clsx from "clsx";
 import type { ChatMessage } from "@/hooks/use-chatbot";
 

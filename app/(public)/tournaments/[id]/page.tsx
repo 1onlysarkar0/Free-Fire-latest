@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { Metadata } from "next";
 import TournamentDetailClient from "./_components/tournament-detail-client";
 import { getTournamentDetail, getViewerTournamentDetail } from "@/lib/tournaments";
@@ -7,7 +8,6 @@ import { headers } from "next/headers";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "";
 
-export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -23,6 +23,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     const description = `Join ${t.name}. ${t.type === "FREE" ? "Free entry" : `Entry fee: ₹${t.joiningFee}`}. Prize pool: ₹${t.prizePool}. ${t.gameMode} mode. ${t.totalSlots} slots available.`;
     const url = `${APP_URL}/tournaments/${id}`;
 
+    const ogImage = config?.logoSrc || "/assets/og-image.png";
+
     return {
       title,
       description,
@@ -33,11 +35,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         title,
         description,
         siteName,
+        images: [{ url: ogImage, width: 1200, height: 630 }],
       },
       twitter: {
         card: "summary_large_image",
         title,
         description,
+        images: [ogImage],
       },
     };
   } catch {
@@ -46,6 +50,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 }
 
 export default async function TournamentDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  await connection();
   const { id } = await params;
   const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
 
@@ -61,6 +66,12 @@ export default async function TournamentDetailPage({ params }: { params: Promise
         name: initialData.name,
         description: `${initialData.gameMode} gaming tournament. Prize pool: ₹${initialData.prizePool}.`,
         url: `${APP_URL}/tournaments/${id}`,
+        startDate: initialData.startTime,
+        eventAttendanceMode: "https://schema.org/OnlineEventAttendanceMode",
+        location: {
+          "@type": "VirtualLocation",
+          url: `${APP_URL}/tournaments/${id}`,
+        },
         organizer: {
           "@type": "Organization",
           name: siteConfig?.logoTitle ?? "",

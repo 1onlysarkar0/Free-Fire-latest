@@ -72,11 +72,19 @@ export async function validateAdminRequest(
   }
 }
 
+import { verifyCsrf } from "@/lib/security/csrf";
+
 // Require admin or role in API routes; returns 401/403 response or the user
 export async function requireAdminOrRole(
   request: Request,
   permission?: string
 ): Promise<AdminUser | Response> {
+  // Validate CSRF before performing authentication/authorization checks
+  const isCsrfValid = await verifyCsrf(request);
+  if (!isCsrfValid) {
+    return Response.json({ error: "CSRF verification failed" }, { status: 403 });
+  }
+
   const adminUser = await validateAdminRequest(request);
 
   if (!adminUser) {

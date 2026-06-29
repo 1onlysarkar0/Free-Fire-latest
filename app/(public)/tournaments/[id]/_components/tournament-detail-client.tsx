@@ -212,9 +212,9 @@ export default function TournamentDetailClient({ id, initialData, initialIsLogge
                 {t.winners.length > 0 && (
                   <TabsContent value="winners">
                     <div className="bg-accent/40 rounded-2xl border border-border/80 p-6 shadow-sm">
-                      <h3 className="font-semibold text-foreground flex items-center gap-2 mb-4">
+                      <h2 className="font-semibold text-foreground flex items-center gap-2 mb-4">
                         <Crown className="h-5 w-5 text-foreground" /> Winners
-                      </h3>
+                      </h2>
                       <div className="space-y-3">
                         {t.winners.map((w, i) => (
                           <div key={w.id} className={`flex items-center justify-between p-4 rounded-xl border ${i === 0 ? "bg-warning/10 border-warning/20" : i === 1 ? "bg-secondary border-border" : "bg-primary/10/30 border-primary/10"}`}>
@@ -240,9 +240,9 @@ export default function TournamentDetailClient({ id, initialData, initialIsLogge
 
             {/* Slots section (Always Visible) */}
             <div className="bg-accent/40 rounded-2xl border border-border/80 p-6 shadow-sm mt-6">
-              <h3 className="font-semibold text-foreground mb-1">
+              <h2 className="font-semibold text-foreground mb-1">
                 {isTeamFormat ? "Team Slots" : "Player Slots"}
-              </h3>
+              </h2>
               <p className="text-sm text-muted-foreground mb-4">
                 {canJoin
                   ? "Click an available slot to select it before joining."
@@ -397,9 +397,9 @@ export default function TournamentDetailClient({ id, initialData, initialIsLogge
             {/* Room Credentials */}
             {showCredentials && (
               <div className="bg-accent/40 rounded-2xl border border-primary/25 p-5 shadow-sm">
-                <h3 className="font-semibold text-foreground flex items-center gap-2 mb-3">
+                <h2 className="font-semibold text-foreground flex items-center gap-2 mb-3">
                   <Key className="h-5 w-5 text-foreground" /> Room Credentials
-                </h3>
+                </h2>
                 <div className="space-y-3">
                   <div className="p-3 bg-primary/10 rounded-xl">
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1">Room ID</p>
@@ -420,9 +420,9 @@ export default function TournamentDetailClient({ id, initialData, initialIsLogge
             {/* My Slot */}
             {isParticipant && t.userSlot && (
               <div className="bg-accent/40 rounded-2xl border border-success/25 p-5 shadow-sm">
-                <h3 className="font-semibold text-foreground flex items-center gap-2 mb-3">
+                <h2 className="font-semibold text-foreground flex items-center gap-2 mb-3">
                   <Check className="h-5 w-5 text-foreground" /> You&apos;re Registered
-                </h3>
+                </h2>
                 <div className="p-3 bg-success/10 rounded-xl text-center">
                   <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest mb-1">Your Slot</p>
                   {isTeamFormat && t.userSlot.teamName ? (
@@ -440,7 +440,7 @@ export default function TournamentDetailClient({ id, initialData, initialIsLogge
             {/* Join Card */}
             {canJoin && (
               <div className="bg-accent/40 rounded-2xl border border-border/80 p-5 shadow-sm">
-                <h3 className="font-semibold text-foreground mb-1">Join Tournament</h3>
+                <h2 className="font-semibold text-foreground mb-1">Join Tournament</h2>
                 <p className="text-sm text-muted-foreground mb-4">
                   Closes: {format(new Date(t.registrationDeadline), "dd MMM, h:mm a")}
                 </p>
@@ -517,7 +517,7 @@ export default function TournamentDetailClient({ id, initialData, initialIsLogge
 
             {/* Schedule Info */}
             <div className="bg-accent/40 rounded-2xl border border-border/80 p-5 space-y-3 shadow-sm">
-              <h3 className="font-semibold text-foreground text-sm">Schedule</h3>
+              <h2 className="font-semibold text-foreground text-sm">Schedule</h2>
               {[
                 { label: "Registration Closes", value: format(new Date(t.registrationDeadline), "dd MMM yyyy, h:mm a") },
                 { label: "Match Starts", value: format(new Date(t.startTime), "dd MMM yyyy, h:mm a") },

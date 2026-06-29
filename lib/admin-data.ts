@@ -54,7 +54,7 @@ async function _fetchAdminStats() {
   };
 }
 
-export const getAdminStatsCached = _fetchAdminStats;
+export const getAdminStatsCached = cache(_fetchAdminStats);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 2. Users & Roles
@@ -86,7 +86,7 @@ async function _fetchAdminUsers() {
   }));
 }
 
-export const getAdminUsersCached = _fetchAdminUsers;
+export const getAdminUsersCached = cache(_fetchAdminUsers);
 
 async function _fetchAdminRoles() {
   const rolesData = await db.select().from(adminRole).orderBy(desc(adminRole.createdAt));
@@ -107,7 +107,7 @@ async function _fetchAdminRoles() {
   }));
 }
 
-export const getAdminRolesCached = _fetchAdminRoles;
+export const getAdminRolesCached = cache(_fetchAdminRoles);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 3. Tournaments
@@ -116,7 +116,7 @@ async function _fetchAdminTournaments() {
   return await db.select().from(tournament).orderBy(desc(tournament.createdAt)).catch(() => []);
 }
 
-export const getAdminTournamentsCached = _fetchAdminTournaments;
+export const getAdminTournamentsCached = cache(_fetchAdminTournaments);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 4. SMTP Config
@@ -126,7 +126,7 @@ async function _fetchAdminSmtp() {
   return rows[0] || null;
 }
 
-export const getAdminSmtpCached = _fetchAdminSmtp;
+export const getAdminSmtpCached = cache(_fetchAdminSmtp);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 5. Site Config
@@ -145,7 +145,7 @@ async function _fetchAdminSeo() {
   return await db.select().from(seoConfig).orderBy(desc(seoConfig.createdAt));
 }
 
-export const getAdminSeoCached = _fetchAdminSeo;
+export const getAdminSeoCached = cache(_fetchAdminSeo);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 7. Navigation
@@ -154,7 +154,7 @@ async function _fetchAdminNavigation() {
   return await db.select().from(navigationItem).orderBy(asc(navigationItem.order));
 }
 
-export const getAdminNavigationCached = _fetchAdminNavigation;
+export const getAdminNavigationCached = cache(_fetchAdminNavigation);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 8. Email Templates
@@ -163,7 +163,7 @@ async function _fetchAdminEmailTemplates() {
   return await db.select().from(emailTemplate).orderBy(desc(emailTemplate.createdAt));
 }
 
-export const getAdminEmailTemplatesCached = _fetchAdminEmailTemplates;
+export const getAdminEmailTemplatesCached = cache(_fetchAdminEmailTemplates);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 10. Auth Page Content
@@ -172,7 +172,7 @@ async function _fetchAdminAuthContent() {
   return await db.select().from(authPageContent).orderBy(desc(authPageContent.createdAt));
 }
 
-export const getAdminAuthContentCached = _fetchAdminAuthContent;
+export const getAdminAuthContentCached = cache(_fetchAdminAuthContent);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 11. Custom Pages
@@ -181,7 +181,7 @@ async function _fetchAdminCustomPages() {
   return await db.select().from(customPage).orderBy(desc(customPage.createdAt));
 }
 
-export const getAdminCustomPagesCached = _fetchAdminCustomPages;
+export const getAdminCustomPagesCached = cache(_fetchAdminCustomPages);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 12. Content Templates
@@ -190,4 +190,4 @@ async function _fetchAdminContentTemplates() {
   return await db.select().from(contentTemplate).orderBy(desc(contentTemplate.createdAt)).catch(() => []);
 }
 
-export const getAdminContentTemplatesCached = _fetchAdminContentTemplates;
+export const getAdminContentTemplatesCached = cache(_fetchAdminContentTemplates);
