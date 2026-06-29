@@ -73,16 +73,6 @@ export default async function FooterSection() {
           </div>
         )}
 
-        {/* Static Legal Links for E-E-A-T and Compliance */}
-        <div className="mt-8 flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs text-muted-foreground font-ibm">
-          <Link href="/about" prefetch={true} className="hover:text-primary transition-colors">About Us</Link>
-          <span>•</span>
-          <Link href="/contact" prefetch={true} className="hover:text-primary transition-colors">Contact</Link>
-          <span>•</span>
-          <Link href="/privacy-policy" prefetch={true} className="hover:text-primary transition-colors">Privacy Policy</Link>
-          <span>•</span>
-          <Link href="/terms" prefetch={true} className="hover:text-primary transition-colors">Terms of Service</Link>
-        </div>
 
         {/* Copyright — sourced from DB siteConfig.copyrightText */}
         <Muted
