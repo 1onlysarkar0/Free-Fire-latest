@@ -8,10 +8,9 @@ import Link from "next/link";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 import {
   Trophy, Users, Clock, Key, Crown, ArrowLeft, Check,
-  Shield, Zap, ChevronRight,
+  Shield, Zap, ChevronRight, ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { authClient } from "@/lib/auth-client";
 import { ViewerTournamentDetail } from "@/lib/tournaments";
 import { TOURNAMENT_STATUS_COLORS } from "@/lib/constants";
@@ -33,6 +32,7 @@ export default function TournamentDetailClient({ id, initialData, initialIsLogge
   const [joining, setJoining] = useState(false);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [userDataLoaded, setUserDataLoaded] = useState(true);
+  const [infoOpen, setInfoOpen] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -309,85 +309,103 @@ export default function TournamentDetailClient({ id, initialData, initialIsLogge
             </div>
 
             {(descContent || rulesContent || t.winners.length > 0) && (
-              <Tabs defaultValue={descContent ? "description" : rulesContent ? "rules" : "winners"}>
-                <TabsList className="bg-transparent border-none flex-wrap h-auto gap-6 p-0 shadow-none text-muted-foreground mb-4">
-                  {descContent && (
-                    <TabsTrigger
-                      value="description"
-                      className="bg-transparent px-0 py-1.5 shadow-none border-none text-sm font-semibold text-muted-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent hover:text-foreground transition-colors"
-                    >
-                      Description
-                    </TabsTrigger>
-                  )}
-                  {rulesContent && (
-                    <TabsTrigger
-                      value="rules"
-                      className="bg-transparent px-0 py-1.5 shadow-none border-none text-sm font-semibold text-muted-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent hover:text-foreground transition-colors"
-                    >
-                      Rules
-                    </TabsTrigger>
-                  )}
-                  {t.winners.length > 0 && (
-                    <TabsTrigger
-                      value="winners"
-                      className="bg-transparent px-0 py-1.5 shadow-none border-none text-sm font-semibold text-muted-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent hover:text-foreground transition-colors"
-                    >
-                      Winners
-                    </TabsTrigger>
-                  )}
-                </TabsList>
+              <div className="bg-accent/40 rounded-2xl border border-border/80 shadow-sm overflow-hidden">
+                {/* Collapsible header */}
+                <button
+                  type="button"
+                  onClick={() => setInfoOpen((v) => !v)}
+                  className="w-full flex items-center justify-between px-6 py-4 hover:bg-accent/60 transition-colors text-left"
+                >
+                  <span className="font-semibold text-foreground text-sm">
+                    {t.winners.length > 0 ? "Winners & Details" : "Description & Rules"}
+                  </span>
+                  <ChevronDown
+                    className={cn(
+                      "h-4 w-4 text-muted-foreground transition-transform duration-200",
+                      infoOpen && "rotate-180"
+                    )}
+                  />
+                </button>
 
-                {descContent && (
-                  <TabsContent value="description">
-                    <div className="bg-accent/40 rounded-2xl border border-border/80 p-6 prose prose-sm max-w-none shadow-sm">
-                      {t.descriptionMarkdown ? (
-                        <MarkdownRenderer content={t.descriptionMarkdown} />
-                      ) : (
-                        <div dangerouslySetInnerHTML={{ __html: t.descriptionHtml ?? "" }} />
+                {/* Collapsible body */}
+                {infoOpen && (
+                  <div className="border-t border-border/60">
+                    {/* Tab-like navigation */}
+                    <div className="flex items-center gap-0 border-b border-border/60 px-6 overflow-x-auto">
+                      {descContent && (
+                        <button
+                          type="button"
+                          id="tab-description"
+                          onClick={() => {
+                            document.getElementById('panel-description')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                          }}
+                          className="px-0 py-3 mr-6 text-sm font-semibold text-primary border-b-2 border-primary shrink-0"
+                        >
+                          Description
+                        </button>
+                      )}
+                      {rulesContent && (
+                        <span className="px-0 py-3 mr-6 text-sm font-semibold text-muted-foreground shrink-0">
+                          Rules
+                        </span>
+                      )}
+                      {t.winners.length > 0 && (
+                        <span className="px-0 py-3 mr-6 text-sm font-semibold text-muted-foreground shrink-0">
+                          Winners
+                        </span>
                       )}
                     </div>
-                  </TabsContent>
-                )}
 
-                {rulesContent && (
-                  <TabsContent value="rules">
-                    <div className="bg-accent/40 rounded-2xl border border-border/80 p-6 prose prose-sm max-w-none shadow-sm">
-                      {t.rulesMarkdown ? (
-                        <MarkdownRenderer content={t.rulesMarkdown} />
-                      ) : (
-                        <div dangerouslySetInnerHTML={{ __html: t.rulesHtml ?? "" }} />
+                    {/* Content panels — stacked vertically when open */}
+                    <div className="divide-y divide-border/40">
+                      {descContent && (
+                        <div id="panel-description" className="p-6 prose prose-sm max-w-none">
+                          <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3">Description</h3>
+                          {t.descriptionMarkdown ? (
+                            <MarkdownRenderer content={t.descriptionMarkdown} />
+                          ) : (
+                            <div dangerouslySetInnerHTML={{ __html: t.descriptionHtml ?? "" }} />
+                          )}
+                        </div>
                       )}
-                    </div>
-                  </TabsContent>
-                )}
 
-                {t.winners.length > 0 && (
-                  <TabsContent value="winners">
-                    <div className="bg-accent/40 rounded-2xl border border-border/80 p-6 shadow-sm">
-                      <h2 className="font-semibold text-foreground flex items-center gap-2 mb-4">
-                        <Crown className="h-5 w-5 text-foreground" /> Winners
-                      </h2>
-                      <div className="space-y-3">
-                        {t.winners.map((w, i) => (
-                          <div key={w.id} className={`flex items-center justify-between p-4 rounded-xl border ${i === 0 ? "bg-warning/10 border-warning/20" : i === 1 ? "bg-secondary border-border" : "bg-primary/10/30 border-primary/10"}`}>
-                            <div className="flex items-center gap-3">
-                              <span className={`text-2xl font-black ${i === 0 ? "text-warning" : i === 1 ? "text-muted-foreground" : "text-primary/70"}`}>
-                                {w.placement}
-                              </span>
-                              <div>
-                                <p className="font-semibold text-foreground">{w.userGameName || w.userName}</p>
+                      {rulesContent && (
+                        <div id="panel-rules" className="p-6 prose prose-sm max-w-none">
+                          <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3">Rules</h3>
+                          {t.rulesMarkdown ? (
+                            <MarkdownRenderer content={t.rulesMarkdown} />
+                          ) : (
+                            <div dangerouslySetInnerHTML={{ __html: t.rulesHtml ?? "" }} />
+                          )}
+                        </div>
+                      )}
+
+                      {t.winners.length > 0 && (
+                        <div id="panel-winners" className="p-6">
+                          <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <Crown className="h-4 w-4" /> Winners
+                          </h3>
+                          <div className="space-y-3">
+                            {t.winners.map((w, i) => (
+                              <div key={w.id} className={`flex items-center justify-between p-4 rounded-xl border ${i === 0 ? "bg-warning/10 border-warning/20" : i === 1 ? "bg-secondary border-border" : "bg-muted/30 border-border/40"}`}>
+                                <div className="flex items-center gap-3">
+                                  <span className={`text-2xl font-black ${i === 0 ? "text-warning" : i === 1 ? "text-muted-foreground" : "text-primary/70"}`}>
+                                    {w.placement}
+                                  </span>
+                                  <p className="font-semibold text-foreground">{w.userGameName || w.userName}</p>
+                                </div>
+                                {w.prizeAmount > 0 && (
+                                  <span className="font-bold text-primary">₹{w.prizeAmount}</span>
+                                )}
                               </div>
-                            </div>
-                            {w.prizeAmount > 0 && (
-                              <span className="font-bold text-primary">₹{w.prizeAmount}</span>
-                            )}
+                            ))}
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      )}
                     </div>
-                  </TabsContent>
+                  </div>
                 )}
-              </Tabs>
+              </div>
             )}
           </div>
 
