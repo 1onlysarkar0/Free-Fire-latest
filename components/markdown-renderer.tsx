@@ -252,30 +252,35 @@ export function MarkdownRenderer({ content, className, variant = "default", isSt
         let cleanChildren = children;
 
         const childrenArray = React.Children.toArray(children);
-        const firstChild = childrenArray[0];
+        const firstElementIndex = childrenArray.findIndex(child => React.isValidElement(child));
 
-        if (
-          React.isValidElement(firstChild) &&
-          firstChild.props &&
-          typeof firstChild.props === "object"
-        ) {
-          const firstChildProps = firstChild.props as { children?: React.ReactNode };
-          const pChildrenArray = React.Children.toArray(firstChildProps.children);
-          const firstPChild = pChildrenArray[0];
+        if (firstElementIndex !== -1) {
+          const firstChild = childrenArray[firstElementIndex];
+          if (
+            React.isValidElement(firstChild) &&
+            firstChild.props &&
+            typeof firstChild.props === "object"
+          ) {
+            const firstChildProps = firstChild.props as { children?: React.ReactNode };
+            const pChildrenArray = React.Children.toArray(firstChildProps.children);
+            const firstPChild = pChildrenArray[0];
 
-          if (typeof firstPChild === "string") {
-            const match = firstPChild.match(/^\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*(?:\r?\n)?/i);
-            if (match) {
-              calloutType = match[1].toUpperCase();
-              const remainingText = firstPChild.slice(match[0].length);
-              
-              const newPChildren = [remainingText, ...pChildrenArray.slice(1)];
-              const newFirstChild = React.cloneElement(firstChild as React.ReactElement<{ children?: React.ReactNode }>, {
-                ...firstChild.props,
-                children: newPChildren
-              });
-              
-              cleanChildren = [newFirstChild, ...childrenArray.slice(1)];
+            if (typeof firstPChild === "string") {
+              const match = firstPChild.match(/^\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*(?:\r?\n)?/i);
+              if (match) {
+                calloutType = match[1].toUpperCase();
+                const remainingText = firstPChild.slice(match[0].length);
+                
+                const newPChildren = [remainingText, ...pChildrenArray.slice(1)];
+                const newFirstChild = React.cloneElement(firstChild as React.ReactElement<{ children?: React.ReactNode }>, {
+                  ...firstChild.props,
+                  children: newPChildren
+                });
+                
+                const newChildrenArray = [...childrenArray];
+                newChildrenArray[firstElementIndex] = newFirstChild;
+                cleanChildren = newChildrenArray;
+              }
             }
           }
         }
