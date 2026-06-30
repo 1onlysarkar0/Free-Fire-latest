@@ -32,8 +32,20 @@ export async function GET() {
     "# RIGHTS UNDER ARTICLE 4 OF THE EUROPEAN UNION DIRECTIVE 2019/790 ON COPYRIGHT",
     "# AND RELATED RIGHTS IN THE DIGITAL SINGLE MARKET.",
     "",
-    "# BEGIN Cloudflare Managed content",
+    "# Dedicated block for Googlebot (Clean from non-standard signals to prevent warnings)",
+    "User-agent: Googlebot",
+    "Allow: /",
+    "Allow: /tournaments",
+    "Allow: /tournaments/",
+    "Allow: /sign-in",
+    "Allow: /sign-up",
+    "Allow: /forgot-password",
+    "Disallow: /dashboard",
+    "Disallow: /api",
+    "Disallow: /reset-password",
+    "Disallow: /complete-profile",
     "",
+    "# General fallback block (Contains Content-Signal for supporting AI crawlers)",
     "User-agent: *",
     "Content-Signal: search=yes,ai-train=yes",
     "Allow: /",
@@ -59,7 +71,9 @@ export async function GET() {
   return new NextResponse(lines.join("\n"), {
     headers: {
       "Content-Type": "text/plain; charset=utf-8",
-      "Cache-Control": "public, max-age=0, must-revalidate",
+      "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+      "Pragma": "no-cache",
+      "Expires": "0",
     },
   });
 }
