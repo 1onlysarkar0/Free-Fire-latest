@@ -554,7 +554,7 @@ async function seedSeoConfig() {
   console.log("💾 Seeding seo_config...");
 
   const siteUrl = "https://www.1onlysarkar.shop";
-  const ogImage = "/assets/og-image.png";
+  const ogImage = "/assets/og-home.png";
 
   await db.insert(seoConfig).values({
     id: "global",
@@ -598,13 +598,13 @@ async function seedSeoConfig() {
     metaKeywords: "1onlysarkar login, sign in, free fire login, tournament login, gaming portal login",
     ogTitle: "Sign In | 1onlysarkar - Free Fire Esports Tournaments",
     ogDescription: "Sign in to your 1onlysarkar account to register for daily Free Fire tournaments, track your wallet transactions, and claim prizes.",
-    ogImage,
+    ogImage: "/assets/og-signin.png",
     ogType: "website",
     twitterCard: "summary_large_image",
     twitterSite: "@1onlysarkar",
     twitterTitle: "Sign In | 1onlysarkar - Free Fire Esports Tournaments",
     twitterDescription: "Sign in to your 1onlysarkar account to register for daily Free Fire tournaments, track your wallet transactions, and claim prizes.",
-    twitterImage: ogImage,
+    twitterImage: "/assets/og-signin.png",
     canonicalUrl: `${siteUrl}/sign-in`,
     robots: "index, follow",
   }).onConflictDoNothing();
@@ -616,13 +616,13 @@ async function seedSeoConfig() {
     metaKeywords: "register 1onlysarkar, sign up gaming, free fire tournament register, play esports India",
     ogTitle: "Sign Up & Register | 1onlysarkar - Esports Tournaments",
     ogDescription: "Create a free account on 1onlysarkar today. Play daily Free Fire solo, duo, and squad matches to win real cash prizes. Register now!",
-    ogImage,
+    ogImage: "/assets/og-signup.png",
     ogType: "website",
     twitterCard: "summary_large_image",
     twitterSite: "@1onlysarkar",
     twitterTitle: "Sign Up & Register | 1onlysarkar - Esports Tournaments",
     twitterDescription: "Create a free account on 1onlysarkar today. Play daily Free Fire solo, duo, and squad matches to win real cash prizes. Register now!",
-    twitterImage: ogImage,
+    twitterImage: "/assets/og-signup.png",
     canonicalUrl: `${siteUrl}/sign-up`,
     robots: "index, follow",
   }).onConflictDoNothing();
@@ -634,13 +634,13 @@ async function seedSeoConfig() {
     metaKeywords: "free fire tournaments, esports tournaments India, custom room match, win cash gaming",
     ogTitle: "Free Fire Esports Tournaments | 1onlysarkar",
     ogDescription: "Explore upcoming Free Fire tournaments on 1onlysarkar. Join daily Solo, Duo, and Squad matches. Check entry fees, slot availability, and prize pools.",
-    ogImage,
+    ogImage: "/assets/og-tournaments.png",
     ogType: "website",
     twitterCard: "summary_large_image",
     twitterSite: "@1onlysarkar",
     twitterTitle: "Free Fire Esports Tournaments | 1onlysarkar",
     twitterDescription: "Explore upcoming Free Fire tournaments on 1onlysarkar. Join daily Solo, Duo, and Squad matches. Check entry fees, slot availability, and prize pools.",
-    twitterImage: ogImage,
+    twitterImage: "/assets/og-tournaments.png",
     canonicalUrl: `${siteUrl}/tournaments`,
     robots: "index, follow",
   }).onConflictDoNothing();
@@ -659,13 +659,13 @@ async function seedSeoConfig() {
     metaKeywords: "forgot password, reset password 1onlysarkar, recover account, gaming tournament password",
     ogTitle: "Reset Password | 1onlysarkar",
     ogDescription: "Forgot your 1onlysarkar password? Request a secure password reset link to get back into the game.",
-    ogImage,
+    ogImage: "/assets/og-signin.png",
     ogType: "website",
     twitterCard: "summary_large_image",
     twitterSite: "@1onlysarkar",
     twitterTitle: "Reset Password | 1onlysarkar",
     twitterDescription: "Forgot your 1onlysarkar password? Request a secure password reset link to get back into the game.",
-    twitterImage: ogImage,
+    twitterImage: "/assets/og-signin.png",
     canonicalUrl: `${siteUrl}/forgot-password`,
     robots: "index, follow",
   }).onConflictDoNothing();

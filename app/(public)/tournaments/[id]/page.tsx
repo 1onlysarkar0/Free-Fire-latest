@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     const description = `Join ${t.name}. ${t.type === "FREE" ? "Free entry" : `Entry fee: ₹${t.joiningFee}`}. Prize pool: ₹${t.prizePool}. ${t.gameMode} mode. ${t.totalSlots} slots available.`;
     const url = `${APP_URL}/tournaments/${id}`;
 
-    const ogImage = config?.logoSrc || "/assets/og-image.png";
+    const ogImage = seoBase.ogImage || config?.logoSrc || undefined;
 
     const seo = {
       ...seoBase,

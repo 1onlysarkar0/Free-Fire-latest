@@ -74,8 +74,9 @@ export async function generateMetadata(): Promise<Metadata> {
       ],
     };
 
-    const ogImageFallback = seo.ogImage || "/assets/og-image.png";
-    const twitterImageFallback = seo.twitterImage || seo.ogImage || "/assets/og-image.png";
+    const ogImageFallback = seo.ogImage || config?.logoSrc || undefined;
+    const twitterImageFallback = seo.twitterImage || seo.ogImage || config?.logoSrc || undefined;
+
 
     if (seo.ogTitle || seo.ogDescription || ogImageFallback || siteName) {
       metadata.openGraph = {
