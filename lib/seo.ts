@@ -143,7 +143,9 @@ export function buildMetadata(
       type: (seo.ogType ?? "website") as "website",
       url: seo.canonicalUrl ?? siteUrl,
       siteName: siteName ?? undefined,
-      images: [{ url: ogImageFallback, width: 1200, height: 630, alt: seo.ogTitle ?? siteName ?? "" }],
+      images: ogImageFallback
+        ? [{ url: ogImageFallback, width: 1200, height: 630, alt: seo.ogTitle ?? siteName ?? "" }]
+        : undefined,
     };
   }
 
@@ -154,7 +156,7 @@ export function buildMetadata(
       site: seo.twitterSite ?? undefined,
       title: seo.twitterTitle ?? seo.ogTitle ?? undefined,
       description: seo.twitterDescription ?? seo.ogDescription ?? undefined,
-      images: [twitterImageFallback],
+      images: twitterImageFallback ? [twitterImageFallback] : undefined,
     };
   }
 

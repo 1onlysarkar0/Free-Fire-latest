@@ -86,7 +86,7 @@ export async function generateMetadata(): Promise<Metadata> {
         locale: "en_IN",
         title: seo.ogTitle ?? seo.metaTitle ?? undefined,
         description: seo.ogDescription ?? seo.metaDescription ?? undefined,
-        images: [{ url: ogImageFallback, width: 1200, height: 630 }],
+        images: ogImageFallback ? [{ url: ogImageFallback, width: 1200, height: 630 }] : undefined,
       };
     }
 
@@ -97,7 +97,7 @@ export async function generateMetadata(): Promise<Metadata> {
         title: seo.twitterTitle ?? seo.ogTitle ?? seo.metaTitle ?? undefined,
         description:
           seo.twitterDescription ?? seo.ogDescription ?? seo.metaDescription ?? undefined,
-        images: [twitterImageFallback],
+        images: twitterImageFallback ? [twitterImageFallback] : undefined,
       };
     }
 
