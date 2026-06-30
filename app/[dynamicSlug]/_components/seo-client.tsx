@@ -117,7 +117,7 @@ export default function SeoPage({ initialData }: { initialData: SeoRow[] }) {
     if (id === "global") { toast.error("Cannot delete global SEO config."); return; }
     if (!confirm(`Delete SEO config for "${id}"?`)) return;
     await fetch(`/api/admin/seo/${id}`, { method: "DELETE" });
-    toast.success("Deleted."); 
+    toast.success("Deleted.");
     load();
     router.refresh();
   }
@@ -164,15 +164,15 @@ export default function SeoPage({ initialData }: { initialData: SeoRow[] }) {
             <table className="w-full text-sm">
               <thead>
                 <tr>
-                  {["Page","Meta Title","Robots","OG Image","Actions"].map(h => (
+                  {["Page", "Meta Title", "Robots", "OG Image", "Actions"].map(h => (
                     <th key={h}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/10">
-                {[1,2,3].map(i => (
+                {[1, 2, 3].map(i => (
                   <tr key={i} className="animate-pulse">
-                    {[1,2,3,4,5].map(j => (
+                    {[1, 2, 3, 4, 5].map(j => (
                       <td key={j} className="px-4 py-3"><div className="h-4 w-20 rounded bg-accent/60" /></td>
                     ))}
                   </tr>
@@ -229,65 +229,65 @@ export default function SeoPage({ initialData }: { initialData: SeoRow[] }) {
         </Card>
       )}
 
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent className="w-full max-w-2xl max-h-[92vh] overflow-hidden flex flex-col">
-            <DialogHeader>
-              <DialogTitle>
-                {isNew ? "New SEO Config" : `Edit SEO — ${editing ? (KNOWN_PAGES[editing.id]?.label || editing.id) : ""}`}
-              </DialogTitle>
-              {editing && KNOWN_PAGES[editing.id] && (
-                <p className="text-xs text-muted-foreground">{KNOWN_PAGES[editing.id].description} · Path: <code className="bg-muted px-1 rounded">{KNOWN_PAGES[editing.id].path}</code></p>
-              )}
-            </DialogHeader>
-            <div className="flex-1 overflow-y-auto pr-1">
-              {isNew && (
-                <div className="space-y-1.5 mb-4">
-                  <label className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Page ID *</label>
-                  <Input value={newId} onChange={e => setNewId(e.target.value)} placeholder='e.g. "home", "sign-in", "custom-page-slug"' className="font-mono" />
-                  <Muted className="text-xs">Must match the URL slug. Use <code className="bg-muted px-1 rounded">home</code> for the homepage.</Muted>
-                </div>
-              )}
-              <Tabs defaultValue="core">
-                <TabsList className="mb-4 w-full grid grid-cols-4 h-auto">
-                  <TabsTrigger value="core" className="text-xs py-1.5">Core Meta</TabsTrigger>
-                  <TabsTrigger value="og" className="text-xs py-1.5">Open Graph</TabsTrigger>
-                  <TabsTrigger value="twitter" className="text-xs py-1.5">Twitter/X</TabsTrigger>
-                  <TabsTrigger value="technical" className="text-xs py-1.5">Technical</TabsTrigger>
-                </TabsList>
-                <TabsContent value="core" className="space-y-3">
-                  <Field><FieldLabel>Meta Title</FieldLabel><Input value={form.metaTitle!} onChange={e => setF("metaTitle", e.target.value)} placeholder="Page Title — Site Name" /><Muted className="text-xs">Shown in browser tab and search results. 50–60 characters ideal.</Muted></Field>
-                  <Field><FieldLabel>Meta Description</FieldLabel><textarea value={form.metaDescription!} onChange={e => setF("metaDescription", e.target.value)} rows={3} className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none transition-shadow" placeholder="Brief description of this page..." /><Muted className="text-xs">Shown in search results. 150–160 characters ideal.</Muted></Field>
-                  <Field><FieldLabel>Meta Keywords</FieldLabel><Input value={form.metaKeywords!} onChange={e => setF("metaKeywords", e.target.value)} placeholder="gaming, tournament, India" /><Muted className="text-xs">Comma-separated keywords.</Muted></Field>
-                </TabsContent>
-                <TabsContent value="og" className="space-y-3">
-                  <Field><FieldLabel>OG Title</FieldLabel><Input value={form.ogTitle!} onChange={e => setF("ogTitle", e.target.value)} /><Muted className="text-xs">Shown when sharing on social media.</Muted></Field>
-                  <Field><FieldLabel>OG Description</FieldLabel><textarea value={form.ogDescription!} onChange={e => setF("ogDescription", e.target.value)} rows={3} className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none transition-shadow" /></Field>
-                  <Field><FieldLabel>OG Image URL</FieldLabel><Input value={form.ogImage!} onChange={e => setF("ogImage", e.target.value)} placeholder="https://example.com/og-image.png" /><Muted className="text-xs">Recommended: 1200×630px.</Muted></Field>
-                  <Field><FieldLabel>OG Type</FieldLabel><Input value={form.ogType!} onChange={e => setF("ogType", e.target.value)} placeholder="website" /></Field>
-                </TabsContent>
-                <TabsContent value="twitter" className="space-y-3">
-                  <Field><FieldLabel>Twitter Card Type</FieldLabel><Input value={form.twitterCard!} onChange={e => setF("twitterCard", e.target.value)} placeholder="summary_large_image" /></Field>
-                  <Field><FieldLabel>Twitter @handle</FieldLabel><Input value={form.twitterSite!} onChange={e => setF("twitterSite", e.target.value)} placeholder="@1onlysarkar" /></Field>
-                  <Field><FieldLabel>Twitter Title</FieldLabel><Input value={form.twitterTitle!} onChange={e => setF("twitterTitle", e.target.value)} /></Field>
-                  <Field><FieldLabel>Twitter Description</FieldLabel><textarea value={form.twitterDescription!} onChange={e => setF("twitterDescription", e.target.value)} rows={3} className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none transition-shadow" /></Field>
-                  <Field><FieldLabel>Twitter Image URL</FieldLabel><Input value={form.twitterImage!} onChange={e => setF("twitterImage", e.target.value)} placeholder="https://..." /></Field>
-                </TabsContent>
-                <TabsContent value="technical" className="space-y-3">
-                  <Field><FieldLabel>Canonical URL</FieldLabel><Input value={form.canonicalUrl!} onChange={e => setF("canonicalUrl", e.target.value)} placeholder="https://1onlysarkar.shop/page" /></Field>
-                  <Field><FieldLabel>Robots Directive</FieldLabel><Input value={form.robots!} onChange={e => setF("robots", e.target.value)} placeholder="index, follow" /></Field>
-                  <Field><FieldLabel>Structured Data (JSON-LD)</FieldLabel><textarea value={form.structuredDataJson!} onChange={e => setF("structuredDataJson", e.target.value)} rows={6} className="w-full rounded-lg border bg-background px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-orange-500 resize-y transition-shadow" placeholder='{"@context":"https://schema.org","@type":"WebPage",...}' /></Field>
-                </TabsContent>
-              </Tabs>
-            </div>
-            <DialogFooter className="shrink-0 pt-2 border-t">
-              <Button variant="outline" onClick={() => setOpen(false)}><X className="h-4 w-4 mr-1" />Cancel</Button>
-              <Button onClick={handleSave} disabled={saving}>
-                {saving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Save className="h-4 w-4 mr-1" />}
-                {isNew ? "Create" : "Update"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="w-full max-w-2xl max-h-[92vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>
+              {isNew ? "New SEO Config" : `Edit SEO — ${editing ? (KNOWN_PAGES[editing.id]?.label || editing.id) : ""}`}
+            </DialogTitle>
+            {editing && KNOWN_PAGES[editing.id] && (
+              <p className="text-xs text-muted-foreground">{KNOWN_PAGES[editing.id].description} · Path: <code className="bg-muted px-1 rounded">{KNOWN_PAGES[editing.id].path}</code></p>
+            )}
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto pr-1">
+            {isNew && (
+              <div className="space-y-1.5 mb-4">
+                <label className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Page ID *</label>
+                <Input value={newId} onChange={e => setNewId(e.target.value)} placeholder='e.g. "home", "sign-in", "custom-page-slug"' className="font-mono" />
+                <Muted className="text-xs">Must match the URL slug. Use <code className="bg-muted px-1 rounded">home</code> for the homepage.</Muted>
+              </div>
+            )}
+            <Tabs defaultValue="core">
+              <TabsList className="mb-4 w-full grid grid-cols-4 h-auto">
+                <TabsTrigger value="core" className="text-xs py-1.5">Core Meta</TabsTrigger>
+                <TabsTrigger value="og" className="text-xs py-1.5">Open Graph</TabsTrigger>
+                <TabsTrigger value="twitter" className="text-xs py-1.5">Twitter/X</TabsTrigger>
+                <TabsTrigger value="technical" className="text-xs py-1.5">Technical</TabsTrigger>
+              </TabsList>
+              <TabsContent value="core" className="space-y-3">
+                <Field><FieldLabel>Meta Title</FieldLabel><Input value={form.metaTitle!} onChange={e => setF("metaTitle", e.target.value)} placeholder="Page Title — Site Name" /><Muted className="text-xs">Shown in browser tab and search results. 50–60 characters ideal.</Muted></Field>
+                <Field><FieldLabel>Meta Description</FieldLabel><textarea value={form.metaDescription!} onChange={e => setF("metaDescription", e.target.value)} rows={3} className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none transition-shadow" placeholder="Brief description of this page..." /><Muted className="text-xs">Shown in search results. 150–160 characters ideal.</Muted></Field>
+                <Field><FieldLabel>Meta Keywords</FieldLabel><Input value={form.metaKeywords!} onChange={e => setF("metaKeywords", e.target.value)} placeholder="gaming, tournament, India" /><Muted className="text-xs">Comma-separated keywords.</Muted></Field>
+              </TabsContent>
+              <TabsContent value="og" className="space-y-3">
+                <Field><FieldLabel>OG Title</FieldLabel><Input value={form.ogTitle!} onChange={e => setF("ogTitle", e.target.value)} /><Muted className="text-xs">Shown when sharing on social media.</Muted></Field>
+                <Field><FieldLabel>OG Description</FieldLabel><textarea value={form.ogDescription!} onChange={e => setF("ogDescription", e.target.value)} rows={3} className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none transition-shadow" /></Field>
+                <Field><FieldLabel>OG Image URL</FieldLabel><Input value={form.ogImage!} onChange={e => setF("ogImage", e.target.value)} placeholder="https://example.com/og-image.png" /><Muted className="text-xs">Recommended: 1200×630px.</Muted></Field>
+                <Field><FieldLabel>OG Type</FieldLabel><Input value={form.ogType!} onChange={e => setF("ogType", e.target.value)} placeholder="website" /></Field>
+              </TabsContent>
+              <TabsContent value="twitter" className="space-y-3">
+                <Field><FieldLabel>Twitter Card Type</FieldLabel><Input value={form.twitterCard!} onChange={e => setF("twitterCard", e.target.value)} placeholder="summary_large_image" /></Field>
+                <Field><FieldLabel>Twitter @handle</FieldLabel><Input value={form.twitterSite!} onChange={e => setF("twitterSite", e.target.value)} placeholder="@1onlysarkar" /></Field>
+                <Field><FieldLabel>Twitter Title</FieldLabel><Input value={form.twitterTitle!} onChange={e => setF("twitterTitle", e.target.value)} /></Field>
+                <Field><FieldLabel>Twitter Description</FieldLabel><textarea value={form.twitterDescription!} onChange={e => setF("twitterDescription", e.target.value)} rows={3} className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none transition-shadow" /></Field>
+                <Field><FieldLabel>Twitter Image URL</FieldLabel><Input value={form.twitterImage!} onChange={e => setF("twitterImage", e.target.value)} placeholder="https://..." /></Field>
+              </TabsContent>
+              <TabsContent value="technical" className="space-y-3">
+                <Field><FieldLabel>Canonical URL</FieldLabel><Input value={form.canonicalUrl!} onChange={e => setF("canonicalUrl", e.target.value)} placeholder="https://www.1onlysarkar.shop/page" /></Field>
+                <Field><FieldLabel>Robots Directive</FieldLabel><Input value={form.robots!} onChange={e => setF("robots", e.target.value)} placeholder="index, follow" /></Field>
+                <Field><FieldLabel>Structured Data (JSON-LD)</FieldLabel><textarea value={form.structuredDataJson!} onChange={e => setF("structuredDataJson", e.target.value)} rows={6} className="w-full rounded-lg border bg-background px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-orange-500 resize-y transition-shadow" placeholder='{"@context":"https://schema.org","@type":"WebPage",...}' /></Field>
+              </TabsContent>
+            </Tabs>
+          </div>
+          <DialogFooter className="shrink-0 pt-2 border-t">
+            <Button variant="outline" onClick={() => setOpen(false)}><X className="h-4 w-4 mr-1" />Cancel</Button>
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Save className="h-4 w-4 mr-1" />}
+              {isNew ? "Create" : "Update"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

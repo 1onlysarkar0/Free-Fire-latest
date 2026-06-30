@@ -2,7 +2,7 @@
 
 A full-stack gaming tournament platform built for Indian esports / Free Fire tournaments. Built with **Next.js 15**, **Better Auth**, **Drizzle ORM + PostgreSQL**, and **Tailwind CSS v4**. Every piece of content — navbar, footer, auth pages, hero section, email templates, SEO — is **100% database-driven** with a full admin panel.
 
-Production: **https://1onlysarkar.shop**
+Production: **https://www.1onlysarkar.shop**
 
 ---
 

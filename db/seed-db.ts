@@ -553,7 +553,7 @@ async function seedEmailTemplates() {
 async function seedSeoConfig() {
   console.log("💾 Seeding seo_config...");
 
-  const siteUrl = "https://1onlysarkar.shop";
+  const siteUrl = "https://www.1onlysarkar.shop";
   const ogImage = "/assets/og-image.png";
 
   await db.insert(seoConfig).values({
@@ -928,7 +928,7 @@ Have a question, a payment issue, or something else on your mind? Here's how to 
 | **Name** | 1OnlySarkar |
 | **Instagram** | [@1onlysarkar](https://instagram.com/1onlysarkar) |
 | **Email** | [sauravmiami@gmail.com](mailto:sauravmiami@gmail.com) |
-| **Website** | [1onlysarkar.shop](https://1onlysarkar.shop) |
+| **Website** | [1onlysarkar.shop](https://www.1onlysarkar.shop) |
 
 ---
 
