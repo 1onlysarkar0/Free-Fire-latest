@@ -593,22 +593,55 @@ async function seedSeoConfig() {
 
   await db.insert(seoConfig).values({
     id: "sign-in",
-    metaTitle: "Sign In — 1onlysarkar",
-    metaDescription: "Sign in to your 1onlysarkar account and jump into the tournament arena.",
-    robots: "noindex, nofollow",
+    metaTitle: "Sign In | 1onlysarkar - Free Fire Esports Tournaments",
+    metaDescription: "Sign in to your 1onlysarkar account to register for daily Free Fire tournaments, track your wallet transactions, and claim prizes.",
+    metaKeywords: "1onlysarkar login, sign in, free fire login, tournament login, gaming portal login",
+    ogTitle: "Sign In | 1onlysarkar - Free Fire Esports Tournaments",
+    ogDescription: "Sign in to your 1onlysarkar account to register for daily Free Fire tournaments, track your wallet transactions, and claim prizes.",
+    ogImage,
+    ogType: "website",
+    twitterCard: "summary_large_image",
+    twitterSite: "@1onlysarkar",
+    twitterTitle: "Sign In | 1onlysarkar - Free Fire Esports Tournaments",
+    twitterDescription: "Sign in to your 1onlysarkar account to register for daily Free Fire tournaments, track your wallet transactions, and claim prizes.",
+    twitterImage: ogImage,
+    canonicalUrl: `${siteUrl}/sign-in`,
+    robots: "index, follow",
   }).onConflictDoNothing();
 
   await db.insert(seoConfig).values({
     id: "sign-up",
-    metaTitle: "Create Account — 1onlysarkar",
-    metaDescription: "Create your free 1onlysarkar account and start competing in gaming tournaments today.",
-    robots: "noindex, nofollow",
+    metaTitle: "Sign Up & Register | 1onlysarkar - Esports Tournaments",
+    metaDescription: "Create a free account on 1onlysarkar today. Play daily Free Fire solo, duo, and squad matches to win real cash prizes. Register now!",
+    metaKeywords: "register 1onlysarkar, sign up gaming, free fire tournament register, play esports India",
+    ogTitle: "Sign Up & Register | 1onlysarkar - Esports Tournaments",
+    ogDescription: "Create a free account on 1onlysarkar today. Play daily Free Fire solo, duo, and squad matches to win real cash prizes. Register now!",
+    ogImage,
+    ogType: "website",
+    twitterCard: "summary_large_image",
+    twitterSite: "@1onlysarkar",
+    twitterTitle: "Sign Up & Register | 1onlysarkar - Esports Tournaments",
+    twitterDescription: "Create a free account on 1onlysarkar today. Play daily Free Fire solo, duo, and squad matches to win real cash prizes. Register now!",
+    twitterImage: ogImage,
+    canonicalUrl: `${siteUrl}/sign-up`,
+    robots: "index, follow",
   }).onConflictDoNothing();
 
   await db.insert(seoConfig).values({
     id: "tournaments",
-    metaTitle: "Tournaments — 1onlysarkar",
-    metaDescription: "Join upcoming gaming tournaments, compete with top players, and win exciting cash prizes.",
+    metaTitle: "Free Fire Esports Tournaments | 1onlysarkar",
+    metaDescription: "Explore upcoming Free Fire tournaments on 1onlysarkar. Join daily Solo, Duo, and Squad matches. Check entry fees, slot availability, and prize pools.",
+    metaKeywords: "free fire tournaments, esports tournaments India, custom room match, win cash gaming",
+    ogTitle: "Free Fire Esports Tournaments | 1onlysarkar",
+    ogDescription: "Explore upcoming Free Fire tournaments on 1onlysarkar. Join daily Solo, Duo, and Squad matches. Check entry fees, slot availability, and prize pools.",
+    ogImage,
+    ogType: "website",
+    twitterCard: "summary_large_image",
+    twitterSite: "@1onlysarkar",
+    twitterTitle: "Free Fire Esports Tournaments | 1onlysarkar",
+    twitterDescription: "Explore upcoming Free Fire tournaments on 1onlysarkar. Join daily Solo, Duo, and Squad matches. Check entry fees, slot availability, and prize pools.",
+    twitterImage: ogImage,
+    canonicalUrl: `${siteUrl}/tournaments`,
     robots: "index, follow",
   }).onConflictDoNothing();
 
@@ -621,9 +654,20 @@ async function seedSeoConfig() {
 
   await db.insert(seoConfig).values({
     id: "forgot-password",
-    metaTitle: "Forgot Password — 1onlysarkar",
-    metaDescription: "Reset your 1onlysarkar account password.",
-    robots: "noindex, nofollow",
+    metaTitle: "Reset Password | 1onlysarkar",
+    metaDescription: "Forgot your 1onlysarkar password? Request a secure password reset link to get back into the game.",
+    metaKeywords: "forgot password, reset password 1onlysarkar, recover account, gaming tournament password",
+    ogTitle: "Reset Password | 1onlysarkar",
+    ogDescription: "Forgot your 1onlysarkar password? Request a secure password reset link to get back into the game.",
+    ogImage,
+    ogType: "website",
+    twitterCard: "summary_large_image",
+    twitterSite: "@1onlysarkar",
+    twitterTitle: "Reset Password | 1onlysarkar",
+    twitterDescription: "Forgot your 1onlysarkar password? Request a secure password reset link to get back into the game.",
+    twitterImage: ogImage,
+    canonicalUrl: `${siteUrl}/forgot-password`,
+    robots: "index, follow",
   }).onConflictDoNothing();
 
   console.log("✅ seo_config seeded.");

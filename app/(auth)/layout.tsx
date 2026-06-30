@@ -4,12 +4,9 @@ import { getSeoData, buildMetadata } from "@/lib/seo";
 export async function generateMetadata(): Promise<Metadata> {
   try {
     const seo = await getSeoData("global");
-    return {
-      ...buildMetadata(seo, process.env.NEXT_PUBLIC_APP_URL as string),
-      robots: { index: false, follow: false },
-    };
+    return buildMetadata(seo, process.env.NEXT_PUBLIC_APP_URL as string);
   } catch {
-    return { robots: { index: false, follow: false } };
+    return {};
   }
 }
 

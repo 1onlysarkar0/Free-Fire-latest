@@ -5,6 +5,7 @@ import { getTournamentDetail, getViewerTournamentDetail } from "@/lib/tournament
 import { getAdminSiteConfigCached } from "@/lib/admin-data";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { getSeoData, buildMetadata } from "@/lib/seo";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "";
 
@@ -12,9 +13,10 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "";
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   try {
-    const [t, config] = await Promise.all([
+    const [t, config, seoBase] = await Promise.all([
       getTournamentDetail(id),
       getAdminSiteConfigCached(),
+      getSeoData("tournaments"),
     ]);
     const siteName = config?.logoTitle ?? "";
     if (!t) return { title: `Tournament — ${siteName}` };
@@ -25,25 +27,21 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
     const ogImage = config?.logoSrc || "/assets/og-image.png";
 
-    return {
-      title,
-      description,
-      alternates: { canonical: url },
-      openGraph: {
-        type: "website",
-        url,
-        title,
-        description,
-        siteName,
-        images: [{ url: ogImage, width: 1200, height: 630 }],
-      },
-      twitter: {
-        card: "summary_large_image",
-        title,
-        description,
-        images: [ogImage],
-      },
+    const seo = {
+      ...seoBase,
+      metaTitle: title,
+      metaDescription: description,
+      ogTitle: title,
+      ogDescription: description,
+      ogImage: ogImage,
+      twitterTitle: title,
+      twitterDescription: description,
+      twitterImage: ogImage,
+      canonicalUrl: url,
+      robots: "index, follow",
     };
+
+    return buildMetadata(seo, APP_URL, siteName, config?.logoSrc ?? undefined);
   } catch {
     return { title: "Tournament" };
   }

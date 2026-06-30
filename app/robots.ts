@@ -14,13 +14,17 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/tournaments", "/tournaments/"],
+        allow: [
+          "/",
+          "/tournaments",
+          "/tournaments/",
+          "/sign-in",
+          "/sign-up",
+          "/forgot-password"
+        ],
         disallow: [
           "/dashboard",
           "/api",
-          "/sign-in",
-          "/sign-up",
-          "/forgot-password",
           "/reset-password",
           "/complete-profile",
         ],
