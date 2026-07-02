@@ -7,7 +7,8 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.1onlysarkar.shop";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (!baseUrl) throw new Error("NEXT_PUBLIC_APP_URL environment variable is required");
   const now = new Date();
 
   // 1. Static Home & Tournaments Listings
@@ -36,7 +37,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ]);
 
     // 3. Dynamic Custom Pages with custom SEO rules
-    const customPageRoutes = pages.map((page) => {
+    const customPageRoutes = pages.map((page: any) => {
       let priority = 0.6;
       let changeFrequency: "daily" | "weekly" | "monthly" = "weekly";
 
@@ -56,6 +57,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: page.updatedAt ?? now,
         changeFrequency,
         priority,
+        ...(page.ogImage ? { images: [page.ogImage.startsWith("http") ? page.ogImage : `${baseUrl}${page.ogImage}`] } : {}),
       };
     });
 
@@ -70,6 +72,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: item.updatedAt ?? now,
         changeFrequency,
         priority,
+        images: [`${baseUrl}/api/og-image?tournament=${item.id}`],
       };
     });
 

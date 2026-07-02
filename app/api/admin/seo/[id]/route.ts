@@ -21,7 +21,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const { id } = await params;
   const body = await request.json();
 
-  const allowed = ["metaTitle","metaDescription","metaKeywords","ogTitle","ogDescription","ogImage","ogType","twitterCard","twitterSite","twitterTitle","twitterDescription","twitterImage","canonicalUrl","robots","structuredDataJson"];
+  const allowed = ["metaTitle","metaDescription","metaKeywords","ogTitle","ogDescription","ogImage","ogType","twitterCard","twitterSite","twitterTitle","twitterDescription","twitterImage","canonicalUrl","robots","structuredDataJson","schemaType","ogImageDynamic","ogImageTemplate","seoScore","lastAudited","iconName"];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const update: Record<string, any> = { updatedAt: new Date() };
   for (const k of allowed) {

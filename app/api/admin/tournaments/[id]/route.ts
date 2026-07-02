@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminOrRole } from "@/lib/admin-auth";
 import { db } from "@/db/drizzle";
-import { tournament, tournamentSlot, tournamentParticipant, tournamentWinner, user, siteConfig } from "@/db/schema";
+import { tournament, tournamentSlot, tournamentParticipant, tournamentWinner, user, siteConfig, seoConfig } from "@/db/schema";
 import { count, eq, sql } from "drizzle-orm";
 import { invalidateTournamentCache } from "@/lib/cache";
 
@@ -94,6 +94,73 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     }
 
     await db.update(tournament).set(updates).where(eq(tournament.id, id));
+
+    // Sync SEO config with updated tournament data
+    const [updated] = await db.select().from(tournament).where(eq(tournament.id, id)).limit(1);
+    if (updated) {
+      const [configRow] = await db.select().from(siteConfig).limit(1);
+      const siteName = configRow?.logoTitle;
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+
+      if (siteName && baseUrl) {
+        const metaTitle = `${updated.name} — ${siteName}`;
+        const metaDescription = `Join ${updated.name}. ${updated.type === "FREE" ? "Free entry" : `Entry fee: ₹${updated.joiningFee}`}. Prize pool: ₹${updated.prizePool}. ${updated.gameMode.replace(/_/g, " ")} mode. ${updated.teamFormat.toUpperCase()} format. Register now!`;
+
+        const sportsEventSchema = {
+          "@context": "https://schema.org",
+          "@type": "SportsEvent",
+          "name": updated.name,
+          "description": metaDescription,
+          "url": `${baseUrl}/tournaments/${id}`,
+          "startDate": updated.startTime instanceof Date ? updated.startTime.toISOString() : new Date(updated.startTime).toISOString(),
+          "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
+          "eventStatus": updated.status === "UPCOMING" ? "https://schema.org/EventScheduled"
+            : updated.status === "LIVE" || updated.status === "ACTIVE" ? "https://schema.org/EventActive"
+            : updated.status === "COMPLETED" ? "https://schema.org/EventCompleted"
+            : updated.status === "CANCELLED" ? "https://schema.org/EventCancelled"
+            : "https://schema.org/EventScheduled",
+          "location": {
+            "@type": "VirtualLocation",
+            "url": `${baseUrl}/tournaments/${id}`
+          },
+          "offers": {
+            "@type": "Offer",
+            "price": updated.joiningFee ?? 0,
+            "priceCurrency": "INR",
+            "availability": updated.status === "UPCOMING" ? "https://schema.org/InStock" : "https://schema.org/SoldOut"
+          }
+        };
+
+        await db.insert(seoConfig).values({
+          id: `tournament-${id}`,
+          metaTitle,
+          metaDescription,
+          ogTitle: updated.name,
+          ogDescription: metaDescription,
+          ogImage: `/api/og-image?tournament=${id}`,
+          ogType: "website",
+          canonicalUrl: `${baseUrl}/tournaments/${id}`,
+          robots: "index, follow",
+          structuredDataJson: JSON.stringify(sportsEventSchema),
+          schemaType: "SportsEvent",
+          ogImageDynamic: true,
+          ogImageTemplate: "tournament",
+        }).onConflictDoUpdate({
+          target: seoConfig.id,
+          set: {
+            metaTitle,
+            metaDescription,
+            ogTitle: updated.name,
+            ogDescription: metaDescription,
+            ogImage: `/api/og-image?tournament=${id}`,
+            canonicalUrl: `${baseUrl}/tournaments/${id}`,
+            structuredDataJson: JSON.stringify(sportsEventSchema),
+            updatedAt: new Date(),
+          },
+        });
+      }
+    }
+
     await invalidateTournamentCache(id);
 
     return NextResponse.json({ success: true });

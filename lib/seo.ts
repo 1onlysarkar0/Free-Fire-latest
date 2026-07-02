@@ -25,6 +25,12 @@ export interface SeoData {
   canonicalUrl: string | null;
   robots: string | null;
   structuredDataJson: string | null;
+  schemaType: string | null;
+  schemaData: any | null;
+  ogImageDynamic: boolean | null;
+  ogImageTemplate: string | null;
+  seoScore: number | null;
+  lastAudited: string | null;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -59,6 +65,12 @@ async function _fetchSeo(pageId: string): Promise<SeoData> {
       canonicalUrl: row?.canonicalUrl ?? null,
       robots: row?.robots ?? "index, follow",
       structuredDataJson: row?.structuredDataJson ?? null,
+      schemaType: row?.schemaType ?? "WebPage",
+      schemaData: row?.schemaData ?? null,
+      ogImageDynamic: row?.ogImageDynamic ?? false,
+      ogImageTemplate: row?.ogImageTemplate ?? null,
+      seoScore: row?.seoScore ?? null,
+      lastAudited: row?.lastAudited ? row.lastAudited.toISOString() : null,
     };
   }
 
@@ -87,6 +99,12 @@ async function _fetchSeo(pageId: string): Promise<SeoData> {
     canonicalUrl: p?.canonicalUrl ?? g?.canonicalUrl ?? null,
     robots: p?.robots ?? g?.robots ?? "index, follow",
     structuredDataJson: p?.structuredDataJson ?? g?.structuredDataJson ?? null,
+    schemaType: p?.schemaType ?? g?.schemaType ?? "WebPage",
+    schemaData: p?.schemaData ?? g?.schemaData ?? null,
+    ogImageDynamic: p?.ogImageDynamic ?? g?.ogImageDynamic ?? false,
+    ogImageTemplate: p?.ogImageTemplate ?? g?.ogImageTemplate ?? null,
+    seoScore: p?.seoScore ?? g?.seoScore ?? null,
+    lastAudited: p?.lastAudited ? p.lastAudited.toISOString() : g?.lastAudited ? g.lastAudited.toISOString() : null,
   };
 }
 
@@ -131,9 +149,36 @@ export function buildMetadata(
     ],
   };
 
-  const ogImageFallback = seo.ogImage || logoSrc || undefined;
-  const twitterImageFallback = seo.twitterImage || seo.ogImage || logoSrc || undefined;
+  const base = siteUrl || process.env.NEXT_PUBLIC_APP_URL || "";
+  let ogImageFallback = seo.ogImage || logoSrc || undefined;
+  if (ogImageFallback && !ogImageFallback.startsWith("http") && base) {
+    ogImageFallback = `${base}${ogImageFallback}`;
+  }
 
+  if (seo.ogImageDynamic && base) {
+    if (seo.ogImageTemplate === "tournament") {
+      const match = seo.canonicalUrl?.match(/\/tournaments\/([^/]+)/);
+      const tournamentId = match?.[1];
+      if (tournamentId) {
+        ogImageFallback = `${base}/api/og-image?tournament=${tournamentId}`;
+      }
+    } else if (seo.ogImageTemplate === "auth") {
+      let pageType = "sign-in";
+      if (seo.canonicalUrl?.includes("sign-up")) pageType = "sign-up";
+      else if (seo.canonicalUrl?.includes("forgot-password")) pageType = "forgot-password";
+      else if (seo.canonicalUrl?.includes("reset-password")) pageType = "reset-password";
+      ogImageFallback = `${base}/api/og-image?template=auth&page=${pageType}`;
+    } else if (seo.ogImageTemplate === "custom-page") {
+      // Extract slug from canonicalUrl for the OG route
+      const slug = seo.canonicalUrl?.split("/").filter(Boolean).pop() || "";
+      ogImageFallback = `${base}/api/og-image?template=custom-page&slug=${encodeURIComponent(slug)}`;
+    } else if (seo.ogImageTemplate) {
+      // Other templates (homepage, etc.) — the OG route fetches data from DB
+      ogImageFallback = `${base}/api/og-image?template=${seo.ogImageTemplate}`;
+    }
+  }
+
+  const twitterImageFallback = seo.twitterImage || ogImageFallback || undefined;
 
   // Open Graph
   if (seo.ogTitle || seo.ogDescription || ogImageFallback || siteName) {

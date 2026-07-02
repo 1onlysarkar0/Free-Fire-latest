@@ -5,7 +5,7 @@ import type { ElementType } from "react";
 import {
   LayoutDashboard, Settings, Menu, FileText, Mail, MailOpen,
   Search,   Users, Shield, FileCode, Trophy, FileStack,
-  CreditCard, MessageSquare, ArrowUpFromLine, ArrowLeft,
+  CreditCard, MessageSquare, ArrowUpFromLine, ArrowLeft, HelpCircle,
 } from "lucide-react";
 import AppSidebarShell, { type AppSidebarSection } from "@/components/app-sidebar";
 import { canAccessSection } from "@/lib/admin-permissions";
@@ -49,6 +49,7 @@ const getSections = (panelSlug: string): AdminNavSection[] => [
       { label: "Navigation Items", href: `/${panelSlug}/navigation`, icon: Menu, sectionKey: "navigation" },
       { label: "SEO Configuration", href: `/${panelSlug}/seo`, icon: Search, sectionKey: "seo" },
       { label: "Custom Pages", href: `/${panelSlug}/pages`, icon: FileCode, sectionKey: "pages" },
+      { label: "FAQ Manager", href: `/${panelSlug}/faq`, icon: HelpCircle, sectionKey: "pages" },
     ],
   },
   {

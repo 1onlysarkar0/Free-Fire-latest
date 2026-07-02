@@ -34,6 +34,8 @@ import {
   chatbot_config,
   withdrawConfig,
   customPage,
+  robotsConfig,
+  faq,
 } from "./schema";
 
 // ─── DB Connection ────────────────────────────────────────────────────────────
@@ -668,6 +670,56 @@ async function seedSeoConfig() {
     twitterImage: "/assets/og-signin.png",
     canonicalUrl: `${siteUrl}/forgot-password`,
     robots: "index, follow",
+  }).onConflictDoNothing();
+
+  // Dashboard sub-pages for llms.txt descriptions
+  await db.insert(seoConfig).values({
+    id: "my-tournaments",
+    metaTitle: "My Tournaments — 1onlysarkar",
+    metaDescription: "Access joined matches, tournament custom room details, passwords, and player slots.",
+    robots: "noindex, nofollow",
+  }).onConflictDoNothing();
+
+  await db.insert(seoConfig).values({
+    id: "wallet",
+    metaTitle: "Wallet — 1onlysarkar",
+    metaDescription: "Manage UPI deposits, verify payment transactions, and submit instant withdrawal requests.",
+    robots: "noindex, nofollow",
+  }).onConflictDoNothing();
+
+  await db.insert(seoConfig).values({
+    id: "settings",
+    metaTitle: "Settings — 1onlysarkar",
+    metaDescription: "Configure user game handles, profile security settings, and personal credentials.",
+    robots: "noindex, nofollow",
+  }).onConflictDoNothing();
+
+  await db.insert(seoConfig).values({
+    id: "reset-password",
+    metaTitle: "Reset Password | 1onlysarkar",
+    metaDescription: "Enter your new password to complete the account recovery process.",
+    robots: "noindex, nofollow",
+  }).onConflictDoNothing();
+
+  // llms-txt config — contains AI/LLM entity definitions and structured data references
+  await db.insert(seoConfig).values({
+    id: "llms-txt",
+    metaTitle: "1OnlySarkar — AI/LLM Overview",
+    metaDescription: "Indian Free Fire esports platform, offering structured tournament match slots and real money payouts.",
+    robots: "index, follow",
+    structuredDataJson: JSON.stringify({
+      entities: [
+        { name: "1OnlySarkar", description: "Indian Free Fire esports platform, offering structured tournament match slots and real money payouts." },
+        { name: "Free Fire", description: "Mobile battle royale game by Garena (package: com.dts.freefireth)." },
+        { name: "Tournament Format", description: "SOLO (single player slot), DUO (team of 2 players), SQUAD (team of 4 players)." },
+        { name: "Prize Pool", description: "Real money (INR) credited directly to player wallets, withdrawable instantly via registered UPI." }
+      ],
+      references: [
+        `Organization: ${siteUrl}/#organization`,
+        `WebSite: ${siteUrl}/#website`,
+        "All tournaments feature custom SportsEvent schemas at their respective detail pages."
+      ]
+    }),
   }).onConflictDoNothing();
 
   console.log("✅ seo_config seeded.");
@@ -1594,235 +1646,6 @@ For questions about these Terms:
       metaDescription: "Read the full Terms & Conditions for 1OnlySarkar. These govern your use of the platform, tournament participation, wallet transactions, and prize eligibility.",
       ogImage: "",
       robots: "index, follow",
-    },
-    {
-      id: "faq",
-      slug: "faq",
-      title: "Frequently Asked Questions",
-      content: `# Frequently Asked Questions
-
-Can't find what you're looking for? [Contact us directly](/contact) — we're happy to help.
-
----
-
-## Account & Registration
-
-**Q: How do I create an account?**
-Go to the [Sign Up](/sign-up) page and register using your email address or Google account. It takes less than a minute.
-
----
-
-**Q: Why do I need to add my Free Fire UID?**
-Your UID is how we verify your identity after a match. Without it, we can't confirm you played under the right account, which means you won't be eligible for prizes. Add it in [Profile Settings](/dashboard/settings).
-
----
-
-**Q: Can I change my Free Fire UID or Game Name later?**
-Yes. Go to **Dashboard → Profile Settings** and update your details. Make sure any changes are done before registering for a tournament — not during one.
-
----
-
-**Q: I signed up with Google. Can I also set a password?**
-Yes. Head to **Profile Settings** and you'll find an option to set a password for your account.
-
----
-
-**Q: Can I have more than one account?**
-No. Each person is allowed exactly one account. Multiple accounts are a violation of our Terms & Conditions and result in a permanent ban of all accounts involved.
-
----
-
-**Q: I forgot my password. What do I do?**
-Go to the [Forgot Password](/forgot-password) page, enter your registered email, and we'll send you a reset link.
-
----
-
-## Wallet & Deposits
-
-**Q: How do I add money to my wallet?**
-Go to **Dashboard → My Wallet**. Scan the UPI QR code with any UPI app (GPay, PhonePe, Paytm, etc.), complete the payment, and then enter your **UTR number** on the same page to submit the deposit for verification.
-
----
-
-**Q: What is a UTR number and where do I find it?**
-UTR stands for Unique Transaction Reference. It's a 12-digit number generated by your bank or UPI app for every transaction. You can find it in your payment app under transaction history or in the payment confirmation SMS. It's how we verify that your payment actually went through.
-
----
-
-**Q: I paid but my wallet balance hasn't updated. What should I do?**
-First, double-check that you submitted the correct UTR number after paying. If you did and it's still not reflecting after a reasonable wait, contact us at [sauravmiami@gmail.com](mailto:sauravmiami@gmail.com) with your UTR number and a screenshot of the payment confirmation.
-
----
-
-**Q: How long does a deposit take to reflect?**
-Most deposits are verified quickly. If there's a delay, it's usually due to high verification volume. If your balance isn't updated within a few hours, reach out to support.
-
----
-
-**Q: My UPI payment failed but the money was debited from my account. What now?**
-In most cases, the money is automatically refunded by your bank within 3–5 business days. If it isn't, contact your bank first with the transaction details. If the issue is on our end, email us with proof of the deduction.
-
----
-
-**Q: Is there a minimum deposit amount?**
-The minimum deposit amount is displayed on the wallet page at the time of adding funds.
-
----
-
-## Withdrawals & Prizes
-
-**Q: How do I withdraw my winnings?**
-Go to **Dashboard → My Wallet** and submit a withdrawal request. Enter the amount you want to withdraw along with your UPI ID or bank account details. Requests are processed manually and typically take up to **48 hours**.
-
----
-
-**Q: Is there a minimum withdrawal amount?**
-Yes. The minimum withdrawal limit is shown on the wallet page.
-
----
-
-**Q: Where do prize winnings go?**
-Prize amounts are credited directly to your wallet after the admin verifies and declares the match result. From your wallet, you can withdraw to your UPI or bank account at any time.
-
----
-
-**Q: When does the prize get credited after a match?**
-Prizes are credited once the admin finalizes the result. This usually happens within a few hours of the match ending, depending on how quickly results are verified.
-
----
-
-**Q: My withdrawal was submitted but I haven't received the money yet.**
-Withdrawals can take up to 48 hours. If it's been longer than that, contact us at [sauravmiami@gmail.com](mailto:sauravmiami@gmail.com) with your registered email and the withdrawal details.
-
----
-
-## Tournaments & Joining
-
-**Q: How do I join a tournament?**
-Check out our full step-by-step guide here → [How to Join](/how-to-join)
-
----
-
-**Q: Do I need money in my wallet to join a free tournament?**
-No. Free tournaments have no entry fee — you can register directly without any wallet balance.
-
----
-
-**Q: What happens to my entry fee if I can't play?**
-Entry fees are non-refundable once a slot is booked. If you can't make it, the fee is not returned. Please only register if you're sure you can play at the scheduled time.
-
----
-
-**Q: What if the tournament is cancelled by the admin?**
-If the admin cancels a tournament, your entry fee is fully refunded to your wallet automatically.
-
----
-
-**Q: Can I cancel my slot after joining?**
-No. Once you've booked a slot and the entry fee has been deducted, it cannot be cancelled or refunded. The only exception is an admin-side cancellation.
-
----
-
-**Q: I joined a tournament but I can see it's full now. What does that mean?**
-It means all slots are filled. Once the tournament is full, the admin will set the Room ID and Password and you'll receive an email notification.
-
----
-
-**Q: Can I join a tournament that's already started?**
-No. Once a match has begun, no new registrations or room entries are permitted.
-
----
-
-**Q: How many tournaments can I join at once?**
-There is no hard limit. However, make sure you can realistically participate in all the tournaments you register for — missed matches are not refunded.
-
----
-
-## Room ID & Password
-
-**Q: How do I get the Room ID and Password?**
-Once all slots in a tournament are filled, the admin sets the credentials and you'll receive an **email notification**. You can then view the Room ID and Password in two places:
-
-- **Tournaments page** → find your registered event → credentials will be visible on the tournament card
-- **Dashboard → My Tournaments** → open the relevant event
-
----
-
-**Q: I didn't receive the Room ID email. What do I do?**
-Check your spam or junk folder first. If it's not there, go to the Tournaments page or your Dashboard → My Tournaments and check directly — the credentials are always visible there once set. If you still can't find them, contact support.
-
----
-
-**Q: Can I share the Room ID and Password with a friend?**
-No. Room credentials are exclusively for registered players in that specific tournament. Sharing them with anyone outside the tournament is a violation of our rules and may result in a permanent ban.
-
----
-
-**Q: The Room ID and Password aren't showing yet. Is something wrong?**
-Credentials are only set by the admin once all slots are filled. If slots are still open, credentials won't be available yet. Keep an eye on your email and check back closer to match time.
-
----
-
-## Results & Disputes
-
-**Q: Where can I see the tournament result?**
-After the match, results are posted on the tournament's detail page. Go to [Tournaments](/tournaments), find the completed event, and the results will be listed there.
-
----
-
-**Q: I think the result is wrong. How do I dispute it?**
-Submit a dispute within **24 hours** of the result being declared. You must provide clear screenshot or video evidence to support your claim. Disputes without proof will not be reviewed. Contact us at [sauravmiami@gmail.com](mailto:sauravmiami@gmail.com) to raise a dispute.
-
----
-
-**Q: Someone cheated in my match. What should I do?**
-Report them through the [Cheater Report](/cheater-report) page. Provide as much evidence as possible — screenshots, recordings, or the player's UID. All reports are reviewed by the admin.
-
----
-
-## Rules & Bans
-
-**Q: What happens if I'm caught cheating?**
-A permanent ban — no warnings, no refund, no exceptions. This applies to hacking, using modified APKs, aimbots, wallhacks, or any other unauthorized tools.
-
----
-
-**Q: What is teaming and why is it banned?**
-Teaming means secretly cooperating with enemy players to manipulate the match outcome — for example, intentionally not killing a specific enemy so they can win. It's treated the same as hacking and results in a permanent ban.
-
----
-
-**Q: Can I appeal a ban?**
-Yes, if you believe a ban was made in error. Send an appeal to [sauravmiami@gmail.com](mailto:sauravmiami@gmail.com) with your account details and any supporting evidence. Appeals without proof are not reviewed. The admin's decision on all appeals is final.
-
----
-
-**Q: I was banned. Will I get my wallet balance back?**
-If the ban is the result of a rule violation — cheating, fraud, teaming, etc. — the wallet balance is forfeited. If the ban was an error and is overturned through an appeal, the balance will be restored.
-
----
-
-## Technical Issues
-
-**Q: The website isn't loading properly. What should I do?**
-Try clearing your browser cache or opening the site in a different browser. If the issue continues, check our Instagram [@1onlysarkar](https://instagram.com/1onlysarkar) to see if there's a known outage. If nothing is posted, contact us via email.
-
-**Q: I'm having trouble logging in with Google. What can I do?**
-Make sure third-party cookies are enabled in your browser. Try clearing your browser cache and attempting the login again. If the issue persists, try registering with your email and password instead, or contact support.
-
----
-
-**Still have a question?**
-
-→ [Contact Support](/contact)
-→ Instagram: [@1onlysarkar](https://instagram.com/1onlysarkar)
-→ Email: [sauravmiami@gmail.com](mailto:sauravmiami@gmail.com)`,
-      status: "published",
-      metaTitle: "Frequently Asked Questions — 1OnlySarkar",
-      metaKeywords: "1onlysarkar faq, free fire tournament questions india, how to join free fire tournament, tournament room id password, upi deposit free fire tournament, 1onlysarkar help",
-      metaDescription: "Got questions about 1OnlySarkar? Find answers about tournament registration, wallet deposits, Room ID, withdrawals, results, and more in our FAQ.",
-      ogImage: "",
-      robots: "index, follow",
     }
   ];
 
@@ -1854,6 +1677,312 @@ Make sure third-party cookies are enabled in your browser. Try clearing your bro
   console.log("✅ custom_pages seeded.");
 }
 
+async function seedRobotsConfig() {
+  console.log("💾 Seeding robots_config...");
+  const defaultRules = [
+    { userAgent: "*", allow: ["/"], disallow: ["/dashboard"] },
+    { userAgent: "GPTBot", allow: ["/"] },
+    { userAgent: "ChatGPT-User", allow: ["/"] },
+    { userAgent: "Google-Extended", allow: ["/"] },
+    { userAgent: "Anthropic-AI", allow: ["/"] },
+    { userAgent: "Claude-Web", allow: ["/"] },
+    { userAgent: "CCBot", allow: ["/"] },
+    { userAgent: "PerplexityBot", allow: ["/"] },
+    { userAgent: "Cohere-ai", allow: ["/"] }
+  ];
+
+  await db.insert(robotsConfig).values({
+    id: "default",
+    rules: defaultRules,
+    updatedAt: new Date(),
+  }).onConflictDoUpdate({
+    target: robotsConfig.id,
+    set: {
+      rules: defaultRules,
+      updatedAt: new Date(),
+    }
+  });
+
+  console.log("✅ robots_config seeded.");
+}
+
+async function seedFaqs() {
+  console.log("💾 Seeding FAQs...");
+
+  const faqsData = [
+    {
+      id: "faq-1",
+      question: "How do I create an account?",
+      answer: "Go to the Sign Up page and register using your email address or Google account. It takes less than a minute.",
+      order: 1
+    },
+    {
+      id: "faq-2",
+      question: "Why do I need to add my Free Fire UID?",
+      answer: "Your UID is how we verify your identity after a match. Without it, we can't confirm you played under the right account, which means you won't be eligible for prizes. Add it in Profile Settings.",
+      order: 2
+    },
+    {
+      id: "faq-3",
+      question: "Can I change my Free Fire UID or Game Name later?",
+      answer: "Yes. Go to Dashboard → Profile Settings and update your details. Make sure any changes are done before registering for a tournament — not during one.",
+      order: 3
+    },
+    {
+      id: "faq-4",
+      question: "I signed up with Google. Can I also set a password?",
+      answer: "Yes. Head to Profile Settings and you'll find an option to set a password for your account.",
+      order: 4
+    },
+    {
+      id: "faq-5",
+      question: "Can I have more than one account?",
+      answer: "No. Each person is allowed exactly one account. Multiple accounts are a violation of our Terms & Conditions and result in a permanent ban of all accounts involved.",
+      order: 5
+    },
+    {
+      id: "faq-6",
+      question: "I forgot my password. What do I do?",
+      answer: "Go to the Forgot Password page, enter your registered email, and we'll send you a reset link.",
+      order: 6
+    },
+    {
+      id: "faq-7",
+      question: "How do I add money to my wallet?",
+      answer: "Go to Dashboard → My Wallet. Scan the UPI QR code with any UPI app (GPay, PhonePe, Paytm, etc.), complete the payment, and then enter your UTR number on the same page to submit the deposit for verification.",
+      order: 7
+    },
+    {
+      id: "faq-8",
+      question: "What is a UTR number and where do I find it?",
+      answer: "UTR stands for Unique Transaction Reference. It's a 12-digit number generated by your bank or UPI app for every transaction. You can find it in your payment app under transaction history or in the payment confirmation SMS. It's how we verify that your payment actually went through.",
+      order: 8
+    },
+    {
+      id: "faq-9",
+      question: "I paid but my wallet balance hasn't updated. What should I do?",
+      answer: "First, double-check that you submitted the correct UTR number after paying. If you did and it's still not reflecting after a reasonable wait, contact us at sauravmiami@gmail.com with your UTR number and a screenshot of the payment confirmation.",
+      order: 9
+    },
+    {
+      id: "faq-10",
+      question: "How long does a deposit take to reflect?",
+      answer: "Most deposits are verified quickly. If there's a delay, it's usually due to high verification volume. If your balance isn't updated within a few hours, reach out to support.",
+      order: 10
+    },
+    {
+      id: "faq-11",
+      question: "My UPI payment failed but the money was debited from my account. What now?",
+      answer: "In most cases, the money is automatically refunded by your bank within 3–5 business days. If it isn't, contact your bank first with the transaction details. If the issue is on our end, email us with proof of the deduction.",
+      order: 11
+    },
+    {
+      id: "faq-12",
+      question: "Is there a minimum deposit amount?",
+      answer: "The minimum deposit amount is displayed on the wallet page at the time of adding funds.",
+      order: 12
+    },
+    {
+      id: "faq-13",
+      question: "How do I withdraw my winnings?",
+      answer: "Go to Dashboard → My Wallet and submit a withdrawal request. Enter the amount you want to withdraw along with your UPI ID or bank account details. Requests are processed manually and typically take up to 48 hours.",
+      order: 13
+    },
+    {
+      id: "faq-14",
+      question: "Is there a minimum withdrawal amount?",
+      answer: "Yes. The minimum withdrawal limit is shown on the wallet page.",
+      order: 14
+    },
+    {
+      id: "faq-15",
+      question: "Where do prize winnings go?",
+      answer: "Prize amounts are credited directly to your wallet after the admin verifies and declares the match result. From your wallet, you can withdraw to your UPI or bank account at any time.",
+      order: 15
+    },
+    {
+      id: "faq-16",
+      question: "When does the prize get credited after a match?",
+      answer: "Prizes are credited once the admin finalizes the result. This usually happens within a few hours of the match ending, depending on how quickly results are verified.",
+      order: 16
+    },
+    {
+      id: "faq-17",
+      question: "My withdrawal was submitted but I haven't received the money yet.",
+      answer: "Withdrawals can take up to 48 hours. If it's been longer than that, contact us at sauravmiami@gmail.com with your registered email and the withdrawal details.",
+      order: 17
+    },
+    {
+      id: "faq-18",
+      question: "How do I join a tournament?",
+      answer: "Check out our tournaments page, find the event you want to join, select your team slot, and click register.",
+      order: 18
+    },
+    {
+      id: "faq-19",
+      question: "Do I need money in my wallet to join a free tournament?",
+      answer: "No. Free tournaments have no entry fee — you can register directly without any wallet balance.",
+      order: 19
+    },
+    {
+      id: "faq-20",
+      question: "What happens to my entry fee if I can't play?",
+      answer: "Entry fees are non-refundable once a slot is booked. If you can't make it, the fee is not returned. Please only register if you're sure you can play at the scheduled time.",
+      order: 20
+    },
+    {
+      id: "faq-21",
+      question: "What if the tournament is cancelled by the admin?",
+      answer: "If the admin cancels a tournament, your entry fee is fully refunded to your wallet automatically.",
+      order: 21
+    },
+    {
+      id: "faq-22",
+      question: "Can I cancel my slot after joining?",
+      answer: "No. Once you've booked a slot and the entry fee has been deducted, it cannot be cancelled or refunded. The only exception is an admin-side cancellation.",
+      order: 22
+    },
+    {
+      id: "faq-23",
+      question: "I joined a tournament but I can see it's full now. What does that mean?",
+      answer: "It means all slots are filled. Once the tournament is full, the admin will set the Room ID and Password and you'll receive an email notification.",
+      order: 23
+    },
+    {
+      id: "faq-24",
+      question: "Can I join a tournament that's already started?",
+      answer: "No. Once a match has begun, no new registrations or room entries are permitted.",
+      order: 24
+    },
+    {
+      id: "faq-25",
+      question: "How many tournaments can I join at once?",
+      answer: "There is no hard limit. However, make sure you can realistically participate in all the tournaments you register for — missed matches are not refunded.",
+      order: 25
+    },
+    {
+      id: "faq-26",
+      question: "How do I get the Room ID and Password?",
+      answer: "Once all slots in a tournament are filled, the admin sets the credentials and you'll receive an email notification. You can then view the Room ID and Password on the Tournaments page or Dashboard.",
+      order: 26
+    },
+    {
+      id: "faq-27",
+      question: "I didn't receive the Room ID email. What do I do?",
+      answer: "Check your spam or junk folder first. If it's not there, go to the Tournaments page or your Dashboard and check directly.",
+      order: 27
+    },
+    {
+      id: "faq-28",
+      question: "Can I share the Room ID and Password with a friend?",
+      answer: "No. Room credentials are exclusively for registered players in that specific tournament. Sharing them with anyone outside the tournament is a violation of our rules.",
+      order: 28
+    },
+    {
+      id: "faq-29",
+      question: "The Room ID and Password aren't showing yet. Is something wrong?",
+      answer: "Credentials are only set by the admin once all slots are filled. If slots are still open, credentials won't be available yet.",
+      order: 29
+    },
+    {
+      id: "faq-30",
+      question: "Where can I see the tournament result?",
+      answer: "After the match, results are posted on the tournament's detail page under completed events.",
+      order: 30
+    },
+    {
+      id: "faq-31",
+      question: "I think the result is wrong. How do I dispute it?",
+      answer: "Submit a dispute within 24 hours of the result being declared. You must provide clear screenshot or video evidence to support your claim.",
+      order: 31
+    },
+    {
+      id: "faq-32",
+      question: "Someone cheated in my match. What should I do?",
+      answer: "Report them through the Cheater Report page. Provide as much evidence as possible — screenshots, recordings, or the player's UID.",
+      order: 32
+    },
+    {
+      id: "faq-33",
+      question: "What happens if I'm caught cheating?",
+      answer: "A permanent ban — no warnings, no refund, no exceptions. This applies to hacking, using modified APKs, aimbots, wallhacks, or any other unauthorized tools.",
+      order: 33
+    },
+    {
+      id: "faq-34",
+      question: "What is teaming and why is it banned?",
+      answer: "Teaming means secretly cooperating with enemy players to manipulate the match outcome. It results in a permanent ban.",
+      order: 34
+    },
+    {
+      id: "faq-35",
+      question: "Can I appeal a ban?",
+      answer: "Yes, if you believe a ban was made in error. Send an appeal to sauravmiami@gmail.com with your account details and any supporting evidence.",
+      order: 35
+    },
+    {
+      id: "faq-36",
+      question: "I was banned. Will I get my wallet balance back?",
+      answer: "If the ban is the result of a rule violation, the wallet balance is forfeited.",
+      order: 36
+    },
+    {
+      id: "faq-37",
+      question: "The website isn't loading properly. What should I do?",
+      answer: "Try clearing your browser cache or opening the site in a different browser. You can also check our Instagram @1onlysarkar for updates.",
+      order: 37
+    },
+    {
+      id: "faq-38",
+      question: "I'm having trouble logging in with Google. What can I do?",
+      answer: "Make sure third-party cookies are enabled in your browser. Clear browser cache and try again.",
+      order: 38
+    }
+  ];
+
+  for (const item of faqsData) {
+    await db
+      .insert(faq)
+      .values({
+        id: item.id,
+        question: item.question,
+        answer: item.answer,
+        order: item.order,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: faq.id,
+        set: {
+          question: item.question,
+          answer: item.answer,
+          order: item.order,
+          updatedAt: new Date(),
+        }
+      });
+  }
+
+  // Seed standard page-faq SEO config row to preserve all metadata rules
+  await db
+    .insert(seoConfig)
+    .values({
+      id: "page-faq",
+      metaTitle: "Frequently Asked Questions — 1OnlySarkar",
+      metaKeywords: "1onlysarkar faq, free fire tournament questions india, how to join free fire tournament, tournament room id password, upi deposit free fire tournament, 1onlysarkar help",
+      metaDescription: "Got questions about 1OnlySarkar? Find answers about tournament registration, wallet deposits, Room ID, withdrawals, results, and more in our FAQ.",
+      ogTitle: "Frequently Asked Questions — 1OnlySarkar",
+      ogDescription: "Got questions about 1OnlySarkar? Find answers about tournament registration, wallet deposits, Room ID, withdrawals, results, and more in our FAQ.",
+      ogImage: "",
+      canonicalUrl: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/faq`,
+      robots: "index, follow",
+      schemaType: "FAQPage",
+      ogImageDynamic: false,
+    })
+    .onConflictDoNothing();
+
+  console.log("✅ FAQs table & page-faq SEO config seeded.");
+}
+
 async function main() {
   console.log("🚀 Starting database seed...\n");
 
@@ -1868,7 +1997,13 @@ async function main() {
   await seedWithdrawConfig();
   await seedTopPlayers();
   await seedChatbotConfig();
-  await seedCustomPages();
+  await seedRobotsConfig();
+  await seedFaqs();
+  try {
+    await seedCustomPages();
+  } catch (err) {
+    console.warn("⚠️ Warning: custom page seeding skipped due to pre-existing data / duplicate keys:", err);
+  }
 
   console.log("\n✅ All tables seeded successfully.");
   await client.end();

@@ -1,6 +1,6 @@
 import { requireAdminOrRole } from "@/lib/admin-auth";
 import { db } from "@/db/drizzle";
-import { customPage } from "@/db/schema";
+import { customPage, seoConfig } from "@/db/schema";
 import { desc } from "drizzle-orm";
 import { CACHE_TAGS, invalidatePublicCache } from "@/lib/cache";
 
@@ -41,6 +41,38 @@ export async function POST(request: Request) {
       createdAt: new Date(),
       updatedAt: new Date(),
     }).returning();
+
+    if (status === "published") {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+      if (!baseUrl) throw new Error("NEXT_PUBLIC_APP_URL environment variable is required");
+      await db.insert(seoConfig).values({
+        id: `page-${cleanSlug}`,
+        metaTitle: metaTitle || String(title).trim(),
+        metaDescription: metaDescription || null,
+        metaKeywords: metaKeywords || null,
+        ogTitle: metaTitle || String(title).trim(),
+        ogDescription: metaDescription || null,
+        ogImage: ogImage || null,
+        ogType: "website",
+        canonicalUrl: `${baseUrl}/${cleanSlug}`,
+        robots: robots || "index, follow",
+        schemaType: "WebPage",
+        ogImageDynamic: false,
+      }).onConflictDoUpdate({
+        target: seoConfig.id,
+        set: {
+          metaTitle: metaTitle || String(title).trim(),
+          metaDescription: metaDescription || null,
+          metaKeywords: metaKeywords || null,
+          ogTitle: metaTitle || String(title).trim(),
+          ogDescription: metaDescription || null,
+          ogImage: ogImage || null,
+          canonicalUrl: `${baseUrl}/${cleanSlug}`,
+          robots: robots || "index, follow",
+          updatedAt: new Date(),
+        }
+      });
+    }
 
     await invalidatePublicCache({
       tags: [CACHE_TAGS.pages, CACHE_TAGS.seo],

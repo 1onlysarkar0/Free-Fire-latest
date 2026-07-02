@@ -1,10 +1,25 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { ArrowLeft, Plus, Info } from "lucide-react";
+import {
+  ArrowLeft,
+  Plus,
+  Info,
+  Gamepad2,
+  Users,
+  Trophy,
+  Clock,
+  FileText,
+  Shield,
+  Calendar,
+  MapPin,
+  Loader2,
+  Check,
+  ChevronDown,
+} from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +33,10 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 
+// ─────────────────────────────────────────────────────────────────────────────
+// TODO: These should be fetched from API / site_config to be fully DB-driven
+// For now, keeping as constants but UI is ready to accept dynamic data
+// ─────────────────────────────────────────────────────────────────────────────
 const GAME_MODES = ["battle_royale", "clash_squad", "lone_wolf"];
 const TEAM_FORMATS = ["solo", "duo", "squad"];
 const MAP_OPTIONS = ["Bermuda", "Purgatory", "Kalahari", "Alpine", "Nexterra"];
@@ -36,12 +55,12 @@ interface ContentTemplate {
 
 function slotPreview(format: string, value: number): string {
   if (format === "duo") {
-    return `${value} teams × 2 players = ${value * 2} player spots`;
+    return `${value} teams × 2 = ${value * 2} spots`;
   }
   if (format === "squad") {
-    return `${value} teams × 4 players = ${value * 4} player spots`;
+    return `${value} teams × 4 = ${value * 4} spots`;
   }
-  return `${value} individual player slots`;
+  return `${value} player slots`;
 }
 
 interface NewTournamentClientProps {
@@ -61,11 +80,11 @@ export default function NewTournamentClient({ dynamicSlug }: NewTournamentClient
     const defaultDeadline = new Date(Date.now() + 22 * 60 * 60 * 1000);
     return {
       name: "",
-      type: "FREE",
+      type: "FREE" as "FREE" | "PAID",
       joiningFee: 0,
       prizePool: 0,
       gameMode: "battle_royale",
-      teamFormat: "solo",
+      teamFormat: "solo" as "solo" | "duo" | "squad",
       maps: [] as string[],
       totalSlots: 48,
       startTime: toDatetimeLocal(defaultStart),
@@ -83,39 +102,61 @@ export default function NewTournamentClient({ dynamicSlug }: NewTournamentClient
   useEffect(() => {
     setLoadingTemplates(true);
     Promise.all([
-      fetch("/api/admin/content-templates?type=DESCRIPTION").then(r => r.json()),
-      fetch("/api/admin/content-templates?type=RULES").then(r => r.json()),
-    ]).then(([descData, rulesData]) => {
-      setDescTemplates(Array.isArray(descData) ? descData : (descData.data ?? []));
-      setRulesTemplates(Array.isArray(rulesData) ? rulesData : (rulesData.data ?? []));
-    }).catch(() => {}).finally(() => setLoadingTemplates(false));
+      fetch("/api/admin/content-templates?type=DESCRIPTION").then((r) => r.json()),
+      fetch("/api/admin/content-templates?type=RULES").then((r) => r.json()),
+    ])
+      .then(([descData, rulesData]) => {
+        setDescTemplates(Array.isArray(descData) ? descData : descData.data ?? []);
+        setRulesTemplates(Array.isArray(rulesData) ? rulesData : rulesData.data ?? []);
+      })
+      .catch(() => {
+        toast.error("Failed to load templates");
+      })
+      .finally(() => setLoadingTemplates(false));
   }, []);
 
-  function set(key: string, value: unknown) {
+  const set = useCallback(<K extends keyof typeof form>(key: K, value: (typeof form)[K]) => {
     setForm((f) => ({ ...f, [key]: value }));
-  }
+  }, []);
 
-  function toggleMap(map: string) {
-    set("maps", form.maps.includes(map) ? form.maps.filter((m) => m !== map) : [...form.maps, map]);
-  }
+  const toggleMap = useCallback((map: string) => {
+    setForm((f) => ({
+      ...f,
+      maps: f.maps.includes(map) ? f.maps.filter((m) => m !== map) : [...f.maps, map],
+    }));
+  }, []);
 
-  function applyDescTemplate(id: string) {
-    const t = descTemplates.find(t => t.id === id);
-    if (t) {
-      set("descriptionTemplateId", id);
-      set("descriptionHtml", t.contentHtml);
-      set("descriptionMarkdown", t.contentMarkdown);
-    }
-  }
+  const applyDescTemplate = useCallback(
+    (id: string) => {
+      const t = descTemplates.find((t) => t.id === id);
+      if (t) {
+        setForm((f) => ({
+          ...f,
+          descriptionTemplateId: id,
+          descriptionHtml: t.contentHtml,
+          descriptionMarkdown: t.contentMarkdown,
+        }));
+      }
+    },
+    [descTemplates]
+  );
 
-  function applyRulesTemplate(id: string) {
-    const t = rulesTemplates.find(t => t.id === id);
-    if (t) {
-      set("rulesTemplateId", id);
-      set("rulesHtml", t.contentHtml);
-      set("rulesMarkdown", t.contentMarkdown);
-    }
-  }
+  const applyRulesTemplate = useCallback(
+    (id: string) => {
+      const t = rulesTemplates.find((t) => t.id === id);
+      if (t) {
+        setForm((f) => ({
+          ...f,
+          rulesTemplateId: id,
+          rulesHtml: t.contentHtml,
+          rulesMarkdown: t.contentMarkdown,
+        }));
+      }
+    },
+    [rulesTemplates]
+  );
+
+  const slotHint = useMemo(() => slotPreview(form.teamFormat, Number(form.totalSlots)), [form.teamFormat, form.totalSlots]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -125,11 +166,12 @@ export default function NewTournamentClient({ dynamicSlug }: NewTournamentClient
 
     setSaving(true);
     try {
-      const rawSlots = form.teamFormat === "duo"
-        ? Number(form.totalSlots) * 2
-        : form.teamFormat === "squad"
-        ? Number(form.totalSlots) * 4
-        : Number(form.totalSlots);
+      const rawSlots =
+        form.teamFormat === "duo"
+          ? Number(form.totalSlots) * 2
+          : form.teamFormat === "squad"
+            ? Number(form.totalSlots) * 4
+            : Number(form.totalSlots);
 
       const payload = {
         name: form.name,
@@ -157,7 +199,7 @@ export default function NewTournamentClient({ dynamicSlug }: NewTournamentClient
       const data = await res.json();
 
       if (data.success) {
-        toast.success("Tournament created!");
+        toast.success("Tournament created successfully!");
         router.push(`/${dynamicSlug}/tournaments/${data.id}`);
       } else {
         toast.error(data.error || "Failed to create tournament");
@@ -169,275 +211,394 @@ export default function NewTournamentClient({ dynamicSlug }: NewTournamentClient
     }
   }
 
-  const slotHint = slotPreview(form.teamFormat, Number(form.totalSlots));
-
   return (
-    <div className="p-6 max-w-4xl">
-      <div className="flex items-center gap-3 mb-6">
-        <Link href={`/${dynamicSlug}/tournaments`} prefetch={true}>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">New Tournament</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Fill in the details below. Slots will be created automatically.</p>
-        </div>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Basic Info */}
-        <div className="bg-card rounded-xl border border-border p-5 space-y-4">
-          <h2 className="font-semibold text-foreground">Basic Information</h2>
-
-          <div>
-            <Label htmlFor="name">Tournament Name *</Label>
-            <Input
-              id="name"
-              value={form.name}
-              onChange={(e) => set("name", e.target.value)}
-              placeholder="e.g. Sunday Showdown #12"
-              className="mt-1"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="gameMode">Game Mode *</Label>
-              <Select value={form.gameMode} onValueChange={(v) => set("gameMode", v)}>
-                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {GAME_MODES.map((m) => (
-                    <SelectItem key={m} value={m}>{m.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="teamFormat">Team Format *</Label>
-              <Select
-                value={form.teamFormat}
-                onValueChange={(v) => {
-                  setForm((f) => {
-                    let defaultSlots = 12;
-                    if (v === "solo") defaultSlots = 48;
-                    else if (v === "duo") defaultSlots = 24;
-                    else if (v === "squad") defaultSlots = 12;
-                    return { ...f, teamFormat: v, totalSlots: defaultSlots };
-                  });
-                }}
-              >
-                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {TEAM_FORMATS.map((f) => (
-                    <SelectItem key={f} value={f}>{f.charAt(0).toUpperCase() + f.slice(1)}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div>
-            <Label>Maps</Label>
-            <div className="flex flex-wrap gap-2 mt-1">
-              {MAP_OPTIONS.map((map) => (
-                <button
-                  key={map}
-                  type="button"
-                  onClick={() => toggleMap(map)}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-                    form.maps.includes(map)
-                      ? "bg-primary text-white border-primary"
-                      : "bg-card text-muted-foreground border-border hover:border-muted"
-                  }`}
+    <div className="w-full min-w-0 space-y-4 pb-8 sm:space-y-6">
+      {/* ─── Sticky Header ─── */}
+      <div className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <div className="px-3 pb-4 pt-3 sm:px-4 md:px-6 lg:px-8">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <Link href={`/${dynamicSlug}/tournaments`} prefetch={true}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 shrink-0 rounded-xl"
                 >
-                  {map}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="totalSlots">
-              {form.teamFormat === "solo" ? "Total Slots (players) *" : "Total Teams *"}
-            </Label>
-            <div className="flex items-center gap-3 mt-1">
-              <Input
-                id="totalSlots"
-                type="number"
-                min={1}
-                max={500}
-                value={form.totalSlots}
-                onChange={(e) => set("totalSlots", e.target.value)}
-                className="w-32"
-              />
-              <div className="flex items-center gap-1.5 text-sm text-primary bg-primary/10 px-3 py-1.5 rounded-lg border border-primary/10">
-                <Info className="h-3.5 w-3.5 shrink-0" />
-                <span>{slotHint}</span>
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              </Link>
+              <div className="min-w-0">
+                <h1 className="text-base font-semibold text-foreground sm:text-lg">
+                  New Tournament
+                </h1>
+                <p className="text-xs text-muted-foreground sm:text-sm">
+                  Create a new tournament. Slots will be generated automatically.
+                </p>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Pricing */}
-        <div className="bg-card rounded-xl border border-border p-5 space-y-4">
-          <h2 className="font-semibold text-foreground">Pricing & Prize</h2>
+      {/* ─── Form Content ─── */}
+      <div className="px-3 sm:px-4 md:px-6 lg:px-8">
+        <form onSubmit={handleSubmit} className="mx-auto w-full max-w-5xl space-y-4 sm:space-y-5">
 
-          <div className="flex items-center gap-3">
-            <Switch
-              checked={form.type === "PAID"}
-              onCheckedChange={(v) => set("type", v ? "PAID" : "FREE")}
-              id="paidToggle"
-            />
-            <Label htmlFor="paidToggle">Paid Tournament</Label>
-          </div>
-
-          {form.type === "PAID" && (
-            <div>
-              <Label htmlFor="joiningFee">Entry Fee (₹) *</Label>
-              <Input
-                id="joiningFee"
-                type="number"
-                min={0}
-                value={form.joiningFee}
-                onChange={(e) => set("joiningFee", e.target.value)}
-                className="mt-1 w-40"
-              />
+          {/* Basic Info */}
+          <div className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
+            <div className="mb-4 flex items-center gap-2.5">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <Gamepad2 className="h-4 w-4 text-primary" />
+              </div>
+              <h2 className="text-sm font-semibold text-foreground sm:text-base">
+                Basic Information
+              </h2>
             </div>
-          )}
 
-          <div>
-            <Label htmlFor="prizePool">Total Prize Pool (₹)</Label>
-            <Input
-              id="prizePool"
-              type="number"
-              min={0}
-              value={form.prizePool}
-              onChange={(e) => set("prizePool", e.target.value)}
-              className="mt-1 w-40"
-            />
-          </div>
-        </div>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="name" className="text-xs font-medium sm:text-sm">
+                  Tournament Name <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="name"
+                  value={form.name}
+                  onChange={(e) => set("name", e.target.value)}
+                  placeholder="e.g. Sunday Showdown #12"
+                  className="mt-1.5 h-10"
+                />
+              </div>
 
-        {/* Schedule */}
-        <div className="bg-card rounded-xl border border-border p-5 space-y-4">
-          <h2 className="font-semibold text-foreground">Schedule</h2>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <Label className="text-xs font-medium sm:text-sm">Game Mode <span className="text-destructive">*</span></Label>
+                  <Select value={form.gameMode} onValueChange={(v) => set("gameMode", v)}>
+                    <SelectTrigger className="mt-1.5 h-10">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {GAME_MODES.map((m) => (
+                        <SelectItem key={m} value={m}>
+                          {m.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs font-medium sm:text-sm">Team Format <span className="text-destructive">*</span></Label>
+                  <Select
+                    value={form.teamFormat}
+                    onValueChange={(v: "solo" | "duo" | "squad") => {
+                      setForm((f) => {
+                        let defaultSlots = 12;
+                        if (v === "solo") defaultSlots = 48;
+                        else if (v === "duo") defaultSlots = 24;
+                        else if (v === "squad") defaultSlots = 12;
+                        return { ...f, teamFormat: v, totalSlots: defaultSlots };
+                      });
+                    }}
+                  >
+                    <SelectTrigger className="mt-1.5 h-10">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TEAM_FORMATS.map((f) => (
+                        <SelectItem key={f} value={f}>
+                          {f.charAt(0).toUpperCase() + f.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="registrationDeadline">Registration Deadline *</Label>
-              <Input
-                id="registrationDeadline"
-                type="datetime-local"
-                value={form.registrationDeadline}
-                onChange={(e) => set("registrationDeadline", e.target.value)}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="startTime">Start Time *</Label>
-              <Input
-                id="startTime"
-                type="datetime-local"
-                value={form.startTime}
-                onChange={(e) => set("startTime", e.target.value)}
-                className="mt-1"
-              />
-            </div>
-          </div>
-
-          <div className="w-64">
-            <Label htmlFor="endTime">End Time (optional)</Label>
-            <Input
-              id="endTime"
-              type="datetime-local"
-              value={form.endTime}
-              onChange={(e) => set("endTime", e.target.value)}
-              className="mt-1"
-            />
-          </div>
-        </div>
-
-        {/* Description & Rules — template dropdowns */}
-        <div className="bg-card rounded-xl border border-border p-5 space-y-5">
-          <h2 className="font-semibold text-foreground">Rules / Description</h2>
-          <p className="text-sm text-muted-foreground -mt-2">Select a pre-built template for description and rules. Templates are managed in the content templates section.</p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <Label>Description Template</Label>
-              <Select
-                value={form.descriptionTemplateId}
-                onValueChange={applyDescTemplate}
-                disabled={loadingTemplates}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder={loadingTemplates ? "Loading…" : "— None (no description) —"} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">— None —</SelectItem>
-                  {descTemplates.map((t) => (
-                    <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+              <div>
+                <Label className="text-xs font-medium sm:text-sm">Maps</Label>
+                <div className="mt-2 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+                  {MAP_OPTIONS.map((map) => (
+                    <button
+                      key={map}
+                      type="button"
+                      onClick={() => toggleMap(map)}
+                      className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all active:scale-[0.98] ${form.maps.includes(map)
+                          ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                          : "border-border bg-muted/40 text-muted-foreground hover:border-muted-foreground/30 hover:bg-accent"
+                        }`}
+                    >
+                      <MapPin className="h-3.5 w-3.5 shrink-0" />
+                      {map}
+                    </button>
                   ))}
-                </SelectContent>
-              </Select>
-              {form.descriptionTemplateId && (
-                <p className="text-xs text-success mt-1.5 flex items-center gap-1">
-                  ✓ Template applied
-                </p>
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-xs font-medium sm:text-sm">
+                  {form.teamFormat === "solo" ? "Total Slots (players)" : "Total Teams"} <span className="text-destructive">*</span>
+                </Label>
+                <div className="mt-1.5 flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={500}
+                    value={form.totalSlots}
+                    onChange={(e) => set("totalSlots", Number(e.target.value))}
+                    className="h-10 sm:w-32"
+                  />
+                  <div className="inline-flex items-center gap-1.5 rounded-lg border border-primary/10 bg-primary/5 px-3 py-2 text-xs font-medium text-primary sm:text-sm">
+                    <Info className="h-3.5 w-3.5 shrink-0" />
+                    <span>{slotHint}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Pricing */}
+          <div className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
+            <div className="mb-4 flex items-center gap-2.5">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-success/10">
+                <Trophy className="h-4 w-4 text-success" />
+              </div>
+              <h2 className="text-sm font-semibold text-foreground sm:text-base">
+                Pricing & Prize
+              </h2>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between rounded-xl border border-border/50 bg-muted/30 p-3 sm:p-4">
+                <div className="flex items-center gap-3">
+                  <Switch
+                    checked={form.type === "PAID"}
+                    onCheckedChange={(v) => set("type", v ? "PAID" : "FREE")}
+                    id="paidToggle"
+                  />
+                  <Label htmlFor="paidToggle" className="cursor-pointer text-sm font-medium">
+                    Paid Tournament
+                  </Label>
+                </div>
+                <span
+                  className={`rounded-full px-2.5 py-1 text-xs font-semibold ${form.type === "PAID"
+                      ? "bg-primary/10 text-primary"
+                      : "bg-muted text-muted-foreground"
+                    }`}
+                >
+                  {form.type}
+                </span>
+              </div>
+
+              {form.type === "PAID" && (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <Label className="text-xs font-medium sm:text-sm">Entry Fee (coins) <span className="text-destructive">*</span></Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={form.joiningFee}
+                      onChange={(e) => set("joiningFee", Number(e.target.value))}
+                      className="mt-1.5 h-10"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-medium sm:text-sm">Total Prize Pool (coins)</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={form.prizePool}
+                      onChange={(e) => set("prizePool", Number(e.target.value))}
+                      className="mt-1.5 h-10"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {form.type === "FREE" && (
+                <div>
+                  <Label className="text-xs font-medium sm:text-sm">Prize Pool (coins)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={form.prizePool}
+                    onChange={(e) => set("prizePool", Number(e.target.value))}
+                    className="mt-1.5 h-10"
+                    placeholder="Optional prize for free tournaments"
+                  />
+                </div>
               )}
             </div>
+          </div>
 
-            <div>
-              <Label>Rules Template</Label>
-              <Select
-                value={form.rulesTemplateId}
-                onValueChange={applyRulesTemplate}
-                disabled={loadingTemplates}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder={loadingTemplates ? "Loading…" : "— None (no rules) —"} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">— None —</SelectItem>
-                  {rulesTemplates.map((t) => (
-                    <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {form.rulesTemplateId && (
-                <p className="text-xs text-success mt-1.5 flex items-center gap-1">
-                  ✓ Template applied
-                </p>
-              )}
+          {/* Schedule */}
+          <div className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
+            <div className="mb-4 flex items-center gap-2.5">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-info/10">
+                <Clock className="h-4 w-4 text-info" />
+              </div>
+              <h2 className="text-sm font-semibold text-foreground sm:text-base">
+                Schedule
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <Label className="text-xs font-medium sm:text-sm">
+                  Registration Deadline <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  type="datetime-local"
+                  value={form.registrationDeadline}
+                  onChange={(e) => set("registrationDeadline", e.target.value)}
+                  className="mt-1.5 h-10"
+                />
+              </div>
+              <div>
+                <Label className="text-xs font-medium sm:text-sm">
+                  Start Time <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  type="datetime-local"
+                  value={form.startTime}
+                  onChange={(e) => set("startTime", e.target.value)}
+                  className="mt-1.5 h-10"
+                />
+              </div>
+            </div>
+            <div className="mt-4">
+              <Label className="text-xs font-medium sm:text-sm">End Time (optional)</Label>
+              <Input
+                type="datetime-local"
+                value={form.endTime}
+                onChange={(e) => set("endTime", e.target.value)}
+                className="mt-1.5 h-10"
+              />
             </div>
           </div>
 
-          {descTemplates.length === 0 && rulesTemplates.length === 0 && !loadingTemplates && (
-            <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">
-              No templates found. Create some in <strong>Content Templates</strong> section first, then come back to pick them here.
+          {/* Templates */}
+          <div className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
+            <div className="mb-4 flex items-center gap-2.5">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-warning/10">
+                <FileText className="h-4 w-4 text-warning" />
+              </div>
+              <div className="min-w-0">
+                <h2 className="text-sm font-semibold text-foreground sm:text-base">
+                  Rules & Description
+                </h2>
+                <p className="text-xs text-muted-foreground sm:text-sm">
+                  Select from pre-built content templates
+                </p>
+              </div>
             </div>
-          )}
-        </div>
 
-        <div className="flex gap-3">
-          <Button type="submit" disabled={saving} className="bg-primary hover:bg-primary/90 text-white">
-            {saving ? (
-              <>
-                <span className="h-4 w-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
-                Creating…
-              </>
+            {loadingTemplates ? (
+              <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading templates...
+              </div>
             ) : (
-              <>
-                <Plus className="h-4 w-4 mr-2" /> Create Tournament
-              </>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <Label className="text-xs font-medium sm:text-sm">Description Template</Label>
+                  <Select
+                    value={form.descriptionTemplateId}
+                    onValueChange={applyDescTemplate}
+                    disabled={descTemplates.length === 0}
+                  >
+                    <SelectTrigger className="mt-1.5 h-10">
+                      <SelectValue
+                        placeholder={descTemplates.length === 0 ? "No templates" : "— None —"}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">— None —</SelectItem>
+                      {descTemplates.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>
+                          {t.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {form.descriptionTemplateId && (
+                    <p className="mt-1.5 flex items-center gap-1 text-xs text-success">
+                      <Check className="h-3 w-3" /> Template applied
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <Label className="text-xs font-medium sm:text-sm">Rules Template</Label>
+                  <Select
+                    value={form.rulesTemplateId}
+                    onValueChange={applyRulesTemplate}
+                    disabled={rulesTemplates.length === 0}
+                  >
+                    <SelectTrigger className="mt-1.5 h-10">
+                      <SelectValue
+                        placeholder={rulesTemplates.length === 0 ? "No templates" : "— None —"}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">— None —</SelectItem>
+                      {rulesTemplates.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>
+                          {t.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {form.rulesTemplateId && (
+                    <p className="mt-1.5 flex items-center gap-1 text-xs text-success">
+                      <Check className="h-3 w-3" /> Template applied
+                    </p>
+                  )}
+                </div>
+              </div>
             )}
-          </Button>
-          <Link href={`/${dynamicSlug}/tournaments`} prefetch={true}>
-            <Button type="button" variant="outline">Cancel</Button>
-          </Link>
-        </div>
-      </form>
+
+            {!loadingTemplates && descTemplates.length === 0 && rulesTemplates.length === 0 && (
+              <div className="mt-4 rounded-xl border border-amber-200/60 bg-amber-50/50 p-3 text-sm text-amber-800">
+                <div className="flex items-start gap-2">
+                  <Info className="mt-0.5 h-4 w-4 shrink-0" />
+                  <p>
+                    No templates found. Create them in the <strong>Content Templates</strong> section first.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center">
+            <Button
+              type="submit"
+              disabled={saving}
+              className="h-11 w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90 sm:w-auto"
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Creating…</span>
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4" />
+                  <span>Create Tournament</span>
+                </>
+              )}
+            </Button>
+            <Link href={`/${dynamicSlug}/tournaments`} prefetch={true} className="w-full sm:w-auto">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 w-full sm:w-auto"
+              >
+                Cancel
+              </Button>
+            </Link>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

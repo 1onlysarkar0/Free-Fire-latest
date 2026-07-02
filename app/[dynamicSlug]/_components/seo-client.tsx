@@ -1,293 +1,646 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Pencil, Trash2, Loader2, Save, X, Globe, Home, LogIn, UserPlus, LayoutDashboard, KeyRound, Info, Search } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Loader2,
+  Globe,
+  Info,
+  Search,
+  Sparkles,
+  Play,
+  RefreshCw,
+  Pencil,
+  Save,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Field, FieldLabel } from "@/components/ui/field";
-import { Muted } from "@/components/ui/typography";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  SeoRow,
+  KNOWN_PAGES,
+  getIconByName,
+  getScoreColor,
+  getScoreBadge,
+} from "@/lib/seo/helpers";
 
-interface SeoRow {
-  id: string; metaTitle: string | null; metaDescription: string | null; metaKeywords: string | null;
-  ogTitle: string | null; ogDescription: string | null; ogImage: string | null; ogType: string | null;
-  twitterCard: string | null; twitterSite: string | null; twitterTitle: string | null;
-  twitterDescription: string | null; twitterImage: string | null;
-  canonicalUrl: string | null; robots: string | null; structuredDataJson: string | null;
+interface Props {
+  initialData: SeoRow[];
+  dynamicSlug: string;
 }
 
-const emptyForm: Omit<SeoRow, "id"> = {
-  metaTitle: "", metaDescription: "", metaKeywords: "", ogTitle: "", ogDescription: "",
-  ogImage: "", ogType: "website", twitterCard: "summary_large_image", twitterSite: "",
-  twitterTitle: "", twitterDescription: "", twitterImage: "", canonicalUrl: "",
-  robots: "index, follow", structuredDataJson: "",
-};
-
-const KNOWN_PAGES: Record<string, { label: string; icon: React.ElementType; path: string; description: string }> = {
-  global: { label: "Global Fallback", icon: Globe, path: "—", description: "Default SEO for all pages without a custom override" },
-  home: { label: "Homepage", icon: Home, path: "/", description: "Main landing page" },
-  "sign-in": { label: "Sign In", icon: LogIn, path: "/sign-in", description: "User login page" },
-  "sign-up": { label: "Sign Up", icon: UserPlus, path: "/sign-up", description: "New account registration" },
-  dashboard: { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard", description: "Authenticated user dashboard" },
-  "forgot-password": { label: "Forgot Password", icon: KeyRound, path: "/forgot-password", description: "Password reset request page" },
-  "reset-password": { label: "Reset Password", icon: KeyRound, path: "/reset-password", description: "New password entry page" },
-};
-
-function PageInfo({ id }: { id: string }) {
-  const info = KNOWN_PAGES[id];
-  if (!info) return <span className="font-mono text-xs font-bold text-muted-foreground">{id}</span>;
-  const Icon = info.icon;
-  return (
-    <div className="flex items-center gap-2">
-      <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-        <Icon className="h-3.5 w-3.5 text-primary" />
-      </div>
-      <div>
-        <div className="text-sm font-semibold text-foreground">{info.label}</div>
-        <div className="text-xs text-muted-foreground font-mono">{info.path}</div>
-      </div>
-    </div>
-  );
-}
-
-export default function SeoPage({ initialData }: { initialData: SeoRow[] }) {
+export default function SeoPage({ initialData, dynamicSlug }: Props) {
   const router = useRouter();
   const [rows, setRows] = useState<SeoRow[]>(initialData);
   const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState<SeoRow | null>(null);
-  const [isNew, setIsNew] = useState(false);
-  const [newId, setNewId] = useState("");
-  const [form, setForm] = useState<Omit<SeoRow, "id">>(emptyForm);
-  const [saving, setSaving] = useState(false);
+
+  const [robotsRules, setRobotsRules] = useState<string>("[]");
+  const [robotsSaving, setRobotsSaving] = useState(false);
+
+  const [bulkRegenerating, setBulkRegenerating] = useState(false);
+  const [bulkAuditing, setBulkAuditing] = useState(false);
 
   async function load() {
     setLoading(true);
-    const data = await fetch("/api/admin/seo").then(r => r.json());
-    setRows(data);
-    setLoading(false);
-  }
-  useEffect(() => {
-    if (initialData && initialData.length > 0) {
+    try {
+      const data = await fetch("/api/admin/seo").then((r) => r.json());
+      if (Array.isArray(data)) setRows(data);
+
+      const robots = await fetch("/api/admin/seo/robots").then((r) => r.json());
+      if (robots && robots.rules) {
+        setRobotsRules(JSON.stringify(robots.rules, null, 2));
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
       setLoading(false);
-      return;
     }
+  }
+
+  useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function openCreate() { setIsNew(true); setNewId(""); setEditing(null); setForm(emptyForm); setOpen(true); }
-  function openEdit(row: SeoRow) {
-    setIsNew(false); setEditing(row);
-    const f: Omit<SeoRow, "id"> = { ...emptyForm };
-    for (const k of Object.keys(emptyForm) as (keyof typeof emptyForm)[]) {
-      f[k] = (row[k] as string | null) ?? "";
-    }
-    setForm(f);
-    setOpen(true);
-  }
-
-  const setF = (key: string, val: string) => setForm(p => ({ ...p, [key]: val }));
-  const clean = (v: string) => v.trim() || null;
-
-  async function handleSave() {
-    const id = isNew ? newId.trim() : editing!.id;
-    if (!id) { toast.error("Page ID is required."); return; }
-    setSaving(true);
-    try {
-      const payload = Object.fromEntries(Object.entries(form).map(([k, v]) => [k, clean(v as string)]));
-      const res = isNew
-        ? await fetch("/api/admin/seo", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, ...payload }) })
-        : await fetch(`/api/admin/seo/${editing!.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-      if (!res.ok) throw new Error(await res.text());
-      toast.success(isNew ? "SEO config created." : "SEO config updated.");
-      setOpen(false);
-      load();
-      router.refresh();
-    } catch (e: unknown) { toast.error(e instanceof Error ? e.message : "Error"); }
-    finally { setSaving(false); }
-  }
-
   async function handleDelete(id: string) {
-    if (id === "global") { toast.error("Cannot delete global SEO config."); return; }
+    if (id === "global") {
+      toast.error("Cannot delete global SEO config.");
+      return;
+    }
     if (!confirm(`Delete SEO config for "${id}"?`)) return;
+
     await fetch(`/api/admin/seo/${id}`, { method: "DELETE" });
     toast.success("Deleted.");
     load();
     router.refresh();
   }
 
-  const sortedRows = [...rows].sort((a, b) => {
-    if (a.id === "global") return -1;
-    if (b.id === "global") return 1;
-    const aKnown = !!KNOWN_PAGES[a.id];
-    const bKnown = !!KNOWN_PAGES[b.id];
-    if (aKnown && !bKnown) return -1;
-    if (!aKnown && bKnown) return 1;
-    return a.id.localeCompare(b.id);
-  });
+  async function handleSaveRobots() {
+    setRobotsSaving(true);
+    try {
+      let parsed = [];
+      try {
+        parsed = JSON.parse(robotsRules);
+      } catch {
+        throw new Error("Robots rules must be valid JSON array of objects.");
+      }
+
+      const res = await fetch("/api/admin/seo/robots", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rules: parsed }),
+      });
+
+      if (!res.ok) throw new Error(await res.text());
+      toast.success("Robots.txt configuration saved successfully!");
+    } catch (e: unknown) {
+      toast.error(
+        e instanceof Error ? e.message : "Failed to save robots rules."
+      );
+    } finally {
+      setRobotsSaving(false);
+    }
+  }
+
+  async function triggerBulkRegenerate() {
+    if (
+      !confirm(
+        "Regenerate SEO configs for all tournaments? Existing custom tournament SEO will be updated."
+      )
+    )
+      return;
+
+    setBulkRegenerating(true);
+    try {
+      const res = await fetch("/api/admin/seo/bulk-regenerate", {
+        method: "POST",
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success(`Regenerated SEO config for ${data.count} tournaments!`);
+        load();
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (e: unknown) {
+      toast.error(
+        e instanceof Error ? e.message : "Failed to bulk regenerate."
+      );
+    } finally {
+      setBulkRegenerating(false);
+    }
+  }
+
+  async function triggerAudit(pageId: string) {
+    try {
+      const res = await fetch("/api/admin/seo/audit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pageId }),
+      });
+
+      if (res.ok) {
+        toast.success(`Audit completed for ${pageId}!`);
+        load();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function triggerBulkAudit() {
+    setBulkAuditing(true);
+    try {
+      let count = 0;
+
+      for (const row of rows) {
+        const res = await fetch("/api/admin/seo/audit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pageId: row.id }),
+        });
+
+        if (res.ok) count++;
+      }
+
+      toast.success(`Audited ${count} pages successfully!`);
+      load();
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Bulk audit failed.");
+    } finally {
+      setBulkAuditing(false);
+    }
+  }
+
+  const sortedRows = useMemo(() => {
+    return [...rows].sort((a, b) => {
+      if (a.id === "global") return -1;
+      if (b.id === "global") return 1;
+
+      const aKnown = !!KNOWN_PAGES[a.id];
+      const bKnown = !!KNOWN_PAGES[b.id];
+
+      if (aKnown && !bKnown) return -1;
+      if (!aKnown && bKnown) return 1;
+
+      return a.id.localeCompare(b.id);
+    });
+  }, [rows]);
+
+  function PageInfo({ row }: { row: SeoRow }) {
+    const info = KNOWN_PAGES[row.id];
+    const iconName = row.iconName || "Globe";
+
+    if (info) {
+      const Icon = info.icon;
+      return (
+        <div className="flex min-w-0 items-center gap-2.5">
+          <Icon className="h-4 w-4 shrink-0 text-primary" />
+          <div className="min-w-0">
+            <div className="truncate text-sm font-semibold text-foreground">
+              {info.label}
+            </div>
+            <div className="truncate font-mono text-xs text-muted-foreground">
+              {info.path}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (row.id.startsWith("tournament-")) {
+      const TIcon = getIconByName(iconName);
+      return (
+        <div className="flex min-w-0 items-center gap-2.5">
+          <TIcon className="h-4 w-4 shrink-0 text-primary" />
+          <div className="min-w-0">
+            <div className="truncate text-sm font-semibold text-foreground">
+              Tournament Page
+            </div>
+            <div className="truncate font-mono text-xs text-muted-foreground">
+              {row.id.replace("tournament-", "")}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (row.id.startsWith("page-")) {
+      const PIcon = getIconByName(iconName);
+      return (
+        <div className="flex min-w-0 items-center gap-2.5">
+          <PIcon className="h-4 w-4 shrink-0 text-blue-600" />
+          <div className="min-w-0">
+            <div className="truncate text-sm font-semibold text-foreground">
+              Custom Page
+            </div>
+            <div className="truncate font-mono text-xs text-muted-foreground">
+              {row.id.replace("page-", "")}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    const FIcon = getIconByName(iconName);
+    return (
+      <div className="flex min-w-0 items-center gap-2.5">
+        <FIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <div className="min-w-0">
+          <div className="truncate font-mono text-xs font-bold text-muted-foreground">
+            {row.id}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full min-w-0 space-y-6">
-      {/* Header */}
-      <div className="header-admin">
-        <div className="flex items-center gap-4">
-          <div className="rounded-xl bg-primary/10 p-2.5">
-            <Search className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-foreground">SEO Configuration</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">Per-page SEO settings. Null fields fall back to the Global row.</p>
-          </div>
-        </div>
-        <Button onClick={openCreate}><Plus className="h-4 w-4" />Add Page SEO</Button>
-      </div>
+    <div className="w-full min-w-0 space-y-4 md:space-y-6">
+      <div className="rounded-xl border bg-background p-4 md:p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="flex min-w-0 items-start gap-3 md:gap-4">
+            <Search className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
 
-      {/* How it works info box */}
-      <div className="rounded-2xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4 flex items-start gap-3">
-        <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
-        <div className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
-          <p className="font-semibold">How SEO fallback works:</p>
-          <p>Each page first checks its own row. Any field that is empty falls back to the <strong>Global</strong> row. The Global row is the default for the entire site.</p>
-          <p>Page IDs must match the route slug (e.g., <code className="bg-blue-100 dark:bg-blue-800 px-1 rounded">home</code> for <code className="bg-blue-100 dark:bg-blue-800 px-1 rounded">/</code>).</p>
-        </div>
-      </div>
+            <div className="min-w-0">
+              <h1 className="text-lg font-bold tracking-tight text-foreground sm:text-xl">
+                SEO Dashboard
+              </h1>
+              <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
+                Manage search engine optimization, live auditing, schema
+                validation, and dynamic OG images.
+              </p>
+            </div>
+          </div>
 
-      {loading ? (
-        <div className="card-list">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr>
-                  {["Page", "Meta Title", "Robots", "OG Image", "Actions"].map(h => (
-                    <th key={h}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/10">
-                {[1, 2, 3].map(i => (
-                  <tr key={i} className="animate-pulse">
-                    {[1, 2, 3, 4, 5].map(j => (
-                      <td key={j} className="px-4 py-3"><div className="h-4 w-20 rounded bg-accent/60" /></td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ) : (
-        <Card className="card-list">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-[500px]">
-              <thead>
-                <tr>
-                  <th>Page</th>
-                  <th>Meta Title</th>
-                  <th className="hidden md:table-cell">Robots</th>
-                  <th className="hidden lg:table-cell">OG Image</th>
-                  <th className="w-24 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/10">
-                {sortedRows.map(row => (
-                  <tr key={row.id}>
-                    <td>
-                      <div className="flex items-center gap-2">
-                        <PageInfo id={row.id} />
-                        {row.id === "global" && <Badge variant="secondary" className="text-[10px]">GLOBAL</Badge>}
-                        {!KNOWN_PAGES[row.id] && row.id !== "global" && <Badge variant="secondary" className="text-[10px]">CUSTOM</Badge>}
-                      </div>
-                    </td>
-                    <td className="text-muted-foreground truncate max-w-[160px] text-xs">{row.metaTitle || <span className="text-muted-foreground/60 italic">Using global</span>}</td>
-                    <td className="hidden md:table-cell"><code className="text-[11px] text-muted-foreground bg-background/80 rounded px-1.5 py-0.5">{row.robots || <span className="text-muted-foreground/60 italic">Using global</span>}</code></td>
-                    <td className="text-xs hidden lg:table-cell">
-                      {row.ogImage ? <Badge className="bg-success/20 text-success border-0">✓ Set</Badge> : <span className="text-muted-foreground/60 italic">Using global</span>}
-                    </td>
-                    <td className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => openEdit(row)}>
-                          <Pencil className="h-3.5 w-3.5" />
-                        </Button>
-                        {row.id !== "global" && (
-                          <Button variant="ghost" size="icon" onClick={() => handleDelete(row.id)} className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      )}
-
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="w-full max-w-2xl max-h-[92vh] overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle>
-              {isNew ? "New SEO Config" : `Edit SEO — ${editing ? (KNOWN_PAGES[editing.id]?.label || editing.id) : ""}`}
-            </DialogTitle>
-            {editing && KNOWN_PAGES[editing.id] && (
-              <p className="text-xs text-muted-foreground">{KNOWN_PAGES[editing.id].description} · Path: <code className="bg-muted px-1 rounded">{KNOWN_PAGES[editing.id].path}</code></p>
-            )}
-          </DialogHeader>
-          <div className="flex-1 overflow-y-auto pr-1">
-            {isNew && (
-              <div className="space-y-1.5 mb-4">
-                <label className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Page ID *</label>
-                <Input value={newId} onChange={e => setNewId(e.target.value)} placeholder='e.g. "home", "sign-in", "custom-page-slug"' className="font-mono" />
-                <Muted className="text-xs">Must match the URL slug. Use <code className="bg-muted px-1 rounded">home</code> for the homepage.</Muted>
-              </div>
-            )}
-            <Tabs defaultValue="core">
-              <TabsList className="mb-4 w-full grid grid-cols-4 h-auto">
-                <TabsTrigger value="core" className="text-xs py-1.5">Core Meta</TabsTrigger>
-                <TabsTrigger value="og" className="text-xs py-1.5">Open Graph</TabsTrigger>
-                <TabsTrigger value="twitter" className="text-xs py-1.5">Twitter/X</TabsTrigger>
-                <TabsTrigger value="technical" className="text-xs py-1.5">Technical</TabsTrigger>
-              </TabsList>
-              <TabsContent value="core" className="space-y-3">
-                <Field><FieldLabel>Meta Title</FieldLabel><Input value={form.metaTitle!} onChange={e => setF("metaTitle", e.target.value)} placeholder="Page Title — Site Name" /><Muted className="text-xs">Shown in browser tab and search results. 50–60 characters ideal.</Muted></Field>
-                <Field><FieldLabel>Meta Description</FieldLabel><textarea value={form.metaDescription!} onChange={e => setF("metaDescription", e.target.value)} rows={3} className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none transition-shadow" placeholder="Brief description of this page..." /><Muted className="text-xs">Shown in search results. 150–160 characters ideal.</Muted></Field>
-                <Field><FieldLabel>Meta Keywords</FieldLabel><Input value={form.metaKeywords!} onChange={e => setF("metaKeywords", e.target.value)} placeholder="gaming, tournament, India" /><Muted className="text-xs">Comma-separated keywords.</Muted></Field>
-              </TabsContent>
-              <TabsContent value="og" className="space-y-3">
-                <Field><FieldLabel>OG Title</FieldLabel><Input value={form.ogTitle!} onChange={e => setF("ogTitle", e.target.value)} /><Muted className="text-xs">Shown when sharing on social media.</Muted></Field>
-                <Field><FieldLabel>OG Description</FieldLabel><textarea value={form.ogDescription!} onChange={e => setF("ogDescription", e.target.value)} rows={3} className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none transition-shadow" /></Field>
-                <Field><FieldLabel>OG Image URL</FieldLabel><Input value={form.ogImage!} onChange={e => setF("ogImage", e.target.value)} placeholder="https://example.com/og-image.png" /><Muted className="text-xs">Recommended: 1200×630px.</Muted></Field>
-                <Field><FieldLabel>OG Type</FieldLabel><Input value={form.ogType!} onChange={e => setF("ogType", e.target.value)} placeholder="website" /></Field>
-              </TabsContent>
-              <TabsContent value="twitter" className="space-y-3">
-                <Field><FieldLabel>Twitter Card Type</FieldLabel><Input value={form.twitterCard!} onChange={e => setF("twitterCard", e.target.value)} placeholder="summary_large_image" /></Field>
-                <Field><FieldLabel>Twitter @handle</FieldLabel><Input value={form.twitterSite!} onChange={e => setF("twitterSite", e.target.value)} placeholder="@1onlysarkar" /></Field>
-                <Field><FieldLabel>Twitter Title</FieldLabel><Input value={form.twitterTitle!} onChange={e => setF("twitterTitle", e.target.value)} /></Field>
-                <Field><FieldLabel>Twitter Description</FieldLabel><textarea value={form.twitterDescription!} onChange={e => setF("twitterDescription", e.target.value)} rows={3} className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none transition-shadow" /></Field>
-                <Field><FieldLabel>Twitter Image URL</FieldLabel><Input value={form.twitterImage!} onChange={e => setF("twitterImage", e.target.value)} placeholder="https://..." /></Field>
-              </TabsContent>
-              <TabsContent value="technical" className="space-y-3">
-                <Field><FieldLabel>Canonical URL</FieldLabel><Input value={form.canonicalUrl!} onChange={e => setF("canonicalUrl", e.target.value)} placeholder="https://www.1onlysarkar.shop/page" /></Field>
-                <Field><FieldLabel>Robots Directive</FieldLabel><Input value={form.robots!} onChange={e => setF("robots", e.target.value)} placeholder="index, follow" /></Field>
-                <Field><FieldLabel>Structured Data (JSON-LD)</FieldLabel><textarea value={form.structuredDataJson!} onChange={e => setF("structuredDataJson", e.target.value)} rows={6} className="w-full rounded-lg border bg-background px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-orange-500 resize-y transition-shadow" placeholder='{"@context":"https://schema.org","@type":"WebPage",...}' /></Field>
-              </TabsContent>
-            </Tabs>
-          </div>
-          <DialogFooter className="shrink-0 pt-2 border-t">
-            <Button variant="outline" onClick={() => setOpen(false)}><X className="h-4 w-4 mr-1" />Cancel</Button>
-            <Button onClick={handleSave} disabled={saving}>
-              {saving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Save className="h-4 w-4 mr-1" />}
-              {isNew ? "Create" : "Update"}
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:flex xl:flex-wrap xl:justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={triggerBulkAudit}
+              disabled={bulkAuditing}
+              className="w-full sm:w-auto"
+            >
+              {bulkAuditing ? (
+                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="mr-1.5 h-4 w-4" />
+              )}
+              <span className="hidden sm:inline">Audit All</span>
+              <span className="sm:hidden">Audit Pages</span>
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={triggerBulkRegenerate}
+              disabled={bulkRegenerating}
+              className="w-full border-primary/20 text-primary hover:bg-primary/5 sm:w-auto"
+            >
+              {bulkRegenerating ? (
+                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="mr-1.5 h-4 w-4" />
+              )}
+              <span className="hidden lg:inline">Regenerate Tournament SEO</span>
+              <span className="lg:hidden">Regenerate</span>
+            </Button>
+
+            <Link href={`/${dynamicSlug}/seo/new`} className="w-full sm:w-auto">
+              <Button size="sm" className="w-full sm:w-auto">
+                <Plus className="mr-1.5 h-4 w-4" />
+                Add Page SEO
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <Tabs defaultValue="pages" className="space-y-4 md:space-y-6">
+        <div className="overflow-x-auto">
+          <TabsList className="grid min-w-[320px] grid-cols-2">
+            <TabsTrigger value="pages">SEO Pages ({rows.length})</TabsTrigger>
+            <TabsTrigger value="robots">Robots.txt Rules</TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="pages" className="space-y-4 md:space-y-6">
+          <div className="flex items-start gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-3 md:p-4">
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            <div className="space-y-1 text-xs text-primary/80">
+              <p className="font-semibold">Unified Database SEO Strategy:</p>
+              <p>
+                Each page loads its individual configuration override. Any
+                column left empty automatically inherits the values set in the{" "}
+                <strong>Global Fallback</strong> config. Tournaments and custom
+                pages are indexed and managed here.
+              </p>
+            </div>
+          </div>
+
+          {loading ? (
+            <Card className="p-6">
+              <div className="flex items-center justify-center py-10">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            </Card>
+          ) : (
+            <>
+              <Card className="hidden overflow-hidden rounded-xl border border-border/60 shadow-sm md:block">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[900px] border-collapse text-sm">
+                    <thead>
+                      <tr className="border-b border-border/40 bg-accent/30 text-left">
+                        <th className="px-4 py-3 font-semibold text-muted-foreground">
+                          Page
+                        </th>
+                        <th className="px-4 py-3 font-semibold text-muted-foreground">
+                          Meta Title Preview
+                        </th>
+                        <th className="px-4 py-3 text-center font-semibold text-muted-foreground">
+                          Score
+                        </th>
+                        <th className="hidden px-4 py-3 font-semibold text-muted-foreground lg:table-cell">
+                          Robots
+                        </th>
+                        <th className="hidden px-4 py-3 text-center font-semibold text-muted-foreground xl:table-cell">
+                          Dynamic OG
+                        </th>
+                        <th className="w-32 px-4 py-3 text-right font-semibold text-muted-foreground">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+
+                    <tbody className="divide-y divide-border/10">
+                      {sortedRows.map((row) => (
+                        <tr
+                          key={row.id}
+                          className="transition-colors hover:bg-accent/50"
+                        >
+                          <td className="px-4 py-3.5 align-top">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <PageInfo row={row} />
+                              {row.id === "global" && (
+                                <Badge
+                                  variant="secondary"
+                                  className="border-0 bg-primary/10 text-[10px] text-primary/80"
+                                >
+                                  GLOBAL
+                                </Badge>
+                              )}
+                              {!KNOWN_PAGES[row.id] && row.id !== "global" && (
+                                <Badge
+                                  variant="secondary"
+                                  className="border-0 bg-blue-50 text-[10px] text-blue-800"
+                                >
+                                  {row.id.startsWith("tournament-")
+                                    ? "TOURNAMENT"
+                                    : "PAGE"}
+                                </Badge>
+                              )}
+                            </div>
+                          </td>
+
+                          <td className="max-w-[240px] px-4 py-3.5 text-xs text-muted-foreground">
+                            <div className="truncate">
+                              {row.metaTitle || (
+                                <span className="italic text-muted-foreground/40">
+                                  Using fallback
+                                </span>
+                              )}
+                            </div>
+                          </td>
+
+                          <td className="px-4 py-3.5 text-center">
+                            <span
+                              className={`rounded-full border px-2 py-1 text-[11px] font-bold ${getScoreColor(
+                                row.seoScore
+                              )}`}
+                            >
+                              {getScoreBadge(row.seoScore)}
+                            </span>
+                          </td>
+
+                          <td className="hidden px-4 py-3.5 lg:table-cell">
+                            <code className="rounded border bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                              {row.robots || (
+                                <span className="italic text-muted-foreground/40">
+                                  Using fallback
+                                </span>
+                              )}
+                            </code>
+                          </td>
+
+                          <td className="hidden px-4 py-3.5 text-center xl:table-cell">
+                            {row.ogImageDynamic ? (
+                              <Badge className="border-0 bg-green-100 text-[10px] text-green-800">
+                                {row.ogImageTemplate?.toUpperCase() || "TRUE"}
+                              </Badge>
+                            ) : (
+                              <span className="text-xs text-muted-foreground/40">
+                                —
+                              </span>
+                            )}
+                          </td>
+
+                          <td className="px-4 py-3.5 text-right">
+                            <div className="flex justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => triggerAudit(row.id)}
+                                title="Run SEO Audit"
+                              >
+                                <Play className="h-3.5 w-3.5 text-primary" />
+                              </Button>
+
+                              <Link href={`/${dynamicSlug}/seo/${row.id}`}>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  title="Edit Config"
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </Button>
+                              </Link>
+
+                              {row.id !== "global" && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleDelete(row.id)}
+                                  className="text-red-500 hover:bg-red-50 hover:text-red-600"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+
+              <div className="space-y-3 md:hidden">
+                {sortedRows.map((row) => (
+                  <Card key={row.id} className="space-y-3 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <PageInfo row={row} />
+                      <span
+                        className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold ${getScoreColor(
+                          row.seoScore
+                        )}`}
+                      >
+                        {getScoreBadge(row.seoScore)}
+                      </span>
+                    </div>
+
+                    {row.metaTitle ? (
+                      <p className="line-clamp-2 text-xs text-muted-foreground break-words">
+                        {row.metaTitle}
+                      </p>
+                    ) : (
+                      <p className="text-xs italic text-muted-foreground/40">
+                        Using fallback
+                      </p>
+                    )}
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      {row.robots && (
+                        <code className="rounded border bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground break-all">
+                          {row.robots}
+                        </code>
+                      )}
+
+                      {row.ogImageDynamic && (
+                        <Badge className="border-0 bg-green-100 text-[10px] text-green-800">
+                          OG: {row.ogImageTemplate?.toUpperCase() || "DYNAMIC"}
+                        </Badge>
+                      )}
+
+                      {row.id === "global" && (
+                        <Badge
+                          variant="secondary"
+                          className="border-0 bg-primary/10 text-[10px] text-primary/80"
+                        >
+                          GLOBAL
+                        </Badge>
+                      )}
+
+                      {!KNOWN_PAGES[row.id] && row.id !== "global" && (
+                        <Badge
+                          variant="secondary"
+                          className="border-0 bg-blue-50 text-[10px] text-blue-800"
+                        >
+                          {row.id.startsWith("tournament-")
+                            ? "TOURNAMENT"
+                            : "PAGE"}
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 border-t border-border/30 pt-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 flex-1 text-xs sm:flex-none"
+                        onClick={() => triggerAudit(row.id)}
+                      >
+                        <Play className="mr-1 h-3 w-3" />
+                        Audit
+                      </Button>
+
+                      <Link
+                        href={`/${dynamicSlug}/seo/${row.id}`}
+                        className="flex-1 sm:flex-none"
+                      >
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-full text-xs"
+                        >
+                          <Pencil className="mr-1 h-3 w-3" />
+                          Edit
+                        </Button>
+                      </Link>
+
+                      {row.id !== "global" && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 px-3 text-xs text-red-500 hover:bg-red-50 hover:text-red-600"
+                          onClick={() => handleDelete(row.id)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </>
+          )}
+        </TabsContent>
+
+        <TabsContent value="robots" className="space-y-4">
+          <Card className="space-y-4 p-4 md:p-6">
+            <div>
+              <h2 className="text-base font-bold text-foreground">
+                Configure Robots.txt Directives
+              </h2>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Define crawler rules in structured JSON. The sitemap and content
+                signals are automatically appended below.
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Rules JSON Array
+              </label>
+              <textarea
+                value={robotsRules}
+                onChange={(e) => setRobotsRules(e.target.value)}
+                rows={12}
+                className="w-full resize-y rounded-lg border bg-background px-3 py-2 font-mono text-xs transition-shadow focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder='[\n  { "userAgent": "*", "allow": ["/"], "disallow": ["/dashboard"] }\n]'
+              />
+            </div>
+
+            <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                <span>
+                  Each object needs userAgent, and optional allow/disallow
+                  string arrays.
+                </span>
+              </div>
+
+              <Button
+                onClick={handleSaveRobots}
+                disabled={robotsSaving}
+                size="sm"
+                className="w-full sm:w-auto"
+              >
+                {robotsSaving ? (
+                  <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="mr-1.5 h-4 w-4" />
+                )}
+                Save Rules
+              </Button>
+            </div>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

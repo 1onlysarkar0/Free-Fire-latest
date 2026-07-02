@@ -16,6 +16,8 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
+import { BreadcrumbsSchema } from "@/components/breadcrumbs-schema";
+
 export default function PublicLayout({
   children,
 }: Readonly<{
@@ -23,6 +25,7 @@ export default function PublicLayout({
 }>) {
   return (
     <>
+      <BreadcrumbsSchema />
       <Navbar />
       <main className="min-h-screen">
         {children}

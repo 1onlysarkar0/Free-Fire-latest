@@ -6,6 +6,7 @@ import {
   pgTable,
   text,
   timestamp,
+  jsonb,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
@@ -269,8 +270,42 @@ export const seoConfig = pgTable("seo_config", {
   robots: text("robots").default("index, follow"),
   structuredDataJson: text("structured_data_json"),
 
+  schemaType: text("schema_type").default("WebPage"),
+  schemaData: jsonb("schema_data"),
+  ogImageDynamic: boolean("og_image_dynamic").default(false),
+  ogImageTemplate: text("og_image_template"),
+  iconName: text("icon_name").default("Globe"),
+  seoScore: integer("seo_score"),
+  lastAudited: timestamp("last_audited"),
+
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ROBOTS CONFIGURATION
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const robotsConfig = pgTable("robots_config", {
+  id: text("id").primaryKey().default("default"),
+  rules: jsonb("rules").notNull().default([]),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SEO AUDIT LOGS
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const seoAuditLog = pgTable("seo_audit_log", {
+  id: text("id").primaryKey(),
+  pageId: text("page_id").notNull(),
+  score: integer("score").notNull(),
+  grade: text("grade").notNull(),
+  checks: jsonb("checks").notNull().default([]),
+  criticalIssues: jsonb("critical_issues").default([]),
+  warnings: jsonb("warnings").default([]),
+  suggestions: jsonb("suggestions").default([]),
+  checkedAt: timestamp("checked_at").notNull().defaultNow(),
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -354,6 +389,7 @@ export const tournament = pgTable("tournaments", {
   roomId: text("room_id"),
   roomPassword: text("room_password"),
   createdByAdminId: text("created_by_admin_id").references(() => user.id),
+  seoConfigId: text("seo_config_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 }, (t) => [
@@ -765,4 +801,19 @@ export const withdrawRequest = pgTable("withdraw_requests", {
   index("withdraw_user_idx").on(t.userId),
   index("withdraw_status_idx").on(t.status),
   index("withdraw_created_at_idx").on(t.createdAt),
+]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FAQ TABLE
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const faq = pgTable("faqs", {
+  id: text("id").primaryKey(),
+  question: text("question").notNull(),
+  answer: text("answer").notNull(),
+  order: integer("order").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => [
+  index("faq_order_idx").on(t.order),
 ]);

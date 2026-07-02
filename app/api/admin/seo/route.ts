@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
   if (!id) return Response.json({ error: "id is required" }, { status: 400 });
 
-  const allowed = ["metaTitle","metaDescription","metaKeywords","ogTitle","ogDescription","ogImage","ogType","twitterCard","twitterSite","twitterTitle","twitterDescription","twitterImage","canonicalUrl","robots","structuredDataJson"];
+  const allowed = ["metaTitle","metaDescription","metaKeywords","ogTitle","ogDescription","ogImage","ogType","twitterCard","twitterSite","twitterTitle","twitterDescription","twitterImage","canonicalUrl","robots","structuredDataJson","schemaType","ogImageDynamic","ogImageTemplate","iconName","seoScore","lastAudited"];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const values: Record<string, any> = { id };
   for (const k of allowed) {

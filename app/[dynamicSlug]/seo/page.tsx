@@ -8,6 +8,6 @@ export default async function SeoPage({ params }: { params: Promise<{ dynamicSlu
   const { dynamicSlug } = await params;
   await requirePagePermission(dynamicSlug, "seo:view");
   const data = await getAdminSeoCached();
-  
-  return <SeoClient initialData={data} />;
+
+  return <SeoClient initialData={data} dynamicSlug={dynamicSlug} />;
 }

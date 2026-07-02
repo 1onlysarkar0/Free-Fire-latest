@@ -13,6 +13,7 @@ import {
   customPage,
   contentTemplate,
   tournament,
+  faq,
 } from "@/db/schema";
 import { count, eq, desc, sql, asc } from "drizzle-orm";
 import { cache } from "react";
@@ -191,3 +192,12 @@ async function _fetchAdminContentTemplates() {
 }
 
 export const getAdminContentTemplatesCached = cache(_fetchAdminContentTemplates);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 13. FAQs
+// ─────────────────────────────────────────────────────────────────────────────
+async function _fetchAdminFaqs() {
+  return await db.select().from(faq).orderBy(asc(faq.order));
+}
+
+export const getAdminFaqsCached = cache(_fetchAdminFaqs);

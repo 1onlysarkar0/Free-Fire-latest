@@ -27,106 +27,221 @@ Production: **https://www.1onlysarkar.shop**
 | Instagram | Instagram Graph API v25.0 (business_discovery for avatar fetch) |
 | Animation | Motion 12.42 (Consolidated animation engine) |
 | AI Chatbot | Google Gemini API (streaming SSE, Gemini-only + custom endpoint) |
+| OG Images | Server-side `@vercel/og` / `next/og` (Edge Runtime, 1200×630) |
 
 ---
 
 ## Architecture & Directory Structure
 
-- `app/(public)/` — Public-facing pages (home, tournaments)
-- `app/(auth)/` — Authentication pages (sign-in, sign-up, 2FA)
+- `app/(public)/` — Public-facing pages (home, tournaments, faq)
+- `app/(auth)/` — Authentication pages (sign-in, sign-up, 2FA, forgot-password)
 - `app/(dashboard)/` — Authenticated user dashboard (wallet, settings, my tournaments)
 - `app/[dynamicSlug]/` — Admin panel (role-based, slug from DB) + public custom pages
 - `app/api/` — API routes (all admin routes protected by `requireAdminOrRole`)
 - `emails/` — React Email templates and compiler registry
 - `lib/` — Server-side helpers (auth, SEO, wallet, tournaments, notifications, mailing)
+- `lib/og-image/` — OG image generation templates (tournament, homepage, custom-page, auth)
+- `lib/schema/` — Schema.org generator helpers (breadcrumbs, etc.)
+- `lib/seo/` — SEO audit engine (weighted scoring, A-F grading)
 - `db/` — Drizzle schema + seed script
 
 ---
 
-## Features
+## ⭐ Using the Admin Panel
 
-### Authentication
-- Multi-step sign-in (email → password → optional 2FA)
-- Multi-step sign-up (email → password → profile completion)
-- Google OAuth with account linking
-- TOTP Two-Factor Authentication with backup codes
-- Password reset via email
-- Profile completion for OAuth users (game name, UID, Instagram)
+Everything in the platform is managed through the admin panel. The panel is accessed at any dynamic slug configured in `site_config.admin_slug` (default: `/admin`).
 
-### Tournament System
-- Create/manage tournaments (FREE/PAID types)
-- Slot-based registration (Solo/Duo/Squad formats)
-- Real-time slot availability tracking
-- Room ID & Password reveal for participants
-- Winner declaration with prize distribution
-- Tournament cancellation with automatic refunds
-- Entry fee deduction from wallet balance
+### 1. Branding & Config (`/{slug}/site-config`)
 
-### Wallet & Payments
-- UPI QR code generation for deposits
-- IMAP-based automatic UTR verification via Gmail
-- Transaction history with status tracking
-- Wallet debit/credit with idempotency and row locking
-- Rate limiting on payment verification attempts
-- **Withdrawal system**: User-submitted withdrawal requests to UPI
-- Amount deducted immediately on request with admin processing
-- Configurable min withdrawal amount, daily limit, and markdown description
-- Admin can complete or cancel requests with optional refund on cancel
+Configure:
+- **Logo**: Upload logo image (`logoSrc`), set URL (`logoUrl`) and alt text (`logoAlt`)
+- **Site Name**: `logoTitle` — used everywhere (meta titles, navbar, email footers)
+- **Admin Slug**: The URL path for the admin panel
+- **Auth Panel**: Custom color, copyright text
+- **Hero**: Headline, subheadline, stats, features
+- **Footer**: Contact email, descriptions, social links
+- **Dashboard**: Welcome message text
+- **Navbar**: Dashboard link text, user profile labels
 
-### Admin Panel (Dynamic Slug)
-- Dashboard with real-time statistics
-- User management (ban, role assignment, avatar sync)
-- Tournament management (CRUD, room credentials, winners)
-- Role-based access control (RBAC) with granular sub-admin permissions
-- Site configuration (logo, hero, footer, contact)
-- Navigation management (header, footer, social links)
-- **SMTP Configuration**: Multi-provider panel supporting multiple active connections (Gmail, Resend)
-- **Email Templates**: Stats dashboard, template duplications, live side-by-side iframe previewing, test-email dispatch overrides, Monaco HTML Editor, and Variables Config schema validator
-- Auth page content customization
-- Content templates (Description/Rules)
-- **AI Chatbot** configuration (full 7-tab panel)
+### 2. Navigation Items (`/{slug}/navigation`)
 
-### AI Chatbot
-- Google Gemini AI backend with live streaming (SSE, token-by-token)
-- Custom OpenAI-compatible endpoint support
-- Full admin panel: General, AI Provider, System Prompt, Knowledge Base, Rate Limiting, Conversations
-- Session-based conversation history with configurable context window
-- Knowledge base injection into system prompt (FAQ entries from DB)
-- Rate limiting per user (logged in) or per IP (anonymous)
-- Prompt injection protection and input moderation (max 300 words)
-- Anonymous user blocking: unauthenticated users get clear sign-in message
-- Full conversation logs viewable in admin panel with inline message thread
-- Template variables in system prompt: `{{chatbot_name}}`, `{{knowledge_base}}`, `{{user_name}}`, etc.
+Add/edit/delete navigation links for:
+- **Header** — Main navbar links
+- **Footer** — Footer navigation columns
+- **Social** — Social media icon links (Instagram, YouTube, etc.)
+- **Mobile Extra** — Additional links shown only on mobile menu
 
-### Design System & Aesthetics
-- Professional modern minimalist with subtle borders for structural separation
-- Forced light creamy theme (no dark mode)
-- Contrast-based elevation with soft shadows
-- 59+ shadcn/ui components (new-york style)
-- Custom utility classes: `card-list` (overflow hidden), `card-settings` (overflow visible), `card-widget` (transition / hover translateY)
-- Interactive hover buttons with sliding background animation
-- Navigation uses `hover:bg-accent` / `data-[state=open]:bg-accent` for interactive states
-- Navbar has `h-16` height with consistent `px-4 py-2` padding on all nav items
+Each nav item has: `title`, `url`, `description` (used in `llms.txt`), `icon` (lucide-react name), and `order`.
 
-### Typography
-- **Brand Logo**: Momo Trust Display (custom font-face)
-- **Headings**: Inter (sans-serif)
-- **Body**: IBM Plex Sans (readability)
-- **Mono**: SF Mono (monospaced figures)
+### 3. SEO Configuration (`/{slug}/seo`)
+
+Full SEO dashboard with:
+
+#### Per-Page SEO Config
+Each page has its own config row in `seo_config`. Add new rows for any page ID:
+- **Known pages**: `global` (fallback), `home`, `sign-in`, `sign-up`, `dashboard`, `forgot-password`
+- **Tournaments**: `tournament-{nanoid}` — auto-created on tournament creation
+- **Custom pages**: `page-{slug}` — auto-created on page publish
+- **FAQ**: `page-faq` — seeded, describes the `/faq` page
+
+Fields per config:
+| Field | Purpose |
+|-------|---------|
+| Meta Title | Browser tab title, SERP title (30-60 chars recommended) |
+| Meta Description | SERP description (120-160 chars recommended) |
+| Meta Keywords | Comma-separated keywords |
+| OG Title/Description/Image | Open Graph social preview card |
+| Twitter Card/Title/Description/Image | Twitter/X card preview |
+| Canonical URL | Preferred URL for search engines |
+| Robots | `index, follow` or `noindex, nofollow` |
+| Schema Type | WebPage, SportsEvent, FAQPage, HowTo, Organization, Article |
+| Custom JSON-LD | Full custom schema markup (overrides auto-generated) |
+| Dynamic OG | Toggle on/off — auto-generates OG images via `/api/og-image` |
+| OG Template | Which visual template to use (homepage, tournament, custom-page, auth-page) |
+
+#### Live SEO Audit
+- **Real-time Checklist**: Shows pass/warning/critical checks as you fill the form
+- **SERP Preview**: See how your page looks in Google Search results
+- **Social Card Preview**: See how your page renders on social media
+- **Score Badge**: A-F grading with percentage (A ≥90, B ≥80, C ≥70, D ≥50, F)
+- **Audit Button**: Run a server-side audit that saves to `seo_audit_log` table
+- **Bulk Audit**: Audit all pages at once
+- **Bulk Tournament SEO**: Regenerate SEO configs for all tournaments with SportsEvent schema
+
+#### Robots.txt Manager (`/{slug}/seo` → Robots.txt tab)
+Configure crawler rules as a JSON array of objects:
+```json
+[
+  { "userAgent": "*", "allow": ["/"], "disallow": ["/dashboard"] },
+  { "userAgent": "GPTBot", "allow": ["/"] }
+]
+```
+The sitemap URL and content signals are appended automatically.
+
+> **Note**: Never add the admin panel slug (`/{slug}`) to `robots.txt` — the panel is security-through-obscurity. Only `/`, `/tournaments/` should be crawled.
+
+### 4. Custom Pages (`/{slug}/pages`)
+
+Create unlimited public pages at `/{slug}` using the visual editor:
+1. Click "New Page"
+2. Enter title, slug, and optional meta description
+3. Choose editor mode: **Markdown** or **Visual** (rich text)
+4. Write content using the Monaco Editor (with markdown toolbar)
+5. Set SEO fields: meta title, description, keywords, robots, OG image
+6. Save as **Draft** or **Publish**
+
+Published pages get:
+- SEO `page-{slug}` config auto-created
+- Schema.org WebPage structured data
+- Indexed appearance in `sitemap.xml` and `llms.txt`
+
+**Examples**: Create pages like `/how-to-join`, `/rules`, `/about`, `/privacy-policy`
+
+### 5. FAQ Manager (`/{slug}/faq`)
+
+Manage the public `/faq` page content:
+- Add/Edit/Delete FAQ entries (question + answer)
+- Order by weight (lower = appears first)
+- Real-time sorting by search query
+- Auto-generates FAQPage Schema.org JSON-LD from DB entries
+- Public FAQ page has animated accordion UI with search, highlights, spring animations
+
+> **Security**: Same permission model as Custom Pages (`pages:view`, `pages:create`, `pages:edit`, `pages:delete`)
+
+### 6. Auth Page Content (`/{slug}/auth-content`)
+
+Customize the left-panel content for each auth page:
+- Sign In
+- Sign Up
+- Forgot Password
+- Reset Password
+- Two-Factor Auth
+
+Each page has a quote, subtext, and background color.
+
+### 7. SMTP Config (`/{slug}/smtp`)
+
+Configure email delivery:
+- Multiple SMTP providers (Gmail, Resend, custom)
+- Set default provider
+- Test connection with a single click
+- Bounce/fallback between providers
+
+### 8. Email Templates (`/{slug}/email-templates`)
+
+All transactional emails are DB-driven HTML templates:
+- Categories: Welcome, Tournament, Wallet, Auth, System, Marketing
+- Monaco HTML editor with live preview (side-by-side iframe)
+- Variable system: use `{{variableName}}` in templates
+- Built-in variables: `siteName`, `userName`, `tournamentName`, `prizePool`, etc.
+- Duplicate templates, test-send to any email with variable overrides
+- Variables schema validator per template
+
+### 9. Tournaments (`/{slug}/tournaments`)
+
+Create/manage tournaments with full CRUD:
+- **Create**: Set name, type (FREE/PAID), fee, prize, mode (CLASSIC/RANKED), format (SOLO/DUO/SQUAD), maps, slots, dates
+- **Edit**: Update any field (SEO auto-syncs with new name/fee/prize)
+- **Room Credentials**: Set room ID + password (auto-notifies booked participants)
+- **Status Flow**: UPCOMING → ACTIVE → ROOM_REVEALED → LIVE → COMPLETED (or CANCELLED)
+- **Winners**: Declare by placement, prize auto-distributed to winner wallets
+- **Participants**: View all participants, remove if needed
+- **Cancellation**: Cancel with automatic refunds to all participants
+- **Auto SEO**: On creation, SportsEvent schema + dynamic OG image auto-generated
+
+### 10. Content Templates (`/{slug}/content-templates`)
+
+Reusable Markdown/HTML templates for tournament descriptions and rules. Use these to quickly populate tournament details rather than writing from scratch each time.
+
+### 11. Payment Gateway (`/{slug}/payment`)
+
+Configure UPI payment settings:
+- UPI ID, UPI name, QR code image
+- IMAP connection settings (Gmail for UTR verification)
+- Trusted email senders for auto-verification
+- Test IMAP connection
+
+### 12. Withdrawals (`/{slug}/withdraw`)
+
+Manage user withdrawal requests:
+- View all requests with user details
+- Approve (mark as completed)
+- Cancel (with optional refund to wallet)
+- Configure: min amount, daily limit, description text
+
+### 13. AI Chatbot (`/{slug}/chatbot`)
+
+Full chatbot management system with 7 tabs:
+1. **General** — Chatbot name, welcome message, display mode, colors
+2. **AI Provider** — Google Gemini API key + model selection or custom endpoint
+3. **System Prompt** — Editor with variable injection (`{{chatbot_name}}`, `{{knowledge_base}}`)
+4. **Knowledge Base** — FAQ entries injected into AI context (priority-ordered)
+5. **Rate Limiting** — Messages per window, per-user limits, cooldown
+6. **Conversations** — Admin view of all chat sessions with message threads
+7. **Widget** — Position, animation, trigger button customization
+
+### 14. Users (`/{slug}/users`)
+
+Manage platform users:
+- View all users with wallet balance, game name, UID
+- Edit profile fields
+- Toggle top-player status
+- Adjust wallet balance (credit/debit with reason)
+- Assign roles
+- Ban/unban users
+
+### 15. Roles & Permissions (`/{slug}/roles`)
+
+Granular Role-Based Access Control:
+- Pre-seeded "Super Manager" role with all permissions
+- Create custom roles with specific permissions
+- Permissions groups: `site_config`, `navigation`, `auth_content`, `smtp`, `email_templates`, `seo`, `users`, `roles`, `pages`, `tournaments`, `wallet`, `content_templates`, `payment`, `chatbot`, `withdraw`
+- Each group has: `view`, `create`, `edit`, `delete` (varies by group)
+- Assign roles to users from the User edit page
 
 ---
 
-## Key Design Decisions
-
-- **Fully DB-driven SEO**: All metadata (title, description, OG, Twitter, JSON-LD) is stored in `seo_config` table and fetched at runtime — no hardcoded site names anywhere in the codebase.
-- **Admin Panel Security**: The admin panel slug is stored in `site_config.admin_slug`. It is NEVER mentioned in `robots.txt` (allowlist approach — only `/` and `/tournaments/` are allowed, everything else disallowed with `Disallow: /`). The panel requires `isAdmin=true` on the user row.
-- **RBAC**: All admin API routes use `requireAdminOrRole()` from `lib/admin-auth.ts`. Sub-admin roles have granular permissions stored as JSON in `admin_role.permissions`.
-- **No Fallback Brand Strings**: The string "1onlysarkar" does not appear in any catch block, fallback value, or default content in production code. If the DB is empty, pages show no title rather than a hardcoded one.
-- **Card Settings Overflow**: Resolved card input/dropdown clipping issues by configuring `.card-settings` with `overflow: visible` (rather than hidden), preserving border-radius and shadows on modern browsers without clipping form components.
-
----
-
-## Database Schema (33 Tables)
+## Database Schema (36 Tables)
 
 ### Better Auth Core
 | Table | Purpose |
@@ -147,6 +262,9 @@ Production: **https://www.1onlysarkar.shop**
 | `smtp_providers` | Multi-provider SMTP configurations (label, type, credentials, default, active flags) |
 | `email_template` | Extended templates with categories, Monaco HTML source code, template key, variables schema, and active flags |
 | `seo_config` | Per-page SEO; "global" row as site-wide fallback |
+| `robots_config` | Single-row JSON rules for robots.txt generation |
+| `seo_audit_log` | SEO audit history (score, grade, checks, critical issues) |
+| `faq` | FAQ entries (question, answer, order) for public `/faq` page |
 | `custom_page` | Rich-text pages served at `/[slug]` |
 | `content_templates` | Reusable Description/Rules templates |
 
@@ -187,7 +305,77 @@ Production: **https://www.1onlysarkar.shop**
 
 ---
 
-## API Routes (67 Routes)
+## SEO System Architecture
+
+### DB-Driven Content Model
+
+Every page's SEO metadata lives in `seo_config`:
+- **Global Fallback** (`id: "global"`) — values inherited by all pages
+- **Page-specific** — overrides global for that page only
+- **Null inheritance** — any null field on a page row inherits from global
+
+### Dynamic OG Image Generation
+
+OG images are rendered server-side via `@vercel/og` at `/api/og-image`:
+
+| Parameter | Example | Description |
+|-----------|---------|-------------|
+| `?tournament=id` | `?tournament=abc123` | Tournament detail OG (name, prize, fee, date, status) |
+| `?template=homepage` | `?template=homepage` | Homepage OG (reads site name from DB) |
+| `?template=custom-page&slug=x` | `?template=custom-page&slug=how-to-join` | Custom page OG (reads seo_config from DB) |
+| `?template=auth&page=sign-in` | `?template=auth&page=sign-in` | Auth page OG (reads seo_config from DB) |
+
+Each image is 1200×630 with `Cache-Control: public, max-age=31536000, immutable`.
+
+### Schema.org Structured Data
+
+| Page Type | Schema Type | Generated |
+|-----------|-------------|-----------|
+| Homepage | WebSite | Auto from global seo_config |
+| Tournament | SportsEvent | Auto on tournament create/edit |
+| FAQ page | FAQPage | Auto from FAQ DB entries |
+| How-to page | HowTo | Auto for `/how-to-join` slug |
+| Custom pages | WebPage | Auto on page publish |
+| All pages | BreadcrumbList | Client-side from URL path |
+
+### Robots.txt
+
+Generated dynamically at `/robots.txt`:
+- Rules from `robots_config` table (editable via admin panel)
+- If empty, sensible defaults: all user-agents allowed
+- Sitemap URL + Content-Signal header auto-appended
+- AI crawler references to `/llms.txt`
+
+### llms.txt (AI Content Discovery)
+
+Available at `/llms.txt`:
+- Lists all public routes with descriptions from `seo_config`
+- Shows active tournaments with their metadata
+- Entity definitions and structured data references from `llms-txt` seo_config
+- Designed for AI/LLM crawlers (GPTBot, Claude, etc.)
+
+### SEO Audit Engine (`lib/seo/audit.ts`)
+
+Weighted scoring system (0-100, A-F grade):
+
+| Check | Weight | What it validates |
+|-------|--------|-------------------|
+| Meta Title Present | 15 pts | Not empty |
+| Meta Title Length | 10 pts | Between 30-60 chars |
+| Meta Description Present | 15 pts | Not empty |
+| Meta Description Length | 10 pts | Between 120-160 chars |
+| OG Title Present | 10 pts | Not empty |
+| OG Description Present | 10 pts | Not empty |
+| OG Image Set | 15 pts | URL configured or dynamic OG enabled |
+| Canonical URL Valid | 10 pts | Absolute URL set |
+| Robots Directive Set | 5 pts | Not empty |
+| Structured Data Valid | 10 pts | Valid JSON-LD |
+
+Grades: A ≥90, B ≥80, C ≥70, D ≥50, F <50
+
+---
+
+## API Routes
 
 ### Auth Routes
 | Route | Method | Description |
@@ -195,65 +383,139 @@ Production: **https://www.1onlysarkar.shop**
 | `/api/auth/[...all]` | ALL | Better Auth catch-all |
 | `/api/auth/check-email` | POST | Check email existence, password, 2FA status |
 
-### User Routes
-| Route | Method | Description |
-|-------|--------|-------------|
-| `/api/user/complete-profile` | POST | Complete profile (game name, UID) |
-| `/api/user/permissions` | GET | Get user permissions and roles |
-| `/api/user/profile` | GET/PUT | Get/update user profile |
-| `/api/user/set-password` | POST | Set password for OAuth users |
-
-### Tournament Routes
+### Public Routes
 | Route | Method | Description |
 |-------|--------|-------------|
 | `/api/tournaments` | GET | List tournaments |
 | `/api/tournaments/[id]` | GET | Get tournament detail |
 | `/api/tournaments/[id]/join` | POST | Join tournament |
 | `/api/tournaments/[id]/slots` | GET | Get tournament slots |
+| `/api/chatbot/config` | GET | Public chatbot config |
+| `/api/chatbot/chat` | POST | Send message, get SSE streaming |
+| `/api/chatbot/session` | POST | Start new chat session |
+| `/api/og-image` | GET | Dynamic OG image generation |
+
+### User Routes
+| Route | Method | Description |
+|-------|--------|-------------|
+| `/api/user/complete-profile` | POST | Complete profile |
+| `/api/user/permissions` | GET | Get user permissions |
+| `/api/user/profile` | GET/PUT | Get/update profile |
+| `/api/user/set-password` | POST | Set password for OAuth users |
 
 ### Wallet Routes
 | Route | Method | Description |
 |-------|--------|-------------|
-| `/api/wallet/me` | GET | Get current wallet balance |
-| `/api/wallet/transactions` | GET | Get transaction history |
-| `/api/wallet/verify-payment` | POST | Submit UTR for IMAP verification |
-| `/api/wallet/withdraw/request` | POST | Submit withdrawal request (deducts wallet) |
-| `/api/wallet/withdraw/requests` | GET | Get user's withdrawal request history |
+| `/api/wallet/me` | GET | Wallet balance |
+| `/api/wallet/transactions` | GET | Transaction history |
+| `/api/wallet/verify-payment` | POST | Submit UTR |
+| `/api/wallet/withdraw/request` | POST | Submit withdrawal |
+| `/api/wallet/withdraw/requests` | GET | Withdrawal history |
 
 ### Admin Routes
-All admin routes require `requireAdminOrRole(request, permission?)`.
+All require `requireAdminOrRole(request, permission?)`.
 
 | Route Group | Capabilities |
 |-------------|-------------|
 | `/api/admin/stats` | Dashboard statistics |
 | `/api/admin/site-config` | Site configuration CRUD |
 | `/api/admin/navigation` | Navigation items CRUD |
-| `/api/admin/users` | User management + avatar sync |
+| `/api/admin/users` | User management |
 | `/api/admin/roles` | Role management CRUD |
-| `/api/admin/tournaments` | Tournament CRUD + room credentials, winners, cancel, participants, slots |
-| `/api/admin/smtp-providers` | SMTP multi-provider CRUD, default setting, test dispatch |
-| `/api/admin/email-templates` | Email templates CRUD, duplicate, rendering preview, test dispatch overrides |
+| `/api/admin/tournaments` | Tournament CRUD + room, winners, cancel |
+| `/api/admin/smtp-providers` | SMTP CRUD, default, test |
+| `/api/admin/email-templates` | Templates CRUD, render, test |
 | `/api/admin/auth-content` | Auth page content CRUD |
-| `/api/admin/seo` | SEO configuration CRUD |
+| `/api/admin/seo` | SEO config CRUD + audit |
+| `/api/admin/seo/audit` | Run SEO audit on a page |
+| `/api/admin/seo/bulk-regenerate` | Regenerate all tournament SEO |
+| `/api/admin/seo/robots` | Get/update robots.txt rules |
+| `/api/admin/faqs` | FAQ CRUD |
 | `/api/admin/pages` | Custom page CRUD |
 | `/api/admin/content-templates` | Content template CRUD |
 | `/api/admin/payment-config` | Payment config + IMAP test |
 | `/api/admin/payment-verifications` | Payment verification logs |
 | `/api/admin/wallet/adjust` | Credit/debit user wallet |
-| `/api/admin/withdraw/config` | Get/update withdrawal configuration |
-| `/api/admin/withdraw/requests` | List, complete, or cancel withdrawal requests |
-| `/api/admin/chatbot-config` | Chatbot config GET/PUT + test-connection |
+| `/api/admin/withdraw/config` | Withdrawal config |
+| `/api/admin/withdraw/requests` | List, complete, cancel |
+| `/api/admin/chatbot-config` | Chatbot config |
 | `/api/admin/chatbot-knowledge` | Knowledge base CRUD |
-| `/api/admin/chatbot-sessions` | Chat session list + detail + delete |
+| `/api/admin/chatbot-sessions` | Chat sessions |
 
-### Public Chatbot Routes
+### Special Routes
 | Route | Method | Description |
 |-------|--------|-------------|
-| `/api/chatbot/config` | GET | Public chatbot config (safe fields only) |
-| `/api/chatbot/session` | POST | Start new chat session |
-| `/api/chatbot/session/[token]` | GET | Get session message history |
-| `/api/chatbot/session/[token]/end` | POST | End a session |
-| `/api/chatbot/chat` | POST | Send message, get streaming SSE AI response |
+| `/robots.txt` | GET | Dynamic robots.txt |
+| `/llms.txt` | GET | AI content overview |
+| `/sitemap.xml` | GET | Dynamic sitemap |
+
+---
+
+## Features
+
+### Authentication
+- Multi-step sign-in (email → password → optional 2FA)
+- Multi-step sign-up (email → password → profile completion)
+- Google OAuth with account linking
+- TOTP Two-Factor Authentication with backup codes
+- Password reset via email
+- Profile completion for OAuth users (game name, UID, Instagram)
+
+### Tournament System
+- Create/manage tournaments (FREE/PAID types)
+- Slot-based registration (Solo/Duo/Squad formats)
+- Real-time slot availability tracking
+- Room ID & Password reveal for participants
+- Winner declaration with prize distribution
+- Tournament cancellation with automatic refunds
+- Entry fee deduction from wallet balance
+
+### Wallet & Payments
+- UPI QR code generation for deposits
+- IMAP-based automatic UTR verification via Gmail
+- Transaction history with status tracking
+- Wallet debit/credit with idempotency and row locking
+- Rate limiting on payment verification attempts
+- **Withdrawal system**: User-submitted withdrawal requests to UPI
+- Amount deducted immediately on request with admin processing
+- Configurable min withdrawal amount, daily limit, and markdown description
+- Admin can complete or cancel requests with optional refund on cancel
+
+### AI Chatbot
+- Google Gemini AI backend with live streaming (SSE, token-by-token)
+- Custom OpenAI-compatible endpoint support
+- Full admin panel: General, AI Provider, System Prompt, Knowledge Base, Rate Limiting, Conversations
+- Session-based conversation history with configurable context window
+- Knowledge base injection into system prompt (FAQ entries from DB)
+- Rate limiting per user (logged in) or per IP (anonymous)
+- Prompt injection protection and input moderation (max 300 words)
+- Anonymous user blocking: unauthenticated users get clear sign-in message
+- Template variables in system prompt: `{{chatbot_name}}`, `{{knowledge_base}}`, `{{user_name}}`, etc.
+
+### Design System & Aesthetics
+- Professional modern minimalist with subtle borders for structural separation
+- Forced light creamy theme (no dark mode)
+- Contrast-based elevation with soft shadows
+- 59+ shadcn/ui components (new-york style)
+- Custom utility classes: `card-list`, `card-settings`, `card-widget`
+- Interactive hover buttons with sliding background animation
+
+### Typography
+- **Brand Logo**: Momo Trust Display (custom font-face)
+- **Headings**: Inter (sans-serif)
+- **Body**: IBM Plex Sans (readability)
+- **Mono**: SF Mono (monospaced figures)
+
+---
+
+## Key Design Decisions
+
+- **Fully DB-driven SEO**: All metadata (title, description, OG, Twitter, JSON-LD) is stored in `seo_config` table and fetched at runtime — no hardcoded site names anywhere in the codebase.
+- **No Hardcoded Content**: Every text string visible to users comes from the database. Defaults exist only in `db/seed-db.ts`. Code files never contain fallback text.
+- **Admin Panel Security**: The admin panel slug is stored in `site_config.admin_slug`. It is NEVER mentioned in `robots.txt` (allowlist approach). The panel requires `isAdmin=true` on the user row.
+- **RBAC**: All admin API routes use `requireAdminOrRole()`. Sub-admin roles have granular permissions.
+- **Dynamic OG Images**: Tournament, auth, and custom page OG images are rendered server-side — no need to upload static images per-page.
+- **Self-Auditing SEO**: The admin panel includes live SEO auditing with real-time scoring (A-F) and actionable recommendations.
 
 ---
 
@@ -307,7 +569,7 @@ docker run -p 3000:3000 --env-file .env 1onlysarkar
 ```
 
 ### Admin Panel Access
-Set `is_admin = true` on your user in the database, then visit the admin route (default slug stored in `site_config.adminSlug`).
+Set `is_admin = true` on your user in the database, then visit the admin route (default slug stored in `site_config.admin_slug`).
 
 ---
 
@@ -315,87 +577,52 @@ Set `is_admin = true` on your user in the database, then visit the admin route (
 
 | File | Purpose |
 |------|---------|
-| `lib/auth.ts` | Better Auth server config (Email+Password, Google OAuth, TOTP) |
+| `lib/auth.ts` | Better Auth server config |
 | `lib/auth-client.ts` | Better Auth client config |
-| `lib/admin-auth.ts` | Admin auth helpers (getAdminUser, requireAdminOrRole) |
-| `lib/admin-permissions.ts` | Permission groups, hasPermission, canAccessSection |
-| `lib/chatbot.ts` | Chatbot core: Gemini streaming, session management, knowledge base, moderation |
+| `lib/admin-auth.ts` | Admin auth helpers |
+| `lib/admin-permissions.ts` | Permission groups, hasPermission |
+| `lib/chatbot.ts` | Chatbot core: Gemini streaming |
 | `lib/navigation.ts` | DB-cached navbar/footer config |
-| `lib/content.ts` | DB-cached auth page text, dashboard config, hero config |
+| `lib/content.ts` | DB-cached auth page, dashboard, hero config |
 | `lib/wallet.ts` | Wallet helpers (idempotency, row locking) |
 | `lib/payment.ts` | IMAP UTR payment verification |
-| `lib/mailer.ts` | Nodemailer email sending (multi-provider + fallback) |
-| `emails/registry.ts` | React Email compilation & registration registry |
-| `lib/notifications.ts` | Notification creation and retrieval |
+| `lib/mailer.ts` | Nodemailer email sending |
+| `lib/notifications.ts` | Notification creation |
 | `lib/seo.ts` | SEO data fetching and metadata building |
+| `lib/seo/audit.ts` | SEO audit engine (0-100 scoring) |
+| `lib/schema/breadcrumbs.ts` | BreadcrumbList schema generator |
+| `lib/og-image/index.ts` | OG image types |
+| `lib/og-image/templates/` | OG image visual templates (4 variants) |
 | `lib/tournaments.ts` | Tournament CRUD helpers |
-| `lib/user-data.ts` | User profile, wallet, permissions, top players |
+| `lib/user-data.ts` | User profile, wallet, permissions |
 | `lib/schemas/admin.ts` | Zod validation schemas |
-| `db/schema.ts` | Drizzle schema (33 tables) |
+| `db/schema.ts` | Drizzle schema (36 tables) |
 | `db/seed-db.ts` | Idempotent seed script |
-| `db/drizzle.ts` | Database connection (postgres.js driver) |
+| `db/drizzle.ts` | Database connection |
 | `middleware.ts` | Auth route protection |
 
 ---
 
 ## Design System & UI Consistency Guidelines
 
-To ensure that all pages (including the Admin Panel, Dashboards, and public views) share a unified look and feel rather than looking mismatched, developers must strictly adhere to the following design system tokens and component layout rules.
-
 ### 1. Global Page Layout & Padding
-* **Page Wrapper Padding**: Page wrappers must NOT define duplicate paddings. Padding is handled globally by parent layouts (e.g., `layout.tsx` defines `p-4 md:p-6 lg:p-8 w-full min-w-0 bg-background` for the `<main>` container).
-* **Inner Page Containers**: Pages or client components should start with a clean layout class:
-  ```tsx
-  return (
-    <div className="w-full min-w-0 space-y-6 animate-in fade-in duration-200">
-      {/* Page Content */}
-    </div>
-  );
-  ```
+- Page wrappers must NOT define duplicate paddings. Padding is handled globally by parent layouts.
 
 ### 2. Standard Header Components
-All page headers must follow a uniform style using the `.header-admin` utility class. The inner elements are structured as follows:
-* **Icon container**: A `rounded-xl bg-primary/10 p-2.5` container with a `h-5 w-5` brand-colored icon.
-* **Title size**: `text-xl font-bold tracking-tight text-foreground`.
-* **Description spacing**: `text-sm text-muted-foreground mt-0.5`.
-* **Header bottom divider**: Managed automatically by the `.header-admin` selector.
-* **Action buttons**: Positioned on the right side using a flex row with `flex items-center gap-2`.
+All page headers must follow a uniform style using the `.header-admin` utility class.
 
-```tsx
-<div className="header-admin">
-  <div className="flex items-center gap-4">
-    <div className="rounded-xl bg-primary/10 p-2.5">
-      <Trophy className="h-5 w-5 text-primary" />
-    </div>
-    <div>
-      <h1 className="text-xl font-bold tracking-tight text-foreground">Page Title</h1>
-      <p className="text-sm text-muted-foreground mt-0.5">Description text.</p>
-    </div>
-  </div>
-</div>
-```
+### 3. Card Types
+| Utility Class | Use Case |
+| :--- | :--- |
+| `card-list` | Listings, tables, data lists (overflow: hidden) |
+| `card-settings` | Settings panels, forms (overflow: visible) |
+| `card-widget` | Dashboard stat cards, info blocks |
 
-### 3. Card Types & Design Tokens
-Cards are unified into four design utility classes in `app/globals.css` to prevent inline style leaks:
-
-| Utility Class | Card Role | Typical Use Case |
-| :--- | :--- | :--- |
-| `card-list` | **Listings & Grids** | Data lists, tables, user tables, search filters, transaction lists (overflow: hidden). |
-| `card-settings` | **Settings & Inputs** | Configuration panels, form containers, settings inputs (overflow: visible). |
-| `card-widget` | **Grid Items & Info** | Dashboard statistics cards, small info blocks, roles badges. |
-
-### 4. Tables & Lists
-Inside `.card-list` and `.card-settings` containers:
-* **Automatic Styling**: Raw HTML `table`, `thead`, `tbody`, `tr`, `th`, and `td` tags automatically inherit padding and hover styles from `globals.css`. Do not write inline padding values (e.g. `px-6 py-4`) on individual table cells.
-* **Table Header**: Styled automatically with subtle backgrounds and bottom borders.
-* **Row Hover States**: Automatic smooth transition color change on hover.
-* **Pills & Badges**: Use `inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border` for state indicators.
-
-### 5. Color Tokens (CSS Variables)
+### 4. Color Tokens (CSS Variables)
 | Token | Value | Usage |
 |-------|-------|-------|
 | `--primary` | `hsl(14, 100%, 50%)` | Brand orange (#FF5A1F) |
-| `--background` | `hsl(36, 33%, 97%)` | Warm cream background |
+| `--background` | `hsl(36, 33%, 97%)` | Warm cream |
 | `--card` | `hsl(0, 0%, 100%)` | White card surfaces |
 | `--accent` | `hsl(36, 22%, 93%)` | Subtle warm tint |
 | `--muted` | `hsl(42, 12%, 90%)` | Muted backgrounds |
@@ -404,48 +631,14 @@ Inside `.card-list` and `.card-settings` containers:
 | `--warning` | `hsl(38, 92%, 50%)` | Warning states |
 | `--info` | `hsl(211, 100%, 57%)` | Information |
 
-### 6. Shadows
-| Token | Value |
-|-------|-------|
-| `--shadow-xs` | `0 1px 2px hsl(225 5% 22% / 0.06)` |
-| `--shadow-sm` | `0 1px 3px hsl(225 5% 22% / 0.08)` |
-| `--shadow-md` | `0 4px 12px hsl(225 5% 22% / 0.1)` |
-| `--shadow-lg` | `0 12px 28px hsl(225 5% 22% / 0.12)` |
-
 ---
 
 ## AI Coding Guidance & Development Guardrails
 
-If you are an AI assistant pair-programming on this repository, you **must** strictly adhere to the following guardrails:
-
-### 1. Forced Light Theme (No Dark Mode)
-* **Rule**: The platform utilizes a forced cream light theme design.
-* **Constraint**: Never add `dark:` utility classes, dark mode triggers, or CSS configurations that deviate from the warm cream aesthetic.
-
-### 2. No Hardcoded Brand Fallbacks
-* **Rule**: All site branding, meta tags, titles, and headers must be resolved dynamically from the database using `lib/seo.ts` and `lib/content.ts`.
-* **Constraint**: Do not hardcode the string "1onlysarkar" in fallback catch blocks, default variables, or UI messages. In case of database emptiness, fall back to generic placeholders or return empty values.
-
-### 3. Database-Driven SEO
-* **Rule**: The root `layout.tsx` uses custom metadata generation via `lib/seo.ts`.
-* **Constraint**: Do not override static page titles manually on public route components. Let the metadata generator fetch configurations from the `seo_config` database table.
-
-### 4. Database Transaction Concurrency (Wallet Locks)
-* **Rule**: The wallet coin balance credits and debits must be fully transactional and atomic to prevent race conditions or balance duplication.
-* **Constraint**: Always wrap wallet adjustments in `db.transaction()` block and enforce row-level locking on the wallet records (`FOR UPDATE` / `.forUpdate()` in Drizzle) before updating coin balances.
-
-### 5. Preserving Slot Booking Attributes
-* **Rule**: In multiplayer formats (Duo/Squad), slot reservation models support pre-assigned team names and temporary participant registration configurations.
-* **Constraint**: Do not clear or overwrite existing values like `teamName` or `ignList` of adjacent team slots when a single user books or updates their individual slot.
-
-### 6. Clean Up & Count Tracking (Persistent Records)
-* **Rule**: Deleted tournaments must be logged to increment `site_config.deleted_tournaments_count` persistently.
-* **Constraint**: The total count of tournaments created historically must always be calculated as: `(Active Tournaments Count) + siteConfig.deletedTournamentsCount`. Ensure database transaction queries increment this value when performing deletions.
-
----
-
-## User Preferences & Constraints
-
-- **IDE**: VS Code
-- **Social**: Instagram `@1onlysarkar`
-- **Branding**: No hardcoded brand defaults or strings (e.g. "1onlysarkar") anywhere in the catch blocks, fallback values, or default content. All text/SEO content must come dynamically from the database.
+1. **Forced Light Theme** — Never add `dark:` utility classes or dark mode triggers.
+2. **No Hardcoded Brand Fallbacks** — All site branding, meta tags, titles must resolve from the database. The string "1onlysarkar" does not appear in fallback catch blocks or default content.
+3. **Database-Driven SEO** — Do not override page titles manually. Let `lib/seo.ts` generate metadata from `seo_config`.
+4. **Database Transaction Concurrency** — Wallet adjustments must be wrapped in `db.transaction()` with row-level locking.
+5. **Preserving Slot Booking Attributes** — Do not clear `teamName` or `ignList` of adjacent slots when a single user books.
+6. **Clean Up & Count Tracking** — Deleted tournaments increment `site_config.deleted_tournaments_count`.
+7. **No Hardcoded Fallbacks** — All defaults must be in `db/seed-db.ts`. Code files must not contain `|| "fallback text"` for content/metadata. Empty DB values should show nothing rather than a hardcoded string.
