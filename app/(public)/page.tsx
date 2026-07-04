@@ -18,41 +18,41 @@ const onboardingFeatures = [
   {
     step: "Step 1",
     title: "Create Account & Login",
-    content: "Sign up instantly using your email or Google account. Complete your gamer profile by setting your unique Free Fire Game Name and UID.",
-    image: "/assets/Get-started.png",
+    content: "Create a free account on 1OnlySarkar today. Play daily Free Fire solo, duo, and squad matches to win real cash prizes. Register now!",
+    image: "/assets/Get-started.webp",
   },
   {
     step: "Step 2",
     title: "Join Tournaments",
-    content: "Browse through available Solo, Duo, or Squad formats. Book your slot directly using your wallet coins and prepare for the custom match room reveal.",
-    image: "/assets/Tournament.png",
+    content: "Explore upcoming Free Fire tournaments on 1OnlySarkar. Join daily Solo, Duo, and Squad matches. Check entry fees, slot availability, and prize pools.",
+    image: "/assets/Tournament.webp",
   },
   {
     step: "Step 3",
     title: "UPI Withdrawal",
-    content: "Prizes are distributed immediately upon victory. Request lightning-fast withdrawals to your UPI account directly from your dashboard.",
-    image: "/assets/Withdraw.png",
+    content: "Request your withdrawal from the dashboard, and your winnings will be transferred to your UPI account within a few hours after approval",
+    image: "/assets/Withdraw.webp",
   },
 ];
 
 const onboardingTestimonials = [
   {
-    quote: "Sign up instantly using your email or Google account. Complete your gamer profile by setting your unique Free Fire Game Name and UID.",
+    quote: "Create a free account on 1OnlySarkar today. Play daily Free Fire solo, duo, and squad matches to win real cash prizes. Register now!",
     name: "Create Account & Login",
     designation: "Step 1",
-    src: "/assets/Get-started.png",
+    src: "/assets/Get-started.webp",
   },
   {
-    quote: "Browse through available Solo, Duo, or Squad formats. Book your slot directly using your wallet coins and prepare for the custom match room reveal.",
+    quote: "Explore upcoming Free Fire tournaments on 1OnlySarkar. Join daily Solo, Duo, and Squad matches. Check entry fees, slot availability, and prize pools.",
     name: "Join Tournaments",
     designation: "Step 2",
-    src: "/assets/Tournament.png",
+    src: "/assets/Tournament.webp",
   },
   {
-    quote: "Prizes are distributed immediately upon victory. Request lightning-fast withdrawals to your UPI account directly from your dashboard.",
+    quote: "Request your withdrawal from the dashboard, and your winnings will be transferred to your UPI account within a few hours after approval",
     name: "UPI Withdrawal",
     designation: "Step 3",
-    src: "/assets/Withdraw.png",
+    src: "/assets/Withdraw.webp",
   },
 ];
 
