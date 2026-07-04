@@ -97,21 +97,6 @@ export const CircularTestimonials = ({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  if (!mounted) {
-    return (
-      <div className="w-full max-w-[56rem] p-4 md:p-8 mx-auto bg-background min-h-[350px]">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-20 items-center">
-          <div className="relative w-full h-[18rem] md:h-[24rem] bg-accent/40 rounded-2xl animate-pulse" />
-          <div className="space-y-4 animate-pulse">
-            <div className="h-6 w-1/3 bg-accent/40 rounded" />
-            <div className="h-4 w-1/6 bg-accent/40 rounded" />
-            <div className="h-20 bg-accent/30 rounded" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   // Navigation handlers
   const handleNext = useCallback(() => {
     setActiveIndex((prev) => (prev + 1) % testimonialsLength);
@@ -144,6 +129,21 @@ export const CircularTestimonials = ({
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [activeIndex, testimonialsLength, handleNext, handlePrev]);
+
+  if (!mounted) {
+    return (
+      <div className="w-full max-w-[56rem] p-4 md:p-8 mx-auto bg-background min-h-[350px]">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-20 items-center">
+          <div className="relative w-full h-[18rem] md:h-[24rem] bg-accent/40 rounded-2xl animate-pulse" />
+          <div className="space-y-4 animate-pulse">
+            <div className="h-6 w-1/3 bg-accent/40 rounded" />
+            <div className="h-4 w-1/6 bg-accent/40 rounded" />
+            <div className="h-20 bg-accent/30 rounded" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Compute transforms for each image (always show 3: left, center, right)
   function getImageStyle(index: number): React.CSSProperties {
