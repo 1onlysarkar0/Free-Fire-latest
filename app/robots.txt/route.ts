@@ -71,7 +71,7 @@ export async function GET() {
     const [config] = await db.select().from(robotsConfig).where(eq(robotsConfig.id, "default")).limit(1);
 
     if (config && Array.isArray(config.rules) && config.rules.length > 0) {
-      lines.push(`# Robots.txt for ${domain} (DB-driven)`);
+      lines.push(`# Robots.txt for ${domain}`);
       lines.push("");
 
       for (const rule of config.rules as any[]) {
