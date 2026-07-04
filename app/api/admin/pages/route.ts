@@ -18,10 +18,10 @@ export async function POST(request: Request) {
   if (admin instanceof Response) return admin;
 
   const body = await request.json();
-  const { title, slug, content, status } = body;
+  const { slug, content, status } = body;
 
-  if (!title || !slug) {
-    return Response.json({ error: "title and slug are required" }, { status: 400 });
+  if (!slug) {
+    return Response.json({ error: "slug is required" }, { status: 400 });
   }
 
   const id = `page-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
   try {
     const [created] = await db.insert(customPage).values({
       id,
-      title: String(title).trim(),
+      title: cleanSlug,
       slug: cleanSlug,
       content: content || "",
       status: published ? "published" : "draft",
@@ -42,14 +42,14 @@ export async function POST(request: Request) {
     if (published) {
       await db.insert(seoConfig).values({
         id: `page-${cleanSlug}`,
-        metaTitle: String(title).trim(),
+        metaTitle: cleanSlug,
         metaDescription: null,
-        ogTitle: String(title).trim(),
+        ogTitle: cleanSlug,
         ogImageDynamic: false,
       }).onConflictDoUpdate({
         target: seoConfig.id,
         set: {
-          metaTitle: String(title).trim(),
+          metaTitle: cleanSlug,
           updatedAt: new Date(),
         }
       });

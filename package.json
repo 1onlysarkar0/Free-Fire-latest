@@ -20,6 +20,7 @@
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx db/seed-db.ts",
+    "db:fix-page-titles": "tsx db/fix-page-titles.ts",
     "db:studio": "drizzle-kit studio",
     "db:migrate:prod": "drizzle-kit migrate",
     "db:all": "npm run db:generate && npm run db:migrate:prod",

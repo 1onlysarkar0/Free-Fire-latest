@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, Loader2, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
@@ -13,28 +13,17 @@ import { useParams } from "next/navigation";
 import { Maximize2, FileEdit } from "lucide-react";
 import FullscreenEditor from "@/components/fullscreen-editor";
 
-function slugify(str: string) {
-  return str.toLowerCase().trim().replace(/[^\w\s-]/g, "").replace(/[\s_]+/g, "-").replace(/^-+|-+$/g, "");
-}
-
 export default function NewPageEditorPage() {
   const router = useRouter();
   const params = useParams();
   const panelSlug = params.dynamicSlug as string;
-  const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [content, setContent] = useState("");
   const [published, setPublished] = useState(false);
-  const [slugManual, setSlugManual] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
 
-  useEffect(() => {
-    if (!slugManual) setSlug(slugify(title));
-  }, [title, slugManual]);
-
   async function handleSave() {
-    if (!title.trim()) { toast.error("Title is required."); return; }
     if (!slug.trim()) { toast.error("Slug is required."); return; }
     setSaving(true);
     try {
@@ -42,7 +31,7 @@ export default function NewPageEditorPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title, slug, content,
+          slug, content,
           status: published ? "published" : "draft",
         }),
       });
@@ -86,14 +75,8 @@ export default function NewPageEditorPage() {
         </div>
       </div>
 
-      {/* Title & Slug */}
+      {/* Slug */}
       <div className="bg-card rounded-xl border border-border p-4 md:p-6 space-y-4">
-        <div className="space-y-1.5">
-          <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Page Title *</Label>
-          <Input value={title} onChange={e => setTitle(e.target.value)}
-            placeholder="e.g. About Us, Rules, Contact…"
-            className="h-10 text-base font-medium" />
-        </div>
         <div className="space-y-1.5">
           <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">URL Slug *</Label>
           <div className="flex items-center">
@@ -102,13 +85,11 @@ export default function NewPageEditorPage() {
             </div>
             <Input
               value={slug}
-              onChange={e => { setSlugManual(true); setSlug(e.target.value); }}
-              onFocus={() => setSlugManual(true)}
+              onChange={e => setSlug(e.target.value)}
               placeholder="your-page-slug"
               className="h-9 text-sm rounded-l-none font-mono"
             />
           </div>
-          {!slugManual && <p className="text-xs text-muted-foreground">Auto-generated from title. Click to customize.</p>}
         </div>
       </div>
 
@@ -147,7 +128,7 @@ export default function NewPageEditorPage() {
       <FullscreenEditor
         isOpen={editorOpen}
         onClose={() => setEditorOpen(false)}
-        title={title}
+        title={slug || "New Page"}
         content={content}
         setContent={setContent}
         onSave={handleSave}

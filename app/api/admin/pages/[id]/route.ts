@@ -21,11 +21,11 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
   const { id } = await params;
   const body = await request.json();
-  const { title, slug, content, status } = body;
+  const { slug, content, status } = body;
 
   const update: Record<string, unknown> = { updatedAt: new Date() };
-  if (title !== undefined) update.title = String(title).trim();
   if (slug !== undefined) update.slug = String(slug).trim().toLowerCase().replace(/[^a-z0-9-]/g, "-");
+  if (slug !== undefined) update.title = update.slug;
   if (content !== undefined) update.content = content;
   if (status !== undefined) update.status = status === "published" ? "published" : "draft";
 
@@ -52,14 +52,14 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
       await db.insert(seoConfig).values({
         id: `page-${updatedRow.slug}`,
-        metaTitle: updatedRow.title,
+        metaTitle: updatedRow.slug,
         metaDescription: null,
-        ogTitle: updatedRow.title,
+        ogTitle: updatedRow.slug,
         ogImageDynamic: false,
       }).onConflictDoUpdate({
         target: seoConfig.id,
         set: {
-          metaTitle: updatedRow.title,
+          metaTitle: updatedRow.slug,
           updatedAt: new Date(),
         }
       });

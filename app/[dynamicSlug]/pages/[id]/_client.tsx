@@ -14,7 +14,6 @@ import FullscreenEditor from "@/components/fullscreen-editor";
 
 interface CustomPage {
   id: string;
-  title: string;
   slug: string;
   content: string;
   status: string;
@@ -31,7 +30,6 @@ export default function EditPageClient({ id, initialData, dynamicSlug: panelSlug
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
-  const [title, setTitle] = useState(initialData.title);
   const [slug, setSlug] = useState(initialData.slug);
   const [content, setContent] = useState(initialData.content);
   const [published, setPublished] = useState(initialData.status === "published");
@@ -44,7 +42,6 @@ export default function EditPageClient({ id, initialData, dynamicSlug: panelSlug
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title,
           slug,
           content,
           status: published ? "published" : "draft",
@@ -85,7 +82,7 @@ export default function EditPageClient({ id, initialData, dynamicSlug: panelSlug
           <Link href={`/${panelSlug}/pages`} prefetch={true}><ArrowLeft className="h-4 w-4" /></Link>
         </Button>
         <div className="flex-1 min-w-0">
-          <h1 className="text-3xl font-bold text-foreground font-lora truncate">{title || "Edit Page"}</h1>
+          <h1 className="text-3xl font-bold text-foreground font-lora truncate">/{slug}</h1>
           <p className="text-base text-muted-foreground mt-1 font-ibm">
             Accessible at <code className="bg-muted px-1 rounded text-sm">/{slug}</code>
           </p>
@@ -105,12 +102,8 @@ export default function EditPageClient({ id, initialData, dynamicSlug: panelSlug
         </div>
       </div>
 
-      {/* Title & Slug */}
+      {/* Slug */}
       <div className="bg-card rounded-xl border border-border p-4 md:p-6 space-y-4">
-        <div className="space-y-1.5">
-          <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Page Title *</Label>
-          <Input value={title} onChange={e => setTitle(e.target.value)} className="h-10 text-base font-medium" />
-        </div>
         <div className="space-y-1.5">
           <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">URL Slug *</Label>
           <div className="flex items-center">
@@ -182,7 +175,7 @@ export default function EditPageClient({ id, initialData, dynamicSlug: panelSlug
       <FullscreenEditor
         isOpen={editorOpen}
         onClose={() => setEditorOpen(false)}
-        title={title}
+        title={slug || "Edit Page"}
         content={content}
         setContent={setContent}
         onSave={handleSave}

@@ -148,7 +148,7 @@ export default async function DynamicSlugPage({ params }: Props) {
       structuredData = {
         "@context": "https://schema.org",
         "@type": "WebPage",
-        "name": page.title,
+        "name": seo?.metaTitle || undefined,
         "description": seo?.metaDescription || undefined,
         "publisher": {
           "@type": "Organization",
@@ -173,7 +173,9 @@ export default async function DynamicSlugPage({ params }: Props) {
       <Navbar />
       <div className="flex-1 w-full flex flex-col">
         <section className="mx-auto w-full max-w-5xl px-6 pt-32 pb-24">
-          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-10 font-lora">{page.title}</h1>
+          {seo?.metaTitle && (
+            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-10 font-lora">{seo.metaTitle}</h1>
+          )}
           {dynamicSlug === "how-to-join" && (
             <p className="text-muted-foreground text-lg max-w-3xl mx-auto mb-10 leading-relaxed atomic-answer-block">
               To join a Free Fire tournament on 1OnlySarkar, create an account,

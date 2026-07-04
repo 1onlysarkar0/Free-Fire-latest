@@ -1197,7 +1197,6 @@ async function seedCustomPages() {
     {
       id: "contact",
       slug: "contact",
-      title: "Contact",
       content: `# Contact
 
 Have a question, a payment issue, or something else on your mind? Here's how to reach us.
@@ -1277,7 +1276,6 @@ A lot of common questions are already answered in our help pages:
     {
       id: "how-to-join",
       slug: "how-to-join",
-      title: "How to Join a Tournament",
       content: `# How to Join a Tournament
 
 Joining a tournament on 1OnlySarkar takes less than a minute once your account is set up. This guide walks you through everything — from registration to entering the custom room on match day.
@@ -1405,7 +1403,6 @@ From your wallet, you can withdraw to your UPI ID or bank account whenever you l
     {
       id: "rules",
       slug: "rules",
-      title: "Tournament Rules & Fair Play",
       content: `# Tournament Rules & Fair Play
 
 These rules apply to every player on 1OnlySarkar — across every tournament, every format, and every match. By registering for any event on this platform, you confirm that you have read and fully accepted what's written here.
@@ -1525,7 +1522,6 @@ Entry fees are deducted at the moment you book your slot. Once a slot is booked,
     {
       id: "privacy",
       slug: "privacy",
-      title: "Privacy Policy",
       content: `# Privacy Policy
 
 **Effective Date: June 29, 2025**
@@ -1663,7 +1659,6 @@ For any privacy-related queries, access requests, or data deletion requests:
     {
       id: "terms",
       slug: "terms",
-      title: "Terms & Conditions",
       content: `# Terms & Conditions
 
 **Effective Date: June 29, 2025**
@@ -1830,7 +1825,7 @@ For questions about these Terms:
       await db
         .update(customPage)
         .set({
-          title: page.title,
+          title: page.slug,
           content: page.content,
           status: page.status,
           updatedAt: new Date(),
@@ -1841,6 +1836,7 @@ For questions about these Terms:
         .insert(customPage)
         .values({
           ...page,
+          title: page.slug,
           createdAt: new Date(),
           updatedAt: new Date(),
         });

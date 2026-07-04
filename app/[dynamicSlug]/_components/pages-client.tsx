@@ -96,7 +96,7 @@ export default function PagesListClient({ initialData }: { initialData: CustomPa
             <table className="w-full text-sm">
               <thead>
                 <tr>
-                  {["Page Title","URL Slug","Status","Last Updated","Actions"].map(h => (
+                  {["Page","URL Slug","Status","Last Updated","Actions"].map(h => (
                     <th key={h}>{h}</th>
                   ))}
                 </tr>
@@ -128,7 +128,7 @@ export default function PagesListClient({ initialData }: { initialData: CustomPa
             <table className="w-full text-sm min-w-[500px]">
               <thead>
                 <tr>
-                  <th>Page Title</th>
+                  <th>Page</th>
                   <th>URL Slug</th>
                   <th className="w-28">Status</th>
                   <th className="hidden md:table-cell">Last Updated</th>
@@ -141,7 +141,7 @@ export default function PagesListClient({ initialData }: { initialData: CustomPa
                     <td>
                       <div className="flex items-center gap-2">
                         <Globe className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="font-medium text-sm text-foreground truncate max-w-[200px]">{page.title}</span>
+                        <code className="font-medium text-sm text-foreground">/{page.slug}</code>
                       </div>
                       <div className="text-xs text-muted-foreground mt-0.5 pl-6">
                         <Link href={`/${panelSlug}/seo/page-${page.slug}`} className="hover:text-primary underline underline-offset-2">SEO Config →</Link>
@@ -204,7 +204,7 @@ export default function PagesListClient({ initialData }: { initialData: CustomPa
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Page?</AlertDialogTitle>
             <AlertDialogDescription>
-              &ldquo;{deleteTarget?.title}&rdquo; will be permanently deleted and its URL will stop working. This cannot be undone.
+              &ldquo;/{deleteTarget?.slug}&rdquo; will be permanently deleted and its URL will stop working. This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

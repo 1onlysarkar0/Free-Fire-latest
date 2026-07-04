@@ -32,7 +32,6 @@ export default async function EditPagePage({ params }: Props) {
 
   const initialData = {
     id: pageRow.id,
-    title: pageRow.title,
     slug: pageRow.slug,
     content: pageRow.content,
     status: pageRow.status,
