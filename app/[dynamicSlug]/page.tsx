@@ -173,15 +173,7 @@ export default async function DynamicSlugPage({ params }: Props) {
       <Navbar />
       <div className="flex-1 w-full flex flex-col">
         <section className="mx-auto w-full max-w-5xl px-6 pt-32 pb-24">
-          {dynamicSlug === "how-to-join" && (
-            <p className="text-muted-foreground text-lg max-w-3xl mx-auto mb-10 leading-relaxed atomic-answer-block">
-              To join a Free Fire tournament on 1OnlySarkar, create an account,
-              add your Free Fire UID in settings, deposit entry fees via UPI if
-              required, browse active tournaments, select an available slot, and
-              retrieve the Room ID and Password from the tournament detail page
-              before match start.
-            </p>
-          )}
+
           <MarkdownRenderer content={cleanContent} />
         </section>
       </div>

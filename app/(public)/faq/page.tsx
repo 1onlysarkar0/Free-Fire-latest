@@ -73,11 +73,7 @@ export default async function FaqPage() {
       )}
 
       <div className="mx-auto w-full max-w-5xl px-6">
-        <p className="text-muted-foreground text-base max-w-3xl mx-auto text-center mb-12 leading-relaxed atomic-answer-block">
-          Find answers to common questions about joining Free Fire tournaments,
-          Room ID and Password access, wallet deposits and UPI withdrawals, prize
-          distributions, tournament rules, and account management on 1OnlySarkar.
-        </p>
+
 
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-extrabold text-foreground mb-4 tracking-tight font-lora">
