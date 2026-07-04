@@ -11,6 +11,28 @@ import { getTopPlayersForHomepage } from "@/lib/user-data";
 import { getSeoData, buildMetadata } from "@/lib/seo";
 import { getAdminSiteConfigCached } from "@/lib/admin-data";
 import { getSiteUrl } from "@/lib/site-url";
+import { FeatureSteps } from "@/components/ui/feature-section";
+
+const onboardingFeatures = [
+  {
+    step: "Step 1",
+    title: "Create Account & Login",
+    content: "Sign up instantly using your email or Google account. Complete your gamer profile by setting your unique Free Fire Game Name and UID.",
+    image: "/assets/Get-started.png",
+  },
+  {
+    step: "Step 2",
+    title: "Join Tournaments",
+    content: "Browse through available Solo, Duo, or Squad formats. Book your slot directly using your wallet coins and prepare for the custom match room reveal.",
+    image: "/assets/Tournament.png",
+  },
+  {
+    step: "Step 3",
+    title: "UPI Withdrawal",
+    content: "Prizes are distributed immediately upon victory. Request lightning-fast withdrawals to your UPI account directly from your dashboard.",
+    image: "/assets/Withdraw.png",
+  },
+];
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
@@ -116,6 +138,15 @@ export default async function Home() {
             </div>
           </section>
         )}
+
+        <section className="relative py-12 w-full border-t border-border/10 bg-background/30">
+          <FeatureSteps
+            features={onboardingFeatures}
+            title="Your Journey Start Here"
+            autoPlayInterval={4000}
+            imageHeight="h-[250px] md:h-[350px] lg:h-[450px]"
+          />
+        </section>
       </div>
     </>
   );
