@@ -907,7 +907,12 @@ async function seedSeoConfig() {
   ];
 
   for (const p of pages) {
-    await db.insert(seoConfig).values(p).onConflictDoNothing();
+    const existing = await db.select({ id: seoConfig.id }).from(seoConfig).where(eq(seoConfig.id, p.id)).limit(1);
+    if (existing.length > 0) {
+      await db.update(seoConfig).set(p).where(eq(seoConfig.id, p.id));
+    } else {
+      await db.insert(seoConfig).values(p);
+    }
   }
 
   console.log(`✅ seo_config seeded (${pages.length} entries).`);
