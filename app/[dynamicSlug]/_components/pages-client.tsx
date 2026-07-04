@@ -23,8 +23,7 @@ import { useParams } from "next/navigation";
 
 interface CustomPage {
   id: string; title: string; slug: string; content: string;
-  status: string; metaTitle: string | null; metaDescription: string | null;
-  ogImage: string | null; createdAt: string; updatedAt: string;
+  status: string; createdAt: string; updatedAt: string;
 }
 
 export default function PagesListClient({ initialData }: { initialData: CustomPage[] }) {
@@ -144,9 +143,9 @@ export default function PagesListClient({ initialData }: { initialData: CustomPa
                         <Globe className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="font-medium text-sm text-foreground truncate max-w-[200px]">{page.title}</span>
                       </div>
-                      {page.metaTitle && (
-                        <div className="text-xs text-muted-foreground mt-0.5 truncate max-w-[200px] pl-6">SEO: {page.metaTitle}</div>
-                      )}
+                      <div className="text-xs text-muted-foreground mt-0.5 pl-6">
+                        <Link href={`/${panelSlug}/seo/page-${page.slug}`} className="hover:text-primary underline underline-offset-2">SEO Config →</Link>
+                      </div>
                     </td>
                     <td>
                       <code className="text-xs bg-background/80 rounded px-1.5 py-0.5 text-muted-foreground">/{page.slug}</code>

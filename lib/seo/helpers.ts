@@ -4,7 +4,7 @@
 
 import {
   Globe, Home, LogIn, UserPlus, LayoutDashboard, KeyRound,
-  Trophy, Settings, Wallet, Mail,
+  Trophy, Settings, Wallet, Mail, Lock, HelpCircle, FileText,
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -63,7 +63,7 @@ export const emptyForm: SeoForm = {
   structuredDataJson: "",
   schemaType: "WebPage",
   ogImageDynamic: false,
-  ogImageTemplate: "homepage",
+  ogImageTemplate: "",
   iconName: "Globe",
   seoScore: null,
   lastAudited: null,
@@ -72,16 +72,21 @@ export const emptyForm: SeoForm = {
 // ─── Known Pages ─────────────────────────────────────────────────────────────
 
 export const KNOWN_PAGES: Record<string, KnownPage> = {
-  global: { label: "Global Fallback", icon: Globe, path: "—", description: "Default SEO for all pages without a custom override" },
+  global: { label: "Global Fallback", icon: Globe, path: "—", description: "Default SEO merged for pages without a custom override" },
   home: { label: "Homepage", icon: Home, path: "/", description: "Main landing page" },
   "sign-in": { label: "Sign In", icon: LogIn, path: "/sign-in", description: "User login page" },
   "sign-up": { label: "Sign Up", icon: UserPlus, path: "/sign-up", description: "New account registration" },
-  dashboard: { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard", description: "Authenticated user dashboard" },
   "forgot-password": { label: "Forgot Password", icon: KeyRound, path: "/forgot-password", description: "Password reset request page" },
   "reset-password": { label: "Reset Password", icon: KeyRound, path: "/reset-password", description: "New password entry page" },
+  "two-factor": { label: "Two-Factor Auth", icon: Lock, path: "/two-factor", description: "Two-factor authentication verification" },
+  "complete-profile": { label: "Complete Profile", icon: UserPlus, path: "/complete-profile", description: "Set Free Fire UID and game name" },
+  dashboard: { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard", description: "Authenticated user dashboard" },
   "my-tournaments": { label: "My Tournaments", icon: Trophy, path: "/dashboard/my-tournaments", description: "User's joined tournaments" },
   wallet: { label: "Wallet", icon: Wallet, path: "/dashboard/wallet", description: "User wallet and payments" },
   settings: { label: "Settings", icon: Settings, path: "/dashboard/settings", description: "User profile settings" },
+  tournaments: { label: "Tournaments (List)", icon: Trophy, path: "/tournaments", description: "Browse all active and upcoming tournaments" },
+  "page-faq": { label: "FAQ Page", icon: HelpCircle, path: "/faq", description: "Frequently asked questions page" },
+  "llms-txt": { label: "llms.txt (AI Overview)", icon: FileText, path: "/llms.txt", description: "AI/LLM platform overview text file" },
 };
 
 // ─── Icon System ─────────────────────────────────────────────────────────────

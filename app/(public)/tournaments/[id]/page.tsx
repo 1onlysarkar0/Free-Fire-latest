@@ -6,25 +6,26 @@ import { getAdminSiteConfigCached } from "@/lib/admin-data";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { getSeoData, buildMetadata } from "@/lib/seo";
-
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "";
-
+import { getSiteUrl } from "@/lib/site-url";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   try {
-    const [t, config, seo] = await Promise.all([
+    const [t, config, seo, siteUrl] = await Promise.all([
       getTournamentDetail(id),
       getAdminSiteConfigCached(),
       getSeoData(`tournament-${id}`),
+      getSiteUrl(),
     ]);
     const siteName = config?.logoTitle ?? "";
     if (!t) return { title: `Tournament — ${siteName}` };
 
+    const baseUrl = siteUrl || process.env.NEXT_PUBLIC_APP_URL || "";
+
     const title = seo.metaTitle || `${t.name} — ${siteName}`;
     const description = seo.metaDescription || `Join ${t.name}. ${t.type === "FREE" ? "Free entry" : `Entry fee: ₹${t.joiningFee}`}. Prize pool: ₹${t.prizePool}. ${t.gameMode} mode. ${t.totalSlots} slots available.`;
-    const url = seo.canonicalUrl || `${APP_URL}/tournaments/${id}`;
-    const ogImage = seo.ogImage || config?.logoSrc || null;
+    const url = seo.canonicalUrl || `${baseUrl}/tournaments/${id}`;
+    const ogImage = seo.ogImage || null;
 
     const mergedSeo = {
       ...seo,
@@ -39,7 +40,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       canonicalUrl: url,
     };
 
-    return buildMetadata(mergedSeo, APP_URL, siteName, config?.logoSrc ?? undefined);
+    return buildMetadata(mergedSeo, baseUrl || undefined, siteName || undefined, config?.logoSrc ?? undefined, undefined, `/tournaments/${id}`);
   } catch {
     return { title: "Tournament" };
   }
@@ -50,10 +51,11 @@ export default async function TournamentDetailPage({ params }: { params: Promise
   const { id } = await params;
   const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
 
-  const [initialData, siteConfig, seo] = await Promise.all([
+  const [initialData, siteConfig, seo, siteUrl] = await Promise.all([
     getViewerTournamentDetail(id, session?.user?.id).catch(() => null),
     getAdminSiteConfigCached().catch(() => null),
     getSeoData(`tournament-${id}`).catch(() => null),
+    getSiteUrl().catch(() => ""),
   ]);
 
   const mapStatusToSchema = (status: string) => {
@@ -66,6 +68,8 @@ export default async function TournamentDetailPage({ params }: { params: Promise
     }
   };
 
+  const baseUrl = siteUrl || process.env.NEXT_PUBLIC_APP_URL || "";
+
   const getDynamicSchema = () => {
     if (!initialData) return null;
     return {
@@ -73,26 +77,26 @@ export default async function TournamentDetailPage({ params }: { params: Promise
       "@type": "SportsEvent",
       "name": initialData.name,
       "description": `${initialData.gameMode.replace(/_/g, " ")} tournament. Prize pool: ₹${initialData.prizePool}.`,
-      "url": `${APP_URL}/tournaments/${id}`,
+      "url": `${baseUrl}/tournaments/${id}`,
       "startDate": initialData.startTime,
       "eventStatus": mapStatusToSchema(initialData.status),
       "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
       "location": {
         "@type": "VirtualLocation",
-        "url": `${APP_URL}/tournaments/${id}`
+        "url": `${baseUrl}/tournaments/${id}`
       },
       "organizer": {
         "@type": "Organization",
         "name": siteConfig?.logoTitle ?? "",
-        "url": APP_URL,
-        "logo": `${APP_URL}${siteConfig?.logoSrc ?? "/assets/logo.webp"}`
+        "url": baseUrl,
+        "logo": `${baseUrl}${siteConfig?.logoSrc ?? "/assets/logo.webp"}`
       },
       "offers": {
         "@type": "Offer",
         "price": initialData.joiningFee ?? 0,
         "priceCurrency": "INR",
         "availability": initialData.status === "UPCOMING" ? "https://schema.org/InStock" : "https://schema.org/SoldOut",
-        "url": `${APP_URL}/tournaments/${id}`
+        "url": `${baseUrl}/tournaments/${id}`
       },
       "maximumAttendeeCapacity": initialData.totalSlots,
       "game": {

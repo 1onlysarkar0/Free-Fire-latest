@@ -5,10 +5,6 @@ import { eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import { cache } from "react";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TYPES
-// ─────────────────────────────────────────────────────────────────────────────
-
 export interface SeoData {
   metaTitle: string | null;
   metaDescription: string | null;
@@ -33,48 +29,7 @@ export interface SeoData {
   lastAudited: string | null;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// RAW FETCH (uncached)
-// Merges a page-specific row with the "global" fallback.
-// pageId: "global" | "home" | "sign-in" | "sign-up" | "dashboard" | etc.
-// Any field that is null on the page row falls back to the global value.
-// ─────────────────────────────────────────────────────────────────────────────
-
 async function _fetchSeo(pageId: string): Promise<SeoData> {
-  if (pageId === "global") {
-    const rows = await db
-      .select()
-      .from(seoConfig)
-      .where(eq(seoConfig.id, "global"))
-      .limit(1);
-
-    const row = rows[0] ?? null;
-    return {
-      metaTitle: row?.metaTitle ?? null,
-      metaDescription: row?.metaDescription ?? null,
-      metaKeywords: row?.metaKeywords ?? null,
-      ogTitle: row?.ogTitle ?? null,
-      ogDescription: row?.ogDescription ?? null,
-      ogImage: row?.ogImage ?? null,
-      ogType: row?.ogType ?? "website",
-      twitterCard: row?.twitterCard ?? "summary_large_image",
-      twitterSite: row?.twitterSite ?? null,
-      twitterTitle: row?.twitterTitle ?? null,
-      twitterDescription: row?.twitterDescription ?? null,
-      twitterImage: row?.twitterImage ?? null,
-      canonicalUrl: row?.canonicalUrl ?? null,
-      robots: row?.robots ?? "index, follow",
-      structuredDataJson: row?.structuredDataJson ?? null,
-      schemaType: row?.schemaType ?? "WebPage",
-      schemaData: row?.schemaData ?? null,
-      ogImageDynamic: row?.ogImageDynamic ?? false,
-      ogImageTemplate: row?.ogImageTemplate ?? null,
-      seoScore: row?.seoScore ?? null,
-      lastAudited: row?.lastAudited ? row.lastAudited.toISOString() : null,
-    };
-  }
-
-  // Fetch global + page-specific in parallel then merge
   const [globalRows, pageRows] = await Promise.all([
     db.select().from(seoConfig).where(eq(seoConfig.id, "global")).limit(1),
     db.select().from(seoConfig).where(eq(seoConfig.id, pageId)).limit(1),
@@ -83,6 +38,32 @@ async function _fetchSeo(pageId: string): Promise<SeoData> {
   const g = globalRows[0] ?? null;
   const p = pageRows[0] ?? null;
 
+  if (pageId === "global") {
+    return {
+      metaTitle: g?.metaTitle ?? null,
+      metaDescription: g?.metaDescription ?? null,
+      metaKeywords: g?.metaKeywords ?? null,
+      ogTitle: g?.ogTitle ?? null,
+      ogDescription: g?.ogDescription ?? null,
+      ogImage: g?.ogImage ?? null,
+      ogType: g?.ogType ?? null,
+      twitterCard: g?.twitterCard ?? null,
+      twitterSite: g?.twitterSite ?? null,
+      twitterTitle: g?.twitterTitle ?? null,
+      twitterDescription: g?.twitterDescription ?? null,
+      twitterImage: g?.twitterImage ?? null,
+      canonicalUrl: g?.canonicalUrl ?? null,
+      robots: g?.robots ?? null,
+      structuredDataJson: g?.structuredDataJson ?? null,
+      schemaType: g?.schemaType ?? null,
+      schemaData: g?.schemaData ?? null,
+      ogImageDynamic: g?.ogImageDynamic ?? null,
+      ogImageTemplate: g?.ogImageTemplate ?? null,
+      seoScore: g?.seoScore ?? null,
+      lastAudited: g?.lastAudited ? g.lastAudited.toISOString() : null,
+    };
+  }
+
   return {
     metaTitle: p?.metaTitle ?? g?.metaTitle ?? null,
     metaDescription: p?.metaDescription ?? g?.metaDescription ?? null,
@@ -90,42 +71,35 @@ async function _fetchSeo(pageId: string): Promise<SeoData> {
     ogTitle: p?.ogTitle ?? g?.ogTitle ?? null,
     ogDescription: p?.ogDescription ?? g?.ogDescription ?? null,
     ogImage: p?.ogImage ?? g?.ogImage ?? null,
-    ogType: p?.ogType ?? g?.ogType ?? "website",
-    twitterCard: p?.twitterCard ?? g?.twitterCard ?? "summary_large_image",
+    ogType: p?.ogType ?? g?.ogType ?? null,
+    twitterCard: p?.twitterCard ?? g?.twitterCard ?? null,
     twitterSite: p?.twitterSite ?? g?.twitterSite ?? null,
     twitterTitle: p?.twitterTitle ?? g?.twitterTitle ?? null,
     twitterDescription: p?.twitterDescription ?? g?.twitterDescription ?? null,
     twitterImage: p?.twitterImage ?? g?.twitterImage ?? null,
     canonicalUrl: p?.canonicalUrl ?? g?.canonicalUrl ?? null,
-    robots: p?.robots ?? g?.robots ?? "index, follow",
+    robots: p?.robots ?? g?.robots ?? null,
     structuredDataJson: p?.structuredDataJson ?? g?.structuredDataJson ?? null,
-    schemaType: p?.schemaType ?? g?.schemaType ?? "WebPage",
+    schemaType: p?.schemaType ?? g?.schemaType ?? null,
     schemaData: p?.schemaData ?? g?.schemaData ?? null,
-    ogImageDynamic: p?.ogImageDynamic ?? g?.ogImageDynamic ?? false,
+    ogImageDynamic: p?.ogImageDynamic ?? g?.ogImageDynamic ?? null,
     ogImageTemplate: p?.ogImageTemplate ?? g?.ogImageTemplate ?? null,
     seoScore: p?.seoScore ?? g?.seoScore ?? null,
     lastAudited: p?.lastAudited ? p.lastAudited.toISOString() : g?.lastAudited ? g.lastAudited.toISOString() : null,
   };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// DIRECT EXPORT (cached & request-memoized)
-// ─────────────────────────────────────────────────────────────────────────────
-
 export const getSeoData = cache((pageId: string) => {
   return _fetchSeo(pageId);
 });
-
-// ─────────────────────────────────────────────────────────────────────────────
-// NEXT.JS METADATA BUILDER
-// Converts SeoData into a Next.js Metadata object for use in generateMetadata.
-// ─────────────────────────────────────────────────────────────────────────────
 
 export function buildMetadata(
   seo: SeoData,
   siteUrl?: string,
   siteName?: string,
-  logoSrc?: string
+  logoSrc?: string,
+  locale?: string,
+  path?: string
 ): Metadata {
   const metadata: Metadata = {};
 
@@ -133,77 +107,91 @@ export function buildMetadata(
   if (seo.metaDescription) metadata.description = seo.metaDescription;
   if (seo.metaKeywords) metadata.keywords = seo.metaKeywords;
   if (seo.robots) metadata.robots = seo.robots as Metadata["robots"];
-  if (seo.canonicalUrl) metadata.alternates = { canonical: seo.canonicalUrl };
 
-  const iconSrc = logoSrc || "/assets/logo.webp";
-  metadata.manifest = "/assets/site.webmanifest";
-  metadata.icons = {
-    icon: [
-      { url: iconSrc, type: "image/png" },
-      { url: "/assets/favicon-96x96.png", sizes: "96x96", type: "image/png" },
-      { url: "/assets/favicon.ico", sizes: "any" },
-      { url: "/assets/favicon-dark.png", media: "(prefers-color-scheme: dark)", type: "image/png" },
-    ],
-    apple: [
-      { url: "/assets/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-    ],
-  };
+  const base = siteUrl || "";
 
-  const base = siteUrl || process.env.NEXT_PUBLIC_APP_URL || "";
-  let ogImageFallback = seo.ogImage || logoSrc || undefined;
-  if (ogImageFallback && !ogImageFallback.startsWith("http") && base) {
-    ogImageFallback = `${base}${ogImageFallback}`;
+  // Dynamic canonical URL: manual override > dynamic from siteUrl + path
+  const canonicalUrl = seo.canonicalUrl || (base && path ? `${base}${path}` : null);
+  if (canonicalUrl) metadata.alternates = { canonical: canonicalUrl };
+
+  const iconSrc = logoSrc;
+  if (iconSrc) {
+    metadata.icons = {
+      icon: [
+        { url: iconSrc, type: "image/png" },
+        { url: "/assets/favicon-96x96.png", sizes: "96x96", type: "image/png" },
+        { url: "/assets/favicon.ico", sizes: "any" },
+        { url: "/assets/favicon-dark.png", media: "(prefers-color-scheme: dark)", type: "image/png" },
+      ],
+      apple: [
+        { url: "/assets/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+      ],
+    };
   }
 
-  if (seo.ogImageDynamic && base) {
+  let ogImageFinal = seo.ogImage ?? null;
+  if (ogImageFinal && !ogImageFinal.startsWith("http") && base) {
+    ogImageFinal = `${base}${ogImageFinal}`;
+  } else if (!ogImageFinal && seo.ogImageDynamic && base && seo.ogImageTemplate) {
     if (seo.ogImageTemplate === "tournament") {
-      const match = seo.canonicalUrl?.match(/\/tournaments\/([^/]+)/);
+      const match = canonicalUrl?.match(/\/tournaments\/([^/]+)/);
       const tournamentId = match?.[1];
       if (tournamentId) {
-        ogImageFallback = `${base}/api/og-image?tournament=${tournamentId}`;
+        ogImageFinal = `${base}/api/og-image?tournament=${tournamentId}`;
       }
     } else if (seo.ogImageTemplate === "auth") {
       let pageType = "sign-in";
-      if (seo.canonicalUrl?.includes("sign-up")) pageType = "sign-up";
-      else if (seo.canonicalUrl?.includes("forgot-password")) pageType = "forgot-password";
-      else if (seo.canonicalUrl?.includes("reset-password")) pageType = "reset-password";
-      ogImageFallback = `${base}/api/og-image?template=auth&page=${pageType}`;
+      if (canonicalUrl?.includes("sign-up")) pageType = "sign-up";
+      else if (canonicalUrl?.includes("forgot-password")) pageType = "forgot-password";
+      else if (canonicalUrl?.includes("reset-password")) pageType = "reset-password";
+      ogImageFinal = `${base}/api/og-image?template=auth&page=${pageType}`;
     } else if (seo.ogImageTemplate === "custom-page") {
-      // Extract slug from canonicalUrl for the OG route
-      const slug = seo.canonicalUrl?.split("/").filter(Boolean).pop() || "";
-      ogImageFallback = `${base}/api/og-image?template=custom-page&slug=${encodeURIComponent(slug)}`;
-    } else if (seo.ogImageTemplate) {
-      // Other templates (homepage, etc.) — the OG route fetches data from DB
-      ogImageFallback = `${base}/api/og-image?template=${seo.ogImageTemplate}`;
+      const slug = path?.split("/").filter(Boolean).pop() || "";
+      ogImageFinal = `${base}/api/og-image?template=custom-page&slug=${encodeURIComponent(slug)}`;
+    } else if (seo.ogImageTemplate === "faq") {
+      ogImageFinal = `${base}/api/og-image?template=faq`;
+    } else if (seo.ogImageTemplate === "homepage") {
+      ogImageFinal = `${base}/api/og-image?template=homepage`;
     }
   }
 
-  const twitterImageFallback = seo.twitterImage || ogImageFallback || undefined;
+  const twitterImageFinal = seo.twitterImage || ogImageFinal || null;
 
-  // Open Graph
-  if (seo.ogTitle || seo.ogDescription || ogImageFallback || siteName) {
-    metadata.openGraph = {
-      title: seo.ogTitle ?? seo.metaTitle ?? undefined,
-      description: seo.ogDescription ?? seo.metaDescription ?? undefined,
-      type: (seo.ogType ?? "website") as "website",
-      url: seo.canonicalUrl ?? siteUrl,
-      siteName: siteName ?? undefined,
-      images: ogImageFallback
-        ? [{ url: ogImageFallback, width: 1200, height: 630, alt: seo.ogTitle ?? siteName ?? "" }]
-        : undefined,
-    };
+  if (seo.ogTitle || seo.ogDescription || ogImageFinal || siteName) {
+    const og: Record<string, unknown> = {};
+    if (seo.ogTitle) og.title = seo.ogTitle;
+    if (seo.ogDescription) og.description = seo.ogDescription;
+    if (seo.ogType) og.type = seo.ogType;
+    if (canonicalUrl) og.url = canonicalUrl;
+    if (siteName) og.siteName = siteName;
+    if (locale) og.locale = locale;
+    if (ogImageFinal) {
+      og.images = [{ url: ogImageFinal, width: 1200, height: 630, alt: seo.ogTitle ?? siteName ?? "" }];
+    }
+    metadata.openGraph = og as Metadata["openGraph"];
   }
 
-  // Twitter / X Card
-  if (seo.twitterCard || seo.twitterTitle || seo.twitterDescription || siteName) {
-    metadata.twitter = {
-      card: (seo.twitterCard ?? "summary_large_image") as "summary_large_image",
-      site: seo.twitterSite ?? undefined,
-      title: seo.twitterTitle ?? seo.ogTitle ?? undefined,
-      description: seo.twitterDescription ?? seo.ogDescription ?? undefined,
-      images: twitterImageFallback ? [twitterImageFallback] : undefined,
-    };
+  if (seo.twitterCard || seo.twitterTitle || seo.twitterDescription || twitterImageFinal || seo.twitterSite) {
+    const tw: Record<string, unknown> = {};
+    if (seo.twitterCard) tw.card = seo.twitterCard;
+    if (seo.twitterSite) tw.site = seo.twitterSite;
+    if (seo.twitterTitle) tw.title = seo.twitterTitle;
+    if (seo.twitterDescription) tw.description = seo.twitterDescription;
+    if (twitterImageFinal) tw.images = [twitterImageFinal];
+    metadata.twitter = tw as Metadata["twitter"];
   }
 
   return metadata;
+}
+
+export function buildGeoMetadata(): Metadata["other"] {
+  return {
+    "geo.region": "IN",
+    "geo.country": "India",
+    language: "en-IN",
+    "content-language": "en-IN",
+    HandheldFriendly: "True",
+    MobileOptimized: "width",
+    "format-detection": "telephone=no",
+  };
 }

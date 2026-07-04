@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,29 @@ import { LogoCloud } from "@/components/ui/logo-cloud-3";
 import { H1, H2, P } from "@/components/ui/typography";
 import { getHeroConfig } from "@/lib/content";
 import { getTopPlayersForHomepage } from "@/lib/user-data";
+import { getSeoData, buildMetadata } from "@/lib/seo";
+import { getAdminSiteConfigCached } from "@/lib/admin-data";
+import { getSiteUrl } from "@/lib/site-url";
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const [seo, config, siteUrl] = await Promise.all([
+      getSeoData("home"),
+      getAdminSiteConfigCached(),
+      getSiteUrl(),
+    ]);
+    return buildMetadata(
+      seo,
+      siteUrl || undefined,
+      config?.logoTitle ?? undefined,
+      config?.logoSrc ?? undefined,
+      undefined,
+      "/"
+    );
+  } catch {
+    return {};
+  }
+}
 
 export default async function Home() {
   const [config, dbUsers] = await Promise.all([

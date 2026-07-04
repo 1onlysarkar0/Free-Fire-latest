@@ -5,6 +5,7 @@ import { tournament, tournamentSlot, seoConfig, siteConfig } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { invalidateTournamentCache } from "@/lib/cache";
+import { getSiteUrl } from "@/lib/site-url";
 
 // Convert slot number to team label (1→A, 2→B, ..., 26→Z, 27→AA, ...)
 function slotLabel(n: number): string {
@@ -124,8 +125,8 @@ export async function POST(req: NextRequest) {
       const siteName = configRow?.logoTitle;
       if (!siteName) throw new Error("Site name configuration not found in database");
 
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
-      if (!baseUrl) throw new Error("NEXT_PUBLIC_APP_URL environment variable is required");
+      const baseUrl = await getSiteUrl();
+      if (!baseUrl) throw new Error("Site URL not configured in database");
 
       const metaTitle = `${name.trim()} — ${siteName}`;
       const metaDescription = `Join ${name.trim()}. ${type.toUpperCase() === "FREE" ? "Free entry" : `Entry fee: ₹${joiningFee}`}. Prize pool: ₹${prizePool}. ${gameMode.replace(/_/g, " ")} mode. ${teamFormat.toUpperCase()} format. Register now!`;

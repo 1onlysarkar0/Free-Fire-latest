@@ -3,18 +3,21 @@ import { db } from "@/db/drizzle";
 import { tournament, seoConfig, siteConfig } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { auditSeo } from "@/lib/seo/audit";
+import { getSiteUrl } from "@/lib/site-url";
 
 export async function POST(request: Request) {
   const admin = await requireAdminOrRole(request, "seo:edit");
   if (admin instanceof Response) return admin;
 
   try {
-    const [configRow] = await db.select().from(siteConfig).limit(1);
+    const [[configRow], baseUrl] = await Promise.all([
+      db.select().from(siteConfig).limit(1),
+      getSiteUrl(),
+    ]);
+
     const siteName = configRow?.logoTitle;
     if (!siteName) throw new Error("Site name configuration not found in database");
-
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
-    if (!baseUrl) throw new Error("NEXT_PUBLIC_APP_URL environment variable is required");
+    if (!baseUrl) throw new Error("Site URL not configured in database");
 
     const tournaments = await db.select().from(tournament);
 
@@ -46,7 +49,6 @@ export async function POST(request: Request) {
 
       const seoId = `tournament-${t.id}`;
 
-      // Upsert seo_config
       await db.insert(seoConfig).values({
         id: seoId,
         metaTitle,
@@ -55,6 +57,11 @@ export async function POST(request: Request) {
         ogDescription: metaDescription,
         ogImage: `/api/og-image?tournament=${t.id}`,
         ogType: "website",
+        twitterCard: "summary_large_image",
+        twitterSite: "@1onlysarkar",
+        twitterTitle: t.name,
+        twitterDescription: metaDescription,
+        twitterImage: `/api/og-image?tournament=${t.id}`,
         canonicalUrl: `${baseUrl}/tournaments/${t.id}`,
         robots: "index, follow",
         structuredDataJson: JSON.stringify(sportsEventSchema),
@@ -70,6 +77,9 @@ export async function POST(request: Request) {
           ogTitle: t.name,
           ogDescription: metaDescription,
           ogImage: `/api/og-image?tournament=${t.id}`,
+          twitterTitle: t.name,
+          twitterDescription: metaDescription,
+          twitterImage: `/api/og-image?tournament=${t.id}`,
           canonicalUrl: `${baseUrl}/tournaments/${t.id}`,
           structuredDataJson: JSON.stringify(sportsEventSchema),
           schemaType: "SportsEvent",
@@ -79,7 +89,6 @@ export async function POST(request: Request) {
         }
       });
 
-      // Update tournament linking if not linked
       if (t.seoConfigId !== seoId) {
         await db.update(tournament).set({
           seoConfigId: seoId,
@@ -87,7 +96,6 @@ export async function POST(request: Request) {
         }).where(eq(tournament.id, t.id));
       }
 
-      // Run audit to populate initial score
       const [row] = await db.select().from(seoConfig).where(eq(seoConfig.id, seoId)).limit(1);
       if (row) {
         const auditResult = auditSeo(seoId, row);

@@ -2,13 +2,67 @@ import { NextResponse } from "next/server";
 import { db } from "@/db/drizzle";
 import { robotsConfig } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { getSiteUrl } from "@/lib/site-url";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+const AI_AGENTS = [
+  "GPTBot",
+  "OAI-SearchBot",
+  "Google-Extended",
+  "Anthropic-AI",
+  "Claude-Web",
+  "ClaudeBot",
+  "PerplexityBot",
+  "Perplexity-User",
+  "cohere-ai",
+  "Bytespider",
+  "Applebot-Extended",
+  "CCBot",
+];
+
+const DISALLOWED_PARAMS = ["?sort=", "?filter=", "?page=", "?ref="];
+
+function getDefaultRobots(domain: string, baseUrl: string): string[] {
+  const lines: string[] = [
+    `# Robots.txt for ${domain}`,
+    "",
+    "User-agent: *",
+    "Allow: /",
+    "Disallow: /api/",
+    "Disallow: /dashboard/",
+    "Disallow: /auth/",
+    ...DISALLOWED_PARAMS.map((p) => `Disallow: ${p}`),
+    "",
+    "# AI Crawlers — explicitly allowed for LLM training and citation",
+    ...AI_AGENTS.flatMap((agent) => [
+      `User-agent: ${agent}`,
+      "Allow: /",
+      "Disallow: /api/",
+      "Disallow: /dashboard/",
+      "",
+    ]),
+  ];
+
+  lines.push("# Sitemap");
+  lines.push(`Sitemap: ${baseUrl}/sitemap.xml`);
+  lines.push("");
+  lines.push("# Content Signals");
+  lines.push("Content-Signal: ai-train=yes, search=yes, ai-input=yes");
+  lines.push("");
+  lines.push("# AI-friendly content locations");
+  lines.push(`See: ${baseUrl}/llms.txt`);
+  lines.push(`See: ${baseUrl}/faq`);
+
+  return lines;
+}
+
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
-  if (!baseUrl) throw new Error("NEXT_PUBLIC_APP_URL environment variable is required");
+  const baseUrl = await getSiteUrl();
+  if (!baseUrl) {
+    return new NextResponse("Site URL not configured", { status: 500 });
+  }
   const domain = baseUrl.replace(/^https?:\/\//, "");
 
   let lines: string[] = [];
@@ -23,62 +77,22 @@ export async function GET() {
       for (const rule of config.rules as any[]) {
         lines.push(`User-agent: ${rule.userAgent || "*"}`);
         if (Array.isArray(rule.allow)) {
-          rule.allow.forEach((path: string) => {
-            lines.push(`Allow: ${path}`);
-          });
+          rule.allow.forEach((path: string) => lines.push(`Allow: ${path}`));
         }
         if (Array.isArray(rule.disallow)) {
-          rule.disallow.forEach((path: string) => {
-            lines.push(`Disallow: ${path}`);
-          });
+          rule.disallow.forEach((path: string) => lines.push(`Disallow: ${path}`));
         }
         lines.push("");
       }
-    } else {
-      // DB empty — use sensible defaults
-      lines = [
-        `# Robots.txt for ${domain} (default fallback)`,
-        "",
-        "User-agent: *",
-        "Allow: /",
-        "",
-        "User-agent: GPTBot",
-        "Allow: /",
-        "",
-        "User-agent: Google-Extended",
-        "Allow: /",
-        "",
-        "User-agent: Anthropic-AI",
-        "Allow: /",
-        "",
-        "User-agent: Claude-Web",
-        "Allow: /",
-        "",
-        "User-agent: PerplexityBot",
-        "Allow: /",
-        "",
-      ];
-    }
-  } catch (err: any) {
-    console.error("Robots.txt DB query failed, using fallback:", err);
-    // Always return sensible defaults — never serve 500 to crawlers
-    lines = [
-      `# Robots.txt for ${domain} (fallback — DB unavailable)`,
-      "",
-      "User-agent: *",
-      "Allow: /",
-      "",
-    ];
-  }
 
-  lines.push("# Sitemap");
-  lines.push(`Sitemap: ${baseUrl}/sitemap.xml`);
-  lines.push("");
-  lines.push("# Content Signals — declare AI content usage preferences");
-  lines.push("Content-Signal: ai-train=yes, search=yes, ai-input=yes");
-  lines.push("");
-  lines.push("# AI-friendly content locations");
-  lines.push(`- /llms.txt - Curated overview for AI/LLMs (markdown)`);
+      lines.push("# Sitemap");
+      lines.push(`Sitemap: ${baseUrl}/sitemap.xml`);
+    } else {
+      lines = getDefaultRobots(domain, baseUrl);
+    }
+  } catch {
+    lines = getDefaultRobots(domain, baseUrl);
+  }
 
   return new NextResponse(lines.join("\n"), {
     headers: {

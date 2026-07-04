@@ -36,11 +36,6 @@ export default async function EditPagePage({ params }: Props) {
     slug: pageRow.slug,
     content: pageRow.content,
     status: pageRow.status,
-    metaTitle: pageRow.metaTitle,
-    metaDescription: pageRow.metaDescription,
-    metaKeywords: pageRow.metaKeywords,
-    ogImage: pageRow.ogImage,
-    robots: pageRow.robots,
   };
 
   return (

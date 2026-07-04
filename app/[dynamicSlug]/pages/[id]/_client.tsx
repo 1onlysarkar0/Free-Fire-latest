@@ -18,11 +18,6 @@ interface CustomPage {
   slug: string;
   content: string;
   status: string;
-  metaTitle: string | null;
-  metaDescription: string | null;
-  metaKeywords: string | null;
-  ogImage: string | null;
-  robots: string | null;
 }
 
 interface EditPageClientProps {
@@ -40,11 +35,6 @@ export default function EditPageClient({ id, initialData, dynamicSlug: panelSlug
   const [slug, setSlug] = useState(initialData.slug);
   const [content, setContent] = useState(initialData.content);
   const [published, setPublished] = useState(initialData.status === "published");
-  const [metaTitle, setMetaTitle] = useState(initialData.metaTitle ?? "");
-  const [metaDescription, setMetaDescription] = useState(initialData.metaDescription ?? "");
-  const [metaKeywords, setMetaKeywords] = useState(initialData.metaKeywords ?? "");
-  const [ogImage, setOgImage] = useState(initialData.ogImage ?? "");
-  const [robots, setRobots] = useState(initialData.robots ?? "index, follow");
   const [editorOpen, setEditorOpen] = useState(false);
 
   async function handleSave() {
@@ -58,16 +48,16 @@ export default function EditPageClient({ id, initialData, dynamicSlug: panelSlug
           slug,
           content,
           status: published ? "published" : "draft",
-          metaTitle: metaTitle || null,
-          metaDescription: metaDescription || null,
-          metaKeywords: metaKeywords || null,
-          ogImage: ogImage || null,
-          robots: robots || null,
         }),
       });
-      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to save");
       toast.success("Page saved.");
-      router.refresh();
+      if (published && data.seoConfigId) {
+        router.push(`/${panelSlug}/seo/${data.seoConfigId}`);
+      } else {
+        router.refresh();
+      }
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Error");
     } finally {
@@ -151,34 +141,15 @@ export default function EditPageClient({ id, initialData, dynamicSlug: panelSlug
         </Button>
       </div>
 
-      {/* SEO */}
-      <div className="bg-card rounded-xl border border-border p-4 md:p-6 space-y-4">
-        <h3 className="text-sm font-semibold text-muted-foreground">SEO / Social Sharing (optional)</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Meta Title</Label>
-            <Input value={metaTitle} onChange={e => setMetaTitle(e.target.value)} placeholder="Defaults to page title" className="h-9 text-sm" />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">OG Image URL</Label>
-            <Input value={ogImage} onChange={e => setOgImage(e.target.value)} placeholder="https://…" className="h-9 text-sm" />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Meta Keywords</Label>
-            <Input value={metaKeywords} onChange={e => setMetaKeywords(e.target.value)}
-              placeholder="Comma-separated keywords" className="h-9 text-sm" />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Robots Directive</Label>
-            <Input value={robots} onChange={e => setRobots(e.target.value)}
-              placeholder="index, follow" className="h-9 text-sm" />
-          </div>
-          <div className="md:col-span-2 space-y-1.5">
-            <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Meta Description</Label>
-            <Textarea value={metaDescription} onChange={e => setMetaDescription(e.target.value)}
-              className="resize-none min-h-16 text-sm" />
-          </div>
-        </div>
+      {/* SEO hint */}
+      <div className="bg-card rounded-xl border border-border p-4 md:p-6">
+        <p className="text-sm text-muted-foreground">
+          Configure SEO settings (meta title, description, OG image, keywords, robots, Twitter card, etc.) from the{" "}
+          <Link href={`/${panelSlug}/seo/page-${slug}`} className="text-primary underline underline-offset-2 hover:text-primary/80">
+            SEO Configuration
+          </Link>{" "}
+          page for this page.
+        </p>
       </div>
 
       {/* Danger Zone */}

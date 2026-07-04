@@ -3,20 +3,23 @@ import { db } from "@/db/drizzle";
 import { customPage, tournament, navigationItem, seoConfig } from "@/db/schema";
 import { eq, ne, desc } from "drizzle-orm";
 import { getAdminSiteConfigCached } from "@/lib/admin-data";
+import { getSiteUrl } from "@/lib/site-url";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
-  if (!baseUrl) throw new Error("NEXT_PUBLIC_APP_URL environment variable is required");
-  
+  const baseUrl = await getSiteUrl();
+  if (!baseUrl) {
+    return new Response("Site URL not configured in database", { status: 500 });
+  }
+
   try {
     const [config, seoConfigs, pages, activeTournaments, navItems] = await Promise.all([
       getAdminSiteConfigCached(),
       db.select().from(seoConfig),
       db
-        .select({ slug: customPage.slug, title: customPage.title, metaDescription: customPage.metaDescription })
+        .select({ slug: customPage.slug, title: customPage.title })
         .from(customPage)
         .where(eq(customPage.status, "published")),
       db
@@ -40,10 +43,15 @@ export async function GET() {
     const siteDescription = llmsSeo?.metaDescription || globalSeo?.metaDescription || "";
 
     let md = `# ${siteName}\n\n`;
-    md += `## About\n${siteDescription}\n\n`;
+    md += `> ${siteDescription}\n\n`;
+    md += `- Base URL: ${baseUrl}\n`;
+    md += `- Language: en-IN\n`;
+    md += `- Geo: India\n`;
+    md += `- Platform Type: Esports Tournament Platform\n`;
+    md += `- Game: Free Fire (Garena)\n\n`;
 
     md += `## Navigation and Information Routes\n\n`;
-    md += `### Public Navigation Links\n`;
+    md += `### Public Pages\n`;
 
     const publicNavs = navItems.filter(item => !item.isSocial && !item.url.startsWith("http"));
     if (publicNavs.length > 0) {
@@ -57,12 +65,11 @@ export async function GET() {
       md += `- [Tournaments Directory](${baseUrl}/tournaments)${tourSeo?.metaDescription ? ` — ${tourSeo.metaDescription}` : ""}\n`;
     }
 
-    // Dynamic custom pages from database
     if (pages.length > 0) {
       md += `\n### Custom Pages\n`;
       for (const page of pages) {
         const pageSeo = seoMap.get(`page-${page.slug}`);
-        md += `- [${page.title}](${baseUrl}/${page.slug})${pageSeo?.metaDescription || page.metaDescription ? ` — ${pageSeo?.metaDescription || page.metaDescription}` : ""}\n`;
+        md += `- [${page.title}](${baseUrl}/${page.slug})${pageSeo?.metaDescription ? ` — ${pageSeo.metaDescription}` : ""}\n`;
       }
     }
 
@@ -89,27 +96,22 @@ export async function GET() {
     const forgotSeo = seoMap.get("forgot-password");
     md += `- [Forgot Password](${baseUrl}/forgot-password)${forgotSeo?.metaDescription ? ` — ${forgotSeo.metaDescription}` : ""}\n`;
 
-    // Dynamic Tournaments from database
     if (activeTournaments.length > 0) {
       md += `\n## Active Tournaments\n\n`;
       for (const t of activeTournaments) {
         const tournamentSeo = seoMap.get(`tournament-${t.id}`);
         const modeLabel = t.gameMode.replace(/_/g, " ").toUpperCase();
         const formatLabel = t.teamFormat.toUpperCase();
-        md += `- **[${t.name}](${baseUrl}/tournaments/${t.id})**${tournamentSeo?.metaDescription ? ` — ${tournamentSeo.metaDescription}` : ""}\n`;
+        md += `- **[${t.name}](${baseUrl}/tournaments/${t.id})**${tournamentSeo?.metaDescription ? ` — ${tournamentSeo.metaDescription}` : ""} (${modeLabel}, ${formatLabel}, Prize: ₹${t.prizePool})\n`;
       }
     }
 
-    // Official contact links from database
     md += `\n## Official Contact\n`;
     if (config?.contactEmail) {
       md += `- **Support Email**: [${config.contactEmail}](mailto:${config.contactEmail})\n`;
     }
-    if (config?.logoUrl) {
-      md += `- **Branding URL**: [${siteName}](${baseUrl}${config.logoUrl})\n`;
-    }
+    md += `- **Platform URL**: [${siteName}](${baseUrl})\n`;
 
-    // Entities and references from llms-txt DB config (seeded in seed-db.ts)
     let entities: { name: string; description: string }[] = [];
     let references: string[] = [];
 
@@ -122,9 +124,7 @@ export async function GET() {
         if (Array.isArray(parsed.references)) {
           references = parsed.references;
         }
-      } catch (e) {
-        console.error("Failed to parse custom llms-txt schema data:", e);
-      }
+      } catch {}
     }
 
     if (entities.length > 0) {
@@ -135,12 +135,12 @@ export async function GET() {
     }
 
     if (references.length > 0) {
-      md += `\n## Structured Data References\n`;
+      md += `\n## References\n`;
       for (const ref of references) {
         md += `- ${ref}\n`;
       }
     }
-    
+
     return new NextResponse(md, {
       headers: {
         "Content-Type": "text/plain; charset=utf-8",

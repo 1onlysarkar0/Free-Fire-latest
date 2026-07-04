@@ -7,7 +7,8 @@ import { Analytics } from "@vercel/analytics/react";
 import { Agentation } from "agentation";
 import { Lora, IBM_Plex_Sans } from "next/font/google";
 import { getAdminSiteConfigCached } from "@/lib/admin-data";
-import { getSeoData } from "@/lib/seo";
+import { getSeoData, buildMetadata, buildGeoMetadata } from "@/lib/seo";
+import { getSiteUrl } from "@/lib/site-url";
 
 import ChatbotLoader from "@/components/chatbot-loader";
 
@@ -31,28 +32,19 @@ export const viewport: Viewport = {
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
-    const [config, seo] = await Promise.all([
+    const [config, seo, siteUrl] = await Promise.all([
       getAdminSiteConfigCached(),
       getSeoData("global"),
+      getSiteUrl(),
     ]);
 
-    const siteName = config?.logoTitle || undefined;
-    const siteUrl = process.env.NEXT_PUBLIC_APP_URL;
-    const metadata: Metadata = {};
+    const siteName = config?.logoTitle ?? null;
+    const logoSrc = config?.logoSrc ?? null;
+    const locale = "en_IN";
+
+    const metadata = buildMetadata(seo, siteUrl || undefined, siteName || undefined, logoSrc || undefined, locale, "/");
 
     if (siteUrl) metadata.metadataBase = new URL(siteUrl);
-
-    if (siteName || seo.metaTitle) {
-      metadata.title = {
-        default: seo.metaTitle ?? siteName ?? "",
-        template: siteName ? `%s | ${siteName}` : "%s",
-      };
-    }
-
-    if (seo.metaDescription) metadata.description = seo.metaDescription;
-    if (seo.metaKeywords) metadata.keywords = seo.metaKeywords;
-    if (seo.robots) metadata.robots = seo.robots as Metadata["robots"];
-    if (seo.canonicalUrl) metadata.alternates = { canonical: seo.canonicalUrl };
 
     if (siteName) {
       metadata.authors = [{ name: siteName }];
@@ -60,56 +52,16 @@ export async function generateMetadata(): Promise<Metadata> {
       metadata.publisher = siteName;
     }
 
-    const logoSrc = config?.logoSrc || "/assets/logo.webp";
-    metadata.manifest = "/assets/site.webmanifest";
-    metadata.icons = {
-      icon: [
-        { url: logoSrc, type: "image/png" },
-        { url: "/assets/favicon-96x96.png", sizes: "96x96", type: "image/png" },
-        { url: "/assets/favicon.ico", sizes: "any" },
-        { url: "/assets/favicon-dark.png", media: "(prefers-color-scheme: dark)", type: "image/png" },
-      ],
-      apple: [
-        { url: "/assets/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-      ],
-    };
-
-    const ogImageFallback = seo.ogImage || config?.logoSrc || undefined;
-    const twitterImageFallback = seo.twitterImage || seo.ogImage || config?.logoSrc || undefined;
-
-
-    if (seo.ogTitle || seo.ogDescription || ogImageFallback || siteName) {
-      metadata.openGraph = {
-        type: (seo.ogType ?? "website") as "website",
-        url: seo.canonicalUrl ?? siteUrl ?? undefined,
-        siteName: siteName ?? undefined,
-        locale: "en_IN",
-        title: seo.ogTitle ?? seo.metaTitle ?? undefined,
-        description: seo.ogDescription ?? seo.metaDescription ?? undefined,
-        images: ogImageFallback ? [{ url: ogImageFallback, width: 1200, height: 630 }] : undefined,
-      };
+    if (siteUrl) {
+      if (!metadata.title) {
+        metadata.title = {
+          default: siteName || "",
+          template: siteName ? `%s | ${siteName}` : "%s",
+        };
+      }
     }
 
-    if (seo.twitterCard || seo.twitterTitle || seo.twitterDescription || siteName) {
-      metadata.twitter = {
-        card: (seo.twitterCard ?? "summary_large_image") as "summary_large_image",
-        site: seo.twitterSite ?? undefined,
-        title: seo.twitterTitle ?? seo.ogTitle ?? seo.metaTitle ?? undefined,
-        description:
-          seo.twitterDescription ?? seo.ogDescription ?? seo.metaDescription ?? undefined,
-        images: twitterImageFallback ? [twitterImageFallback] : undefined,
-      };
-    }
-
-    metadata.other = {
-      "geo.region": "IN",
-      "geo.country": "India",
-      language: "en-IN",
-      "content-language": "en-IN",
-      HandheldFriendly: "True",
-      MobileOptimized: "width",
-      "format-detection": "telephone=no",
-    };
+    metadata.other = buildGeoMetadata();
 
     return metadata;
   } catch {
@@ -123,15 +75,20 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   let structuredData: string | null = null;
+  let siteUrl = "";
+  let siteName = "";
   try {
-    const seo = await getSeoData("global");
+    const [seo, config] = await Promise.all([
+      getSeoData("global"),
+      getAdminSiteConfigCached(),
+    ]);
     if (seo.structuredDataJson) {
       JSON.parse(seo.structuredDataJson);
       structuredData = seo.structuredDataJson;
     }
-  } catch {
-    structuredData = null;
-  }
+    siteName = config?.logoTitle || "";
+    siteUrl = await getSiteUrl();
+  } catch {}
 
   return (
     <html

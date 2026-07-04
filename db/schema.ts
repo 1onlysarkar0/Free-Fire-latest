@@ -98,6 +98,7 @@ export const siteConfig = pgTable("site_config", {
   deletedTournamentsCount: integer("deleted_tournaments_count").notNull().default(0),
 
   // ── Brand / Logo ──────────────────────────────────────────────────────────
+  siteUrl: text("site_url"),
   logoUrl: text("logo_url").notNull().default("/"),
   logoSrc: text("logo_src").notNull().default("/assets/logo.webp"),
   logoAlt: text("logo_alt").notNull().default("logo"),
@@ -349,13 +350,6 @@ export const customPage = pgTable("custom_page", {
   title: text("title").notNull(),
   content: text("content").notNull().default(""),
   status: text("status").notNull().default("draft"), // 'published' | 'draft'
-
-  // Per-page SEO
-  metaTitle: text("meta_title"),
-  metaDescription: text("meta_description"),
-  metaKeywords: text("meta_keywords"),
-  ogImage: text("og_image"),
-  robots: text("robots").default("index, follow"),
 
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),

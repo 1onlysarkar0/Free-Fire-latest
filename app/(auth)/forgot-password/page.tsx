@@ -6,13 +6,17 @@ import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ForgotPasswordForm } from "./_form";
+import { getSiteUrl } from "@/lib/site-url";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
-    const seo = await getSeoData("forgot-password");
-    return buildMetadata(seo, process.env.NEXT_PUBLIC_APP_URL as string);
+    const [seo, siteUrl] = await Promise.all([
+      getSeoData("forgot-password"),
+      getSiteUrl(),
+    ]);
+    return buildMetadata(seo, siteUrl || undefined, undefined, undefined, undefined, "/forgot-password");
   } catch {
     return {};
   }

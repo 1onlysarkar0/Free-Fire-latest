@@ -4,11 +4,12 @@ import { tournament, siteConfig, seoConfig } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import React from "react";
 
-// Templates
 import { TournamentOgTemplate } from "@/lib/og-image/templates/tournament";
 import { HomepageOgTemplate } from "@/lib/og-image/templates/homepage";
 import { CustomPageOgTemplate } from "@/lib/og-image/templates/custom-page";
 import { AuthPageOgTemplate } from "@/lib/og-image/templates/auth-page";
+import { FaqOgTemplate } from "@/lib/og-image/templates/faq";
+import { getSiteUrl } from "@/lib/site-url";
 
 export const dynamic = "force-dynamic";
 
@@ -18,20 +19,20 @@ export async function GET(req: Request) {
     const template = searchParams.get("template") || "home";
     const tournamentId = searchParams.get("tournament");
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+    const [baseUrl, configRow] = await Promise.all([
+      getSiteUrl(),
+      db.select().from(siteConfig).limit(1).then(rows => rows[0] || null),
+    ]);
+
     if (!baseUrl) {
-      return new Response("Missing NEXT_PUBLIC_APP_URL environment variable", { status: 500 });
+      return new Response("Site URL not configured in database", { status: 500 });
     }
     const siteDomain = baseUrl.replace(/^https?:\/\//, "");
-
-    // Fetch site config branding
-    const [configRow] = await db.select().from(siteConfig).limit(1);
     const siteName = configRow?.logoTitle;
     if (!siteName) {
       return new Response("Site name branding not configured in database", { status: 404 });
     }
 
-    // 1. Tournament Template
     if (tournamentId) {
       const [t] = await db
         .select()
@@ -43,7 +44,6 @@ export async function GET(req: Request) {
         return new Response("Tournament not found", { status: 404 });
       }
 
-      // Format date beautifully
       const formattedDate = new Intl.DateTimeFormat("en-US", {
         month: "short",
         day: "numeric",
@@ -68,17 +68,34 @@ export async function GET(req: Request) {
         {
           width: 1200,
           height: 630,
-          headers: {
-            "Cache-Control": "public, max-age=31536000, immutable",
-          },
+          headers: { "Cache-Control": "public, max-age=31536000, immutable" },
         }
       );
     }
 
-    // 2. Auth Page Template
+    if (template === "faq") {
+      const [seo] = await db
+        .select()
+        .from(seoConfig)
+        .where(eq(seoConfig.id, "page-faq"))
+        .limit(1);
+
+      const title = seo?.ogTitle || seo?.metaTitle || "Frequently Asked Questions";
+      const description = seo?.ogDescription || seo?.metaDescription || "Find answers about tournament registration, wallet deposits, Room ID, and more.";
+
+      return new ImageResponse(
+        <FaqOgTemplate data={{ title, description, siteName, siteDomain }} />,
+        {
+          width: 1200,
+          height: 630,
+          headers: { "Cache-Control": "public, max-age=31536000, immutable" },
+        }
+      );
+    }
+
     if (template === "auth") {
       const pageType = searchParams.get("page") || "sign-in";
-      
+
       const [seo] = await db
         .select()
         .from(seoConfig)
@@ -89,7 +106,7 @@ export async function GET(req: Request) {
       const description = seo?.metaDescription;
 
       if (!title || !description) {
-        return new Response(`Authentication page SEO config not found in database for page: ${pageType}`, { status: 404 });
+        return new Response(`Authentication page SEO config not found for: ${pageType}`, { status: 404 });
       }
 
       return new ImageResponse(
@@ -97,14 +114,11 @@ export async function GET(req: Request) {
         {
           width: 1200,
           height: 630,
-          headers: {
-            "Cache-Control": "public, max-age=31536000, immutable",
-          },
+          headers: { "Cache-Control": "public, max-age=31536000, immutable" },
         }
       );
     }
 
-    // 3. Custom Page Template
     if (template === "custom-page") {
       const slug = searchParams.get("slug");
       if (!slug) {
@@ -121,7 +135,7 @@ export async function GET(req: Request) {
       const description = seo?.metaDescription;
 
       if (!title || !description) {
-        return new Response(`Custom page metadata not configured in database for slug: ${slug}`, { status: 404 });
+        return new Response(`Custom page metadata not configured for slug: ${slug}`, { status: 404 });
       }
 
       return new ImageResponse(
@@ -129,14 +143,11 @@ export async function GET(req: Request) {
         {
           width: 1200,
           height: 630,
-          headers: {
-            "Cache-Control": "public, max-age=31536000, immutable",
-          },
+          headers: { "Cache-Control": "public, max-age=31536000, immutable" },
         }
       );
     }
 
-    // 4. Default / Homepage Template
     const [homeSeo] = await db
       .select()
       .from(seoConfig)
@@ -155,13 +166,11 @@ export async function GET(req: Request) {
       {
         width: 1200,
         height: 630,
-        headers: {
-          "Cache-Control": "public, max-age=31536000, immutable",
-        },
+        headers: { "Cache-Control": "public, max-age=31536000, immutable" },
       }
     );
   } catch (error: any) {
     console.error("OG Image generation failed:", error);
-    return new Response("Failed to generate image due to missing database records or server issue", { status: 500 });
+    return new Response("Failed to generate image", { status: 500 });
   }
 }

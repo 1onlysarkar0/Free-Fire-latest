@@ -7,13 +7,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { SignInForm } from "./_form";
+import { getSiteUrl } from "@/lib/site-url";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
-    const seo = await getSeoData("sign-in");
-    return buildMetadata(seo, process.env.NEXT_PUBLIC_APP_URL as string);
+    const [seo, siteUrl] = await Promise.all([
+      getSeoData("sign-in"),
+      getSiteUrl(),
+    ]);
+    return buildMetadata(seo, siteUrl || undefined, undefined, undefined, undefined, "/sign-in");
   } catch {
     return {};
   }

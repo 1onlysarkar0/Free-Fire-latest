@@ -4,6 +4,7 @@ import { db } from "@/db/drizzle";
 import { user, siteConfig } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
+import { getSiteUrl } from "@/lib/site-url";
  
 export async function POST(request: NextRequest) {
   try {
@@ -51,10 +52,8 @@ export async function POST(request: NextRequest) {
     if (isFirstProfileCompletion && existingUser?.email) {
       try {
         const { sendEmail } = await import("@/lib/mailer");
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL as string;
-        const dashboardUrl = appUrl.startsWith("http")
-          ? `${appUrl}/dashboard`
-          : `https://${appUrl}/dashboard`;
+        const appUrl = await getSiteUrl() || process.env.NEXT_PUBLIC_APP_URL || "";
+        const dashboardUrl = appUrl ? `${appUrl}/dashboard` : "/dashboard";
 
         // Fetch siteName from DB
         const siteRows = await db

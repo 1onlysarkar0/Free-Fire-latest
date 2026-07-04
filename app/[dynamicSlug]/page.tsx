@@ -11,6 +11,7 @@ import { Navbar } from "@/components/navbar";
 import FooterSection from "@/components/homepage/footer";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 import { getSeoData, buildMetadata } from "@/lib/seo";
+import { getSiteUrl } from "@/lib/site-url";
 
 async function getPublishedPage(slug: string) {
   const [page] = await db
@@ -33,29 +34,26 @@ export async function generateMetadata({ params }: Props) {
     return { title: "Admin Panel", robots: { index: false, follow: false } };
   }
 
-  const [page, seo, config] = await Promise.all([
+  const [page, seo, config, siteUrl] = await Promise.all([
     getPublishedPage(dynamicSlug),
     getSeoData(`page-${dynamicSlug}`),
     getAdminSiteConfigCached(),
+    getSiteUrl(),
   ]);
 
   if (!page) return {};
-  
+
   const siteName = config?.logoTitle || "";
+  const baseUrl = siteUrl || process.env.NEXT_PUBLIC_APP_URL || "";
 
-  const mergedSeo = {
-    ...seo,
-    metaTitle: seo.metaTitle || page.metaTitle || page.title,
-    metaDescription: seo.metaDescription || page.metaDescription || null,
-    metaKeywords: seo.metaKeywords || page.metaKeywords || null,
-    ogTitle: seo.ogTitle || seo.metaTitle || page.metaTitle || page.title,
-    ogDescription: seo.ogDescription || seo.metaDescription || page.metaDescription || null,
-    ogImage: seo.ogImage || page.ogImage || null,
-    canonicalUrl: seo.canonicalUrl || `${process.env.NEXT_PUBLIC_APP_URL || ""}/${dynamicSlug}`,
-    robots: seo.robots || page.robots || "index, follow",
-  };
-
-  return buildMetadata(mergedSeo, process.env.NEXT_PUBLIC_APP_URL, siteName, config?.logoSrc ?? undefined);
+  return buildMetadata(
+    seo,
+    baseUrl || undefined,
+    siteName || undefined,
+    config?.logoSrc ?? undefined,
+    undefined,
+    `/${dynamicSlug}`
+  );
 }
 
 export default async function DynamicSlugPage({ params }: Props) {
@@ -63,7 +61,6 @@ export default async function DynamicSlugPage({ params }: Props) {
   const authState = await verifyPanelAccess(dynamicSlug);
 
   if (authState.isPanel) {
-    // Fetch all stats in parallel for instant dashboard render (no client-side spinner)
     const initialStats = await getAdminStatsCached();
 
     return (
@@ -77,18 +74,18 @@ export default async function DynamicSlugPage({ params }: Props) {
     );
   }
 
-  // 2. Otherwise, look up published custom page (cached 1hr, tag: custom-pages)
   const page = await getPublishedPage(dynamicSlug);
 
   if (!page) notFound();
 
-  // Load seo config
-  const [seo, config] = await Promise.all([
+  const [seo, config, siteUrl] = await Promise.all([
     getSeoData(`page-${dynamicSlug}`).catch(() => null),
     getAdminSiteConfigCached().catch(() => null),
+    getSiteUrl().catch(() => ""),
   ]);
 
   const siteName = config?.logoTitle || "";
+  const baseUrl = siteUrl || process.env.NEXT_PUBLIC_APP_URL || "";
 
   let structuredData: any = null;
   if (seo?.structuredDataJson) {
@@ -97,9 +94,7 @@ export default async function DynamicSlugPage({ params }: Props) {
     } catch {}
   }
 
-  // Fallback to generate standard schema if not customized
   if (!structuredData && page) {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "";
     if (dynamicSlug === "how-to-join") {
       structuredData = {
         "@context": "https://schema.org",
@@ -154,7 +149,7 @@ export default async function DynamicSlugPage({ params }: Props) {
         "@context": "https://schema.org",
         "@type": "WebPage",
         "name": page.title,
-        "description": page.metaDescription || undefined,
+        "description": seo?.metaDescription || undefined,
         "publisher": {
           "@type": "Organization",
           "name": siteName
@@ -179,6 +174,15 @@ export default async function DynamicSlugPage({ params }: Props) {
       <div className="flex-1 w-full flex flex-col">
         <section className="mx-auto w-full max-w-5xl px-6 pt-32 pb-24">
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-10 font-lora">{page.title}</h1>
+          {dynamicSlug === "how-to-join" && (
+            <p className="text-muted-foreground text-lg max-w-3xl mx-auto mb-10 leading-relaxed atomic-answer-block">
+              To join a Free Fire tournament on 1OnlySarkar, create an account,
+              add your Free Fire UID in settings, deposit entry fees via UPI if
+              required, browse active tournaments, select an available slot, and
+              retrieve the Room ID and Password from the tournament detail page
+              before match start.
+            </p>
+          )}
           <MarkdownRenderer content={cleanContent} />
         </section>
       </div>

@@ -7,6 +7,7 @@ import { nanoid } from "nanoid";
 import { invalidateTournamentCache } from "@/lib/cache";
 import { creditWallet } from "@/lib/wallet";
 import { sendPrizeCreditedNotification } from "@/lib/tournament-emails";
+import { getSiteUrl } from "@/lib/site-url";
 
 interface WinnerInput {
   userId: string;
@@ -96,6 +97,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     });
 
     // Fire-and-forget notifications (AFTER transaction success)
+    const siteUrl = await getSiteUrl();
     for (const res of results) {
       if (res.prizeAmount > 0) {
         sendPrizeCreditedNotification({
@@ -104,6 +106,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           tournamentName: t.name,
           prizeAmount: res.prizeAmount,
           placement: res.placement,
+          siteUrl: siteUrl || undefined,
         }).catch((err) => console.error("[declare-winners] Prize notification error:", err));
       }
     }

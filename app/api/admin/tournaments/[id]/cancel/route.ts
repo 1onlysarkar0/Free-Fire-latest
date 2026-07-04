@@ -7,6 +7,7 @@ import { nanoid } from "nanoid";
 import { invalidateTournamentCache } from "@/lib/cache";
 import { creditWallet } from "@/lib/wallet";
 import { sendTournamentCancelledNotifications } from "@/lib/tournament-emails";
+import { getSiteUrl } from "@/lib/site-url";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const adminUser = await requireAdminOrRole(req, "tournaments:cancel");
@@ -96,11 +97,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     });
 
     // Fire-and-forget notifications (AFTER transaction success)
+    const siteUrl = await getSiteUrl();
     sendTournamentCancelledNotifications({
       tournamentId,
       tournamentName: t.name,
       cancellationReason: reason,
       participants: refundSummary,
+      siteUrl: siteUrl || undefined,
     }).catch((err) => console.error("[cancel] Notification error:", err));
 
 

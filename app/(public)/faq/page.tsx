@@ -3,36 +3,28 @@ import { db } from "@/db/drizzle";
 import { faq } from "@/db/schema";
 import { asc } from "drizzle-orm";
 import { FaqPro } from "./_components/faq-pro";
-import { getSeoData, buildMetadata, type SeoData } from "@/lib/seo";
+import { getSeoData, buildMetadata } from "@/lib/seo";
 import { getAdminSiteConfigCached } from "@/lib/admin-data";
+import { getSiteUrl } from "@/lib/site-url";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
-    const [seo, config] = await Promise.all([
-      getSeoData("page-faq").catch(() => null),
-      getAdminSiteConfigCached().catch(() => null),
+    const [seo, config, siteUrl] = await Promise.all([
+      getSeoData("page-faq"),
+      getAdminSiteConfigCached(),
+      getSiteUrl(),
     ]);
 
-    const siteName = config?.logoTitle || "";
-    const title = seo?.metaTitle || "";
-    const description = seo?.metaDescription || "";
-
-    const mergedSeo: SeoData = {
-      ...(seo ?? ({} as SeoData)),
-      metaTitle: title,
-      metaDescription: description,
-      metaKeywords: seo?.metaKeywords || "",
-      robots: seo?.robots || "",
-    };
-
     return buildMetadata(
-      mergedSeo,
-      process.env.NEXT_PUBLIC_APP_URL || "",
-      siteName,
-      config?.logoSrc ?? undefined
+      seo,
+      siteUrl || undefined,
+      config?.logoTitle ?? undefined,
+      config?.logoSrc ?? undefined,
+      undefined,
+      "/faq"
     );
   } catch {
     return {};
@@ -42,9 +34,11 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function FaqPage() {
   const items = await db.select().from(faq).orderBy(asc(faq.order));
 
-  // Load SEO config for FAQ page heading and description
-  const seo = await getSeoData("page-faq").catch(() => null);
-  const pageTitle = seo?.metaTitle || "";
+  const [seo, siteUrl] = await Promise.all([
+    getSeoData("page-faq").catch(() => null),
+    getSiteUrl().catch(() => ""),
+  ]);
+  const pageTitle = seo?.metaTitle || "Frequently Asked Questions";
   const pageDescription = seo?.metaDescription || "";
 
   let structuredData = null;
@@ -54,7 +48,6 @@ export default async function FaqPage() {
     } catch {}
   }
 
-  // Fallback to generate standard FAQPage schema if not customized
   if (!structuredData && items.length > 0) {
     structuredData = {
       "@context": "https://schema.org",
@@ -80,6 +73,12 @@ export default async function FaqPage() {
       )}
 
       <div className="mx-auto w-full max-w-5xl px-6">
+        <p className="text-muted-foreground text-base max-w-3xl mx-auto text-center mb-12 leading-relaxed atomic-answer-block">
+          Find answers to common questions about joining Free Fire tournaments,
+          Room ID and Password access, wallet deposits and UPI withdrawals, prize
+          distributions, tournament rules, and account management on 1OnlySarkar.
+        </p>
+
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-extrabold text-foreground mb-4 tracking-tight font-lora">
             {pageTitle || "Frequently Asked Questions"}

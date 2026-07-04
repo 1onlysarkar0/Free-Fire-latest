@@ -4,6 +4,7 @@ import { db } from "@/db/drizzle";
 import { tournament, tournamentSlot, tournamentParticipant, tournamentWinner, user, siteConfig, seoConfig } from "@/db/schema";
 import { count, eq, sql } from "drizzle-orm";
 import { invalidateTournamentCache } from "@/lib/cache";
+import { getSiteUrl } from "@/lib/site-url";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const adminUser = await requireAdminOrRole(req, "tournaments:view");
@@ -100,7 +101,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (updated) {
       const [configRow] = await db.select().from(siteConfig).limit(1);
       const siteName = configRow?.logoTitle;
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+      const baseUrl = await getSiteUrl();
 
       if (siteName && baseUrl) {
         const metaTitle = `${updated.name} — ${siteName}`;

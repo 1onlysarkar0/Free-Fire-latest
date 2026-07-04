@@ -48,8 +48,10 @@ export async function sendRoomRevealedNotifications(opts: {
   tournamentName: string;
   startTime: Date;
   participantUserIds: string[];
+  siteUrl?: string;
 }) {
-  const { tournamentId, tournamentName, startTime, participantUserIds } = opts;
+  const { tournamentId, tournamentName, startTime, participantUserIds, siteUrl } = opts;
+  const baseUrl = siteUrl || process.env.NEXT_PUBLIC_APP_URL || "";
   if (participantUserIds.length === 0) return;
 
   const config = await getAdminSiteConfigCached().catch(() => null);
@@ -96,7 +98,7 @@ export async function sendRoomRevealedNotifications(opts: {
         </div>
         <p style="margin:0 0 8px 0;font-size:14px;color:#6b7280;">Tournament: <strong>${tournamentName}</strong></p>
         <p style="margin:0 0 20px 0;font-size:14px;color:#6b7280;">Start Time: <strong>${startStr} (IST)</strong></p>
-        <a href="${process.env.NEXT_PUBLIC_APP_URL}/tournaments/${tournamentId}" style="display:inline-block;background:#FF5A1F;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:8px;margin-bottom:16px;">
+        <a href="${baseUrl}/tournaments/${tournamentId}" style="display:inline-block;background:#FF5A1F;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:8px;margin-bottom:16px;">
           View Room Credentials
         </a>
         <p style="margin:8px 0 0 0;font-size:13px;color:#9ca3af;">Do NOT share room credentials with anyone outside your team.</p>
@@ -122,8 +124,10 @@ export async function sendTournamentCancelledNotifications(opts: {
   tournamentName: string;
   cancellationReason: string;
   participants: { userId: string; refundAmount: number }[];
+  siteUrl?: string;
 }) {
-  const { tournamentId, tournamentName, cancellationReason, participants } = opts;
+  const { tournamentId, tournamentName, cancellationReason, participants, siteUrl } = opts;
+  const baseUrl = siteUrl || process.env.NEXT_PUBLIC_APP_URL || "";
   if (participants.length === 0) return;
 
   const config = await getAdminSiteConfigCached().catch(() => null);
@@ -170,7 +174,7 @@ export async function sendTournamentCancelledNotifications(opts: {
           <p style="margin:8px 0 0 0;font-size:14px;color:#7f1d1d;">${cancellationReason}</p>
         </div>
         ${refundLine}
-        <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/wallet" style="display:inline-block;background:#FF5A1F;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:8px;margin-top:8px;">
+        <a href="${baseUrl}/dashboard/wallet" style="display:inline-block;background:#FF5A1F;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:8px;margin-top:8px;">
           View Wallet Balance
         </a>
       `;
@@ -197,8 +201,10 @@ export async function sendPrizeCreditedNotification(opts: {
   tournamentName: string;
   prizeAmount: number;
   placement: string;
+  siteUrl?: string;
 }) {
-  const { userId, tournamentId, tournamentName, prizeAmount, placement } = opts;
+  const { userId, tournamentId, tournamentName, prizeAmount, placement, siteUrl } = opts;
+  const baseUrl = siteUrl || process.env.NEXT_PUBLIC_APP_URL || "";
 
   const config = await getAdminSiteConfigCached().catch(() => null);
   const siteName = config?.logoTitle ?? "";
@@ -235,7 +241,7 @@ export async function sendPrizeCreditedNotification(opts: {
         <p style="margin:0;font-size:13px;color:#166534;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Prize Credited</p>
         <p style="margin:8px 0 0 0;font-size:36px;font-weight:800;color:#15803d;">${prizeAmount} coins</p>
       </div>
-      <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/wallet" style="display:inline-block;background:#FF5A1F;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:8px;">
+      <a href="${baseUrl}/dashboard/wallet" style="display:inline-block;background:#FF5A1F;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:8px;">
         View My Wallet
       </a>
     `;

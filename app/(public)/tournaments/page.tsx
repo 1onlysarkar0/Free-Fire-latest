@@ -10,15 +10,16 @@ import { headers } from "next/headers";
 import { db } from "@/db/drizzle";
 import { tournamentParticipant } from "@/db/schema";
 import { eq } from "drizzle-orm";
-
+import { getSiteUrl } from "@/lib/site-url";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const [seo, config] = await Promise.all([
+  const [seo, config, siteUrl] = await Promise.all([
     getSeoData("tournaments"),
     getAdminSiteConfigCached(),
+    getSiteUrl(),
   ]);
   const siteName = config?.logoTitle ?? "";
-  return buildMetadata(seo, process.env.NEXT_PUBLIC_APP_URL as string, siteName, config?.logoSrc ?? undefined);
+  return buildMetadata(seo, siteUrl || undefined, siteName || undefined, config?.logoSrc ?? undefined, undefined, "/tournaments");
 }
 
 export default async function TournamentsPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {

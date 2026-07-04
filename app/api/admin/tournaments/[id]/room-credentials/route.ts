@@ -5,6 +5,7 @@ import { tournament, tournamentParticipant } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { invalidateTournamentCache } from "@/lib/cache";
 import { sendRoomRevealedNotifications } from "@/lib/tournament-emails";
+import { getSiteUrl } from "@/lib/site-url";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const adminUser = await requireAdminOrRole(req, "tournaments:manage_room");
@@ -45,11 +46,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const userIds = participants.map((p: { userId: string }) => p.userId);
 
     // Fire-and-forget — do not await
+    const siteUrl = await getSiteUrl();
     sendRoomRevealedNotifications({
       tournamentId: id,
       tournamentName: t.name,
       startTime: t.startTime,
       participantUserIds: userIds,
+      siteUrl: siteUrl || undefined,
     }).catch((err) => console.error("[room-credentials] Notification error:", err));
 
 

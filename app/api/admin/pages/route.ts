@@ -3,6 +3,7 @@ import { db } from "@/db/drizzle";
 import { customPage, seoConfig } from "@/db/schema";
 import { desc } from "drizzle-orm";
 import { CACHE_TAGS, invalidatePublicCache } from "@/lib/cache";
+import { getSiteUrl } from "@/lib/site-url";
 
 export async function GET(request: Request) {
   const admin = await requireAdminOrRole(request, "pages:view");
@@ -17,7 +18,7 @@ export async function POST(request: Request) {
   if (admin instanceof Response) return admin;
 
   const body = await request.json();
-  const { title, slug, content, status, metaTitle, metaDescription, metaKeywords, ogImage, robots } = body;
+  const { title, slug, content, status } = body;
 
   if (!title || !slug) {
     return Response.json({ error: "title and slug are required" }, { status: 400 });
@@ -25,6 +26,7 @@ export async function POST(request: Request) {
 
   const id = `page-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
   const cleanSlug = String(slug).trim().toLowerCase().replace(/[^a-z0-9-]/g, "-");
+  const published = status === "published";
 
   try {
     const [created] = await db.insert(customPage).values({
@@ -32,43 +34,22 @@ export async function POST(request: Request) {
       title: String(title).trim(),
       slug: cleanSlug,
       content: content || "",
-      status: status === "published" ? "published" : "draft",
-      metaTitle: metaTitle || null,
-      metaDescription: metaDescription || null,
-      metaKeywords: metaKeywords || null,
-      ogImage: ogImage || null,
-      robots: robots || null,
+      status: published ? "published" : "draft",
       createdAt: new Date(),
       updatedAt: new Date(),
     }).returning();
 
-    if (status === "published") {
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
-      if (!baseUrl) throw new Error("NEXT_PUBLIC_APP_URL environment variable is required");
+    if (published) {
       await db.insert(seoConfig).values({
         id: `page-${cleanSlug}`,
-        metaTitle: metaTitle || String(title).trim(),
-        metaDescription: metaDescription || null,
-        metaKeywords: metaKeywords || null,
-        ogTitle: metaTitle || String(title).trim(),
-        ogDescription: metaDescription || null,
-        ogImage: ogImage || null,
-        ogType: "website",
-        canonicalUrl: `${baseUrl}/${cleanSlug}`,
-        robots: robots || "index, follow",
-        schemaType: "WebPage",
+        metaTitle: String(title).trim(),
+        metaDescription: null,
+        ogTitle: String(title).trim(),
         ogImageDynamic: false,
       }).onConflictDoUpdate({
         target: seoConfig.id,
         set: {
-          metaTitle: metaTitle || String(title).trim(),
-          metaDescription: metaDescription || null,
-          metaKeywords: metaKeywords || null,
-          ogTitle: metaTitle || String(title).trim(),
-          ogDescription: metaDescription || null,
-          ogImage: ogImage || null,
-          canonicalUrl: `${baseUrl}/${cleanSlug}`,
-          robots: robots || "index, follow",
+          metaTitle: String(title).trim(),
           updatedAt: new Date(),
         }
       });
@@ -79,7 +60,7 @@ export async function POST(request: Request) {
       paths: [`/${cleanSlug}`, "/sitemap.xml"],
     });
 
-    return Response.json(created, { status: 201 });
+    return Response.json({ ...created, seoConfigId: `page-${cleanSlug}` }, { status: 201 });
   } catch (err: unknown) {
     if (err instanceof Error && "code" in err && (err as { code: string }).code === "23505") {
       return Response.json({ error: "A page with this slug already exists." }, { status: 409 });

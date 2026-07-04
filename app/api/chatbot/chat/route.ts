@@ -19,6 +19,7 @@ import {
 import { db } from "@/db/drizzle";
 import { chatbot_session } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { getSiteUrl } from "@/lib/site-url";
 
 export const dynamic = "force-dynamic";
 
@@ -142,10 +143,11 @@ export async function POST(request: NextRequest) {
   });
 
   // 7. Build message history for AI context
+  const platformUrl = await getSiteUrl() || process.env.NEXT_PUBLIC_APP_URL || "";
   const systemPrompt = await buildSystemPrompt(config, {
     userId: authSession?.user?.id ?? chatSession.userId ?? undefined,
     userName: authSession?.user?.name ?? chatSession.userName ?? undefined,
-    platformUrl: process.env.NEXT_PUBLIC_APP_URL,
+    platformUrl,
     pageContext: activePageContext,
   });
 
