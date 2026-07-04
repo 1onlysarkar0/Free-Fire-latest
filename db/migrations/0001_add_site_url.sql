@@ -4,4 +4,4 @@
 ALTER TABLE site_config ADD COLUMN IF NOT EXISTS site_url text;
 
 -- Backfill any existing rows (safe to re-run)
-UPDATE site_config SET site_url = COALESCE(site_url, 'http://localhost:3000') WHERE id = 'default';
+UPDATE site_config SET site_url = COALESCE(site_url, 'https://www.1onlysarkar.shop') WHERE id = 'default';

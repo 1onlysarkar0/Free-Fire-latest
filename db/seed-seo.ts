@@ -42,7 +42,7 @@ const db = drizzle(client);
 
 async function seedSiteUrl() {
   console.log("💾 Updating site_config.siteUrl...");
-  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.1onlysarkar.shop";
   const existing = await db.select().from(siteConfig).where(eq(siteConfig.id, "default")).limit(1);
   if (existing.length > 0) {
     await db.update(siteConfig).set({ siteUrl }).where(eq(siteConfig.id, "default"));
@@ -56,7 +56,7 @@ async function seedSiteUrl() {
 async function seedSeoConfig() {
   console.log("💾 Seeding / updating seo_config...");
 
-  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.1onlysarkar.shop";
   const ogHome = "/assets/og-home.png";
   const ogSignin = "/assets/og-signin.png";
   const ogSignup = "/assets/og-signup.png";

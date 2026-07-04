@@ -68,7 +68,7 @@ async function seedSiteConfig() {
   console.log("💾 Seeding site_config...");
   const year = new Date().getFullYear();
 
-  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.1onlysarkar.shop";
 
   await db
     .insert(siteConfig)
@@ -559,7 +559,7 @@ async function seedEmailTemplates() {
 async function seedSeoConfig() {
   console.log("💾 Seeding seo_config...");
 
-  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.1onlysarkar.shop";
   const ogHome = "/assets/og-home.png";
   const ogSignin = "/assets/og-signin.png";
   const ogSignup = "/assets/og-signup.png";
