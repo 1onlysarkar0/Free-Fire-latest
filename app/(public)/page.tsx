@@ -12,6 +12,7 @@ import { getSeoData, buildMetadata } from "@/lib/seo";
 import { getAdminSiteConfigCached } from "@/lib/admin-data";
 import { getSiteUrl } from "@/lib/site-url";
 import { FeatureSteps } from "@/components/ui/feature-section";
+import { CircularTestimonials } from "@/components/ui/circular-testimonials";
 
 const onboardingFeatures = [
   {
@@ -31,6 +32,27 @@ const onboardingFeatures = [
     title: "UPI Withdrawal",
     content: "Prizes are distributed immediately upon victory. Request lightning-fast withdrawals to your UPI account directly from your dashboard.",
     image: "/assets/Withdraw.png",
+  },
+];
+
+const onboardingTestimonials = [
+  {
+    quote: "Sign up instantly using your email or Google account. Complete your gamer profile by setting your unique Free Fire Game Name and UID.",
+    name: "Create Account & Login",
+    designation: "Step 1",
+    src: "/assets/Get-started.png",
+  },
+  {
+    quote: "Browse through available Solo, Duo, or Squad formats. Book your slot directly using your wallet coins and prepare for the custom match room reveal.",
+    name: "Join Tournaments",
+    designation: "Step 2",
+    src: "/assets/Tournament.png",
+  },
+  {
+    quote: "Prizes are distributed immediately upon victory. Request lightning-fast withdrawals to your UPI account directly from your dashboard.",
+    name: "UPI Withdrawal",
+    designation: "Step 3",
+    src: "/assets/Withdraw.png",
   },
 ];
 
@@ -140,12 +162,39 @@ export default async function Home() {
         )}
 
         <section className="relative py-12 w-full border-t border-border/10 bg-background/30">
-          <FeatureSteps
-            features={onboardingFeatures}
-            title="Your Journey Start Here"
-            autoPlayInterval={4000}
-            imageHeight="h-[250px] md:h-[350px] lg:h-[450px]"
-          />
+          {/* Desktop Onboarding Layout */}
+          <div className="hidden lg:block">
+            <FeatureSteps
+              features={onboardingFeatures}
+              title="Your Journey Start Here"
+              autoPlayInterval={4000}
+              imageHeight="h-[450px]"
+            />
+          </div>
+
+          {/* Tablet & Mobile Carousel Layout */}
+          <div className="block lg:hidden px-4 md:px-6">
+            <h2 className="text-3xl md:text-4xl font-bold mb-10 text-center font-lora text-foreground">
+              Your Journey Start Here
+            </h2>
+            <CircularTestimonials
+              testimonials={onboardingTestimonials}
+              autoplay={true}
+              colors={{
+                name: "hsl(var(--foreground))",
+                designation: "hsl(var(--primary))",
+                testimony: "hsl(var(--foreground))",
+                arrowBackground: "hsl(var(--primary))",
+                arrowForeground: "hsl(var(--primary-foreground))",
+                arrowHoverBackground: "hsl(var(--primary) / 0.8)",
+              }}
+              fontSizes={{
+                name: "24px",
+                designation: "12px",
+                quote: "16px",
+              }}
+            />
+          </div>
         </section>
       </div>
     </>

@@ -98,30 +98,33 @@ export function FeatureSteps({
             )}
             style={{ perspective: 1000 }}
           >
-            <AnimatePresence mode="wait">
-              {features.map(
-                (feature, index) =>
-                  index === currentFeature && (
-                    <motion.div
-                      key={index}
-                      className="absolute inset-0"
-                      initial={{ y: 100, opacity: 0, rotateX: -20 }}
-                      animate={{ y: 0, opacity: 1, rotateX: 0 }}
-                      exit={{ y: -100, opacity: 0, rotateX: 20 }}
-                      transition={{ duration: 0.5, ease: "easeInOut" }}
-                    >
-                      <Image
-                        src={feature.image}
-                        alt={feature.step}
-                        className="w-full h-full object-cover transition-transform transform hover:scale-105 duration-700"
-                        width={1000}
-                        height={500}
-                        priority={true}
-                      />
-                    </motion.div>
-                  ),
-              )}
-            </AnimatePresence>
+            {features.map((feature, index) => {
+              const isActive = index === currentFeature;
+              return (
+                <motion.div
+                  key={index}
+                  className="absolute inset-0"
+                  initial={false}
+                  animate={{
+                    opacity: isActive ? 1 : 0,
+                    y: isActive ? 0 : (index < currentFeature ? -100 : 100),
+                    rotateX: isActive ? 0 : (index < currentFeature ? 20 : -20),
+                    zIndex: isActive ? 10 : 0,
+                  }}
+                  transition={{ duration: 0.5, ease: "easeInOut" }}
+                  style={{ pointerEvents: isActive ? "auto" : "none" }}
+                >
+                  <Image
+                    src={feature.image}
+                    alt={feature.step}
+                    className="w-full h-full object-cover transition-transform transform hover:scale-105 duration-700"
+                    width={1000}
+                    height={500}
+                    priority={true}
+                  />
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </div>
