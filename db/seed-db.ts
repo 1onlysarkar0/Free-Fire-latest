@@ -18,7 +18,7 @@ import * as dotenv from "dotenv";
 dotenv.config({ path: ".env" });
 
 import { drizzle } from "drizzle-orm/postgres-js";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import postgres from "postgres";
 import {
   siteConfig,
@@ -1812,24 +1812,34 @@ For questions about these Terms:
     }
   ];
 
+  const slugs = pages.map(p => p.slug);
+  const existing = await db
+    .select({ id: customPage.id, slug: customPage.slug })
+    .from(customPage)
+    .where(inArray(customPage.slug, slugs));
+  const existingBySlug = new Map(existing.map(e => [e.slug, e.id]));
+
   for (const page of pages) {
-    await db
-      .insert(customPage)
-      .values({
-        ...page,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .onConflictDoUpdate({
-        target: customPage.id,
-        set: {
-          slug: page.slug,
+    const existingId = existingBySlug.get(page.slug);
+    if (existingId) {
+      await db
+        .update(customPage)
+        .set({
           title: page.title,
           content: page.content,
           status: page.status,
           updatedAt: new Date(),
-        },
-      });
+        })
+        .where(eq(customPage.id, existingId));
+    } else {
+      await db
+        .insert(customPage)
+        .values({
+          ...page,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+    }
   }
 
   console.log("✅ custom_pages seeded.");
