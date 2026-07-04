@@ -349,151 +349,25 @@ export default function SeoPage({ initialData, dynamicSlug }: Props) {
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             </Card>
+          ) : sortedRows.length === 0 ? (
+            <Card className="p-6">
+              <div className="flex flex-col items-center justify-center gap-2 py-10 text-center">
+                <Globe className="h-8 w-8 text-muted-foreground/40" />
+                <p className="text-sm text-muted-foreground">No SEO configs found</p>
+              </div>
+            </Card>
           ) : (
-            <>
-              <Card className="hidden overflow-hidden rounded-xl border border-border/60 shadow-sm md:block">
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[900px] border-collapse text-sm">
-                    <thead>
-                      <tr className="border-b border-border/40 bg-accent/30 text-left">
-                        <th className="px-4 py-3 font-semibold text-muted-foreground">
-                          Page
-                        </th>
-                        <th className="px-4 py-3 font-semibold text-muted-foreground">
-                          Meta Title Preview
-                        </th>
-                        <th className="px-4 py-3 text-center font-semibold text-muted-foreground">
-                          Score
-                        </th>
-                        <th className="hidden px-4 py-3 font-semibold text-muted-foreground lg:table-cell">
-                          Robots
-                        </th>
-                        <th className="hidden px-4 py-3 text-center font-semibold text-muted-foreground xl:table-cell">
-                          Dynamic OG
-                        </th>
-                        <th className="w-32 px-4 py-3 text-right font-semibold text-muted-foreground">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-
-                    <tbody className="divide-y divide-border/10">
-                      {sortedRows.map((row) => (
-                        <tr
-                          key={row.id}
-                          className="transition-colors hover:bg-accent/50"
-                        >
-                          <td className="px-4 py-3.5 align-top">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <PageInfo row={row} />
-                              {row.id === "global" && (
-                                <Badge
-                                  variant="secondary"
-                                  className="border-0 bg-primary/10 text-[10px] text-primary/80"
-                                >
-                                  GLOBAL
-                                </Badge>
-                              )}
-                              {!KNOWN_PAGES[row.id] && row.id !== "global" && (
-                                <Badge
-                                  variant="secondary"
-                                  className="border-0 bg-blue-50 text-[10px] text-blue-800"
-                                >
-                                  {row.id.startsWith("tournament-")
-                                    ? "TOURNAMENT"
-                                    : "PAGE"}
-                                </Badge>
-                              )}
-                            </div>
-                          </td>
-
-                          <td className="max-w-[240px] px-4 py-3.5 text-xs text-muted-foreground">
-                            <div className="truncate">
-                              {row.metaTitle || (
-                                <span className="italic text-muted-foreground/40">
-                                  Using fallback
-                                </span>
-                              )}
-                            </div>
-                          </td>
-
-                          <td className="px-4 py-3.5 text-center">
-                            <span
-                              className={`rounded-full border px-2 py-1 text-[11px] font-bold ${getScoreColor(
-                                row.seoScore
-                              )}`}
-                            >
-                              {getScoreBadge(row.seoScore)}
-                            </span>
-                          </td>
-
-                          <td className="hidden px-4 py-3.5 lg:table-cell">
-                            <code className="rounded border bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground">
-                              {row.robots || (
-                                <span className="italic text-muted-foreground/40">
-                                  Using fallback
-                                </span>
-                              )}
-                            </code>
-                          </td>
-
-                          <td className="hidden px-4 py-3.5 text-center xl:table-cell">
-                            {row.ogImageDynamic ? (
-                              <Badge className="border-0 bg-green-100 text-[10px] text-green-800">
-                                {row.ogImageTemplate?.toUpperCase() || "TRUE"}
-                              </Badge>
-                            ) : (
-                              <span className="text-xs text-muted-foreground/40">
-                                —
-                              </span>
-                            )}
-                          </td>
-
-                          <td className="px-4 py-3.5 text-right">
-                            <div className="flex justify-end gap-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => triggerAudit(row.id)}
-                                title="Run SEO Audit"
-                              >
-                                <Play className="h-3.5 w-3.5 text-primary" />
-                              </Button>
-
-                              <Link href={`/${dynamicSlug}/seo/${row.id}`}>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  title="Edit Config"
-                                >
-                                  <Pencil className="h-3.5 w-3.5" />
-                                </Button>
-                              </Link>
-
-                              {row.id !== "global" && (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleDelete(row.id)}
-                                  className="text-red-500 hover:bg-red-50 hover:text-red-600"
-                                >
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </Button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </Card>
-
-              <div className="space-y-3 md:hidden">
-                {sortedRows.map((row) => (
-                  <Card key={row.id} className="space-y-3 p-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {sortedRows.map((row) => (
+                <Card
+                  key={row.id}
+                  className="group relative flex flex-col overflow-hidden transition-all hover:shadow-md"
+                >
+                  <div className="flex flex-1 flex-col gap-3 p-4">
                     <div className="flex items-start justify-between gap-3">
-                      <PageInfo row={row} />
+                      <div className="min-w-0 flex-1">
+                        <PageInfo row={row} />
+                      </div>
                       <span
                         className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold ${getScoreColor(
                           row.seoScore
@@ -513,7 +387,7 @@ export default function SeoPage({ initialData, dynamicSlug }: Props) {
                       </p>
                     )}
 
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex min-h-[20px] flex-wrap items-center gap-1.5">
                       {row.robots && (
                         <code className="rounded border bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground break-all">
                           {row.robots}
@@ -546,47 +420,46 @@ export default function SeoPage({ initialData, dynamicSlug }: Props) {
                         </Badge>
                       )}
                     </div>
+                  </div>
 
-                    <div className="flex flex-wrap items-center gap-2 border-t border-border/30 pt-2">
+                  <div className="flex items-center gap-1 border-t border-border/30 bg-accent/20 px-3 py-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => triggerAudit(row.id)}
+                    >
+                      <Play className="mr-1 h-3 w-3 text-primary" />
+                      Audit
+                    </Button>
+
+                    <div className="flex-1" />
+
+                    <Link href={`/${dynamicSlug}/seo/${row.id}`}>
                       <Button
                         variant="ghost"
-                        size="sm"
-                        className="h-8 flex-1 text-xs sm:flex-none"
-                        onClick={() => triggerAudit(row.id)}
+                        size="icon"
+                        className="h-7 w-7"
+                        title="Edit Config"
                       >
-                        <Play className="mr-1 h-3 w-3" />
-                        Audit
+                        <Pencil className="h-3.5 w-3.5" />
                       </Button>
+                    </Link>
 
-                      <Link
-                        href={`/${dynamicSlug}/seo/${row.id}`}
-                        className="flex-1 sm:flex-none"
+                    {row.id !== "global" && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-red-500 hover:bg-red-50 hover:text-red-600"
+                        onClick={() => handleDelete(row.id)}
                       >
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-full text-xs"
-                        >
-                          <Pencil className="mr-1 h-3 w-3" />
-                          Edit
-                        </Button>
-                      </Link>
-
-                      {row.id !== "global" && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 px-3 text-xs text-red-500 hover:bg-red-50 hover:text-red-600"
-                          onClick={() => handleDelete(row.id)}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      )}
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            </>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                </Card>
+              ))}
+            </div>
           )}
         </TabsContent>
 

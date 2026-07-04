@@ -61,7 +61,10 @@ export async function generateMetadata(): Promise<Metadata> {
       }
     }
 
-    metadata.other = buildGeoMetadata();
+    metadata.other = {
+      ...buildGeoMetadata(),
+      "msvalidate.01": "916CB07EE8AE31B93BDADD076F476746",
+    };
 
     return metadata;
   } catch {
