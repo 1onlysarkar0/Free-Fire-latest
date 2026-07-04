@@ -41,8 +41,6 @@ interface CircularTestimonialsProps {
 }
 
 function calculateGap(width: number) {
-  if (width < 480) return 24; // Compact gap for small mobile screens (avoids bleeding off screen edges)
-  if (width < 768) return 36; // Balanced gap for tablets and landscape mobile views
   const minWidth = 1024;
   const maxWidth = 1456;
   const minGap = 60;
