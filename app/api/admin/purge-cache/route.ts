@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     // 2. Invalidate all standard cache tags
     Object.values(CACHE_TAGS).forEach((tag) => {
       try {
-        revalidateTag(tag);
+        revalidateTag(tag, { expire: 0 });
       } catch (err) {
         console.error(`Failed to revalidate tag ${tag}:`, err);
       }
