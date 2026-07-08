@@ -19,11 +19,11 @@ export default async function FooterSection() {
   const { logo, menu, socials, copyright } = config;
 
   return (
-    <footer className="bg-background pt-10 pb-12">
+    <footer className="bg-background pt-2 pb-10">
       <div className="mx-auto max-w-5xl px-6">
 
         {/* Divider */}
-        <div className="mb-10 px-8">
+        <div className="mb-6 px-8">
           <Separator className="bg-border" />
         </div>
 

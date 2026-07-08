@@ -161,7 +161,7 @@ export default async function Home() {
           </section>
         )}
 
-        <section className="relative py-12 w-full border-t border-border/10 bg-background/30">
+        <section className="relative pt-12 pb-2 w-full border-t border-border/10 bg-background/30">
           {/* Desktop Onboarding Layout */}
           <div className="hidden lg:block">
             <FeatureSteps

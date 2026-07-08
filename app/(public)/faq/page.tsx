@@ -64,7 +64,7 @@ export default async function FaqPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col relative overflow-x-hidden pt-32 pb-24">
+    <div className="flex-1 bg-background flex flex-col relative overflow-x-hidden pt-32 pb-10">
       {structuredData && (
         <script
           type="application/ld+json"

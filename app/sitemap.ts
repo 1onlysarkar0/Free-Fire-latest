@@ -21,6 +21,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/rules`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
     { url: `${baseUrl}/privacy`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
     { url: `${baseUrl}/terms`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${baseUrl}/cheater-report`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${baseUrl}/payment-help`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
     { url: `${baseUrl}/sign-in`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
     { url: `${baseUrl}/sign-up`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
     { url: `${baseUrl}/forgot-password`, lastModified: now, changeFrequency: "monthly", priority: 0.4 },
@@ -39,7 +41,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ]);
 
     // 3. Additional Custom Pages (beyond known static ones above)
-    const knownStatic = new Set(["faq","how-to-join","contact","rules","privacy","terms","sign-in","sign-up","forgot-password"]);
+    const knownStatic = new Set(["faq", "how-to-join", "contact", "rules", "privacy", "terms", "sign-in", "sign-up", "forgot-password", "cheater-report", "payment-help"]);
     const extraPages = pages.filter(p => !knownStatic.has(p.slug));
 
     const customPageRoutes = extraPages.map((page) => ({

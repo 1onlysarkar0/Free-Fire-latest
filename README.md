@@ -235,9 +235,23 @@ Manage platform users:
 Granular Role-Based Access Control:
 - Pre-seeded "Super Manager" role with all permissions
 - Create custom roles with specific permissions
-- Permissions groups: `site_config`, `navigation`, `auth_content`, `smtp`, `email_templates`, `seo`, `users`, `roles`, `pages`, `tournaments`, `wallet`, `content_templates`, `payment`, `chatbot`, `withdraw`
+- Permissions groups: `site_config`, `navigation`, `auth_content`, `smtp`, `email_templates`, `seo`, `users`, `roles`, `pages`, `tournaments`, `wallet`, `content_templates`, `payment`, `chatbot`, `withdraw`, `cheater_reports`, `payment_help`
 - Each group has: `view`, `create`, `edit`, `delete` (varies by group)
 - Assign roles to users from the User edit page
+
+### 16. Cheater Reports (`/{slug}/cheater-reports`)
+
+Review and manage user reports of cheaters:
+- View reporter name, game name, reported player's Free Fire UID, incident date/time, and linked tournament.
+- Update report status (`PENDING` | `REVIEWED` | `RESOLVED` | `DISMISSED`) and add admin response notes.
+- Submitting updates automatically triggers a user-facing notification.
+
+### 17. Payment Help (`/{slug}/payment-help`)
+
+Review and manage user-submitted payment dispute/help requests:
+- View requester details, amount (₹), UTR number/transaction ID, and clear issue description.
+- Update request status and add admin notes.
+- Submitting updates automatically triggers a user-facing notification.
 
 ---
 
@@ -294,6 +308,12 @@ Granular Role-Based Access Control:
 | `admin_role` | Named roles with JSON permissions array |
 | `admin_user_role` | User-role junction (cascade) |
 | `notifications` | User notifications (type, title, message, isRead) |
+
+### Support & Disputes
+| Table | Purpose |
+|-------|---------|
+| `cheater_report` | User-submitted reports against other players with UID, incident date, and description |
+| `payment_help_request` | User-submitted payment issues containing amounts, UTR numbers, and description |
 
 ### AI Chatbot
 | Table | Purpose |
@@ -635,10 +655,45 @@ All page headers must follow a uniform style using the `.header-admin` utility c
 
 ## AI Coding Guidance & Development Guardrails
 
-1. **Forced Light Theme** — Never add `dark:` utility classes or dark mode triggers.
-2. **No Hardcoded Brand Fallbacks** — All site branding, meta tags, titles must resolve from the database. The string "1onlysarkar" does not appear in fallback catch blocks or default content.
-3. **Database-Driven SEO** — Do not override page titles manually. Let `lib/seo.ts` generate metadata from `seo_config`.
-4. **Database Transaction Concurrency** — Wallet adjustments must be wrapped in `db.transaction()` with row-level locking.
-5. **Preserving Slot Booking Attributes** — Do not clear `teamName` or `ignList` of adjacent slots when a single user books.
-6. **Clean Up & Count Tracking** — Deleted tournaments increment `site_config.deleted_tournaments_count`.
-7. **No Hardcoded Fallbacks** — All defaults must be in `db/seed-db.ts`. Code files must not contain `|| "fallback text"` for content/metadata. Empty DB values should show nothing rather than a hardcoded string.
+1. **MANDATORY Discovery Phase** — Before writing any code or proposing modifications, you MUST read the database `schema.ts`, the seed file `seed-db.ts`, global stylesheet/theme tokens, and any related core files/pages to understand existing conventions and reuse utilities.
+2. **Forced Light Theme** — Never add `dark:` utility classes or dark mode triggers.
+3. **No Hardcoded Brand Fallbacks** — All site branding, meta tags, titles must resolve from the database. The string "1onlysarkar" does not appear in fallback catch blocks or default content.
+4. **Database-Driven SEO** — Do not override page titles manually. Let `lib/seo.ts` generate metadata from `seo_config`.
+5. **Database Transaction Concurrency** — Wallet adjustments must be wrapped in `db.transaction()` with row-level locking.
+6. **Preserving Slot Booking Attributes** — Do not clear `teamName` or `ignList` of adjacent slots when a single user books.
+7. **Clean Up & Count Tracking** — Deleted tournaments increment `site_config.deleted_tournaments_count`.
+8. **No Hardcoded Fallbacks** — All defaults must be in `db/seed-db.ts`. Code files must not contain `|| "fallback text"` for content/metadata. Empty DB values should show nothing rather than a hardcoded string.
+
+---
+
+## 🛠️ Page Creation Guidelines
+
+Follow these step-by-step patterns whenever introducing new pages:
+
+### 1. Adding a Public (User-Facing) Page
+1. **Directory Location**: Place under `app/(public)/[page-slug]/`.
+2. **Server Component (`page.tsx`)**:
+   - Verify user authentication session if required using `auth.api.getSession({ headers })`.
+   - Implement `generateMetadata()` by fetching page-specific data with `getSeoData("[page-slug]")` and returning `buildMetadata(...)` combined with geo metadata `buildGeoMetadata()`.
+   - Render a client component wrapper passing necessary session or DB properties.
+3. **Client Component (`_components/[page-name]-client.tsx`)**:
+   - Use Lucide icons, Next.js `<Link>` for navigation, and Shadcn UI components.
+   - For multi-step forms, wrap steps using the animatable `<MultiStepForm>` component from `@/components/ui/multi-step-form`.
+   - Enforce client-side validation using standard custom triggers or schema validation libraries.
+4. **SEO Config Entry**: Add the page meta definition inside `pages` array in `db/seed-db.ts` using `pageMeta("[page-slug]", { ... })`, and run `npm run db:seed` to register it.
+
+### 2. Adding an Admin Panel Page
+1. **Directory Location**: Place under `app/[dynamicSlug]/[page-slug]/`.
+2. **Server Component (`page.tsx`)**:
+   - Protect access with page-level permissions by calling `await requirePagePermission(dynamicSlug, "[permission_key]:view")`.
+   - Render the admin client component wrapper.
+3. **Admin Client Component (`_components/[page-name]-admin-client.tsx`)**:
+   - Use standard admin header markup styled with `.header-admin`.
+   - Render data list tables or config forms inside cards utilizing `.card-list` or `.card-settings` utility classes.
+   - Implement filters, sorting, and dialog boxes for details or status updates.
+   - Ensure all status modifications trigger user notification calls via `createNotification` in the API handler.
+4. **RBAC & Sidebar Registry**:
+   - Register the permission keys under the correct group in `lib/admin-permissions.ts`.
+   - Add permission values to the default roles inside `seedAdminRoles()` in `db/seed-db.ts`.
+   - Add navigation links to the sidebar hierarchy inside `getSections` within `app/[dynamicSlug]/_components/sidebar.tsx` using the corresponding `sectionKey` matching the DB permission.
+

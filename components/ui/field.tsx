@@ -81,13 +81,17 @@ const fieldVariants = cva(
 function Field({
   className,
   orientation = "vertical",
+  invalid,
+  "data-invalid": dataInvalid,
   ...props
-}: React.ComponentProps<"div"> & VariantProps<typeof fieldVariants>) {
+}: React.ComponentProps<"div"> & VariantProps<typeof fieldVariants> & { invalid?: boolean | string }) {
+  const isInvalid = invalid === "true" || invalid === true || dataInvalid === "true" || dataInvalid === true;
   return (
     <div
       role="group"
       data-slot="field"
       data-orientation={orientation}
+      data-invalid={isInvalid ? "true" : undefined}
       className={cn(fieldVariants({ orientation }), className)}
       {...props}
     />

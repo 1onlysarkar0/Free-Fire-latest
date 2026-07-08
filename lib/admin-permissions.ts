@@ -196,6 +196,28 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
       { key: "withdraw:cancel", label: "Cancel Withdrawal Requests" },
     ],
   },
+  {
+    key: "cheater_reports",
+    label: "Cheater Reports",
+    icon: "AlertTriangle",
+    href: "/admin/cheater-reports",
+    permissions: [
+      { key: "cheater_reports:view", label: "View Cheater Reports" },
+      { key: "cheater_reports:edit", label: "Update Report Status & Notes" },
+      { key: "cheater_reports:delete", label: "Delete Cheater Reports" },
+    ],
+  },
+  {
+    key: "payment_help",
+    label: "Payment Help",
+    icon: "HelpCircle",
+    href: "/admin/payment-help",
+    permissions: [
+      { key: "payment_help:view", label: "View Payment Help Requests" },
+      { key: "payment_help:edit", label: "Update Payment Help Status & Notes" },
+      { key: "payment_help:delete", label: "Delete Payment Help Requests" },
+    ],
+  },
 ];
 
 export function hasPermission(

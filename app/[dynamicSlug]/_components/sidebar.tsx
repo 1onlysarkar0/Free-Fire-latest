@@ -4,8 +4,9 @@ import Link from "next/link";
 import type { ElementType } from "react";
 import {
   LayoutDashboard, Settings, Menu, FileText, Mail, MailOpen,
-  Search,   Users, Shield, FileCode, Trophy, FileStack,
+  Search, Users, Shield, FileCode, Trophy, FileStack,
   CreditCard, MessageSquare, ArrowUpFromLine, ArrowLeft, HelpCircle,
+  AlertTriangle, BadgeDollarSign,
 } from "lucide-react";
 import AppSidebarShell, { type AppSidebarSection } from "@/components/app-sidebar";
 import { canAccessSection } from "@/lib/admin-permissions";
@@ -72,6 +73,13 @@ const getSections = (panelSlug: string): AdminNavSection[] => [
     items: [
       { label: "Payment Gateway", href: `/${panelSlug}/payment`, icon: CreditCard, sectionKey: "payment" },
       { label: "Withdrawals", href: `/${panelSlug}/withdraw`, icon: ArrowUpFromLine, sectionKey: "withdraw" },
+    ],
+  },
+  {
+    title: "SUPPORT",
+    items: [
+      { label: "Cheater Reports", href: `/${panelSlug}/cheater-reports`, icon: AlertTriangle, sectionKey: "cheater_reports" },
+      { label: "Payment Help", href: `/${panelSlug}/payment-help`, icon: BadgeDollarSign, sectionKey: "payment_help" },
     ],
   },
   {

@@ -904,6 +904,33 @@ async function seedSeoConfig() {
         ]
       }),
     }),
+    // ── Cheater Report ──
+    pageMeta("cheater-report", {
+      metaTitle: "Report a Cheater | 1OnlySarkar — Esports Fair Play",
+      metaDescription: "Help us keep matches fair. Report cheaters, hackers, or teamers with UIDs and evidence on 1OnlySarkar. We take strict actions against unfair play.",
+      metaKeywords: "report cheater free fire, free fire hack report, custom room cheating, 1onlysarkar report, free fire uid hack report, esports fair play",
+      ogTitle: "Report a Cheater | 1OnlySarkar",
+      ogDescription: "Report cheaters, hackers, or teamers with UIDs and evidence on 1OnlySarkar. Help us keep competitive gaming fair.",
+      ogImage: ogTournaments,
+      twitterTitle: "Report a Cheater | 1OnlySarkar",
+      twitterDescription: "Report cheaters, hackers, or teamers with UIDs and evidence on 1OnlySarkar.",
+      twitterImage: ogTournaments,
+      canonicalUrl: `${siteUrl}/cheater-report`,
+    }),
+
+    // ── Payment Help ──
+    pageMeta("payment-help", {
+      metaTitle: "Payment Help & Support | 1OnlySarkar",
+      metaDescription: "Facing payment issues? Submit your transaction ID/UTR and amount on 1OnlySarkar for quick deposit verification and support.",
+      metaKeywords: "payment help, utr verify, deposit pending free fire, 1onlysarkar payment issue, transaction support",
+      ogTitle: "Payment Help & Support | 1OnlySarkar",
+      ogDescription: "Facing payment issues? Submit your transaction ID/UTR and amount for quick deposit verification.",
+      ogImage: ogHome,
+      twitterTitle: "Payment Help & Support | 1OnlySarkar",
+      twitterDescription: "Facing payment issues? Submit your transaction ID/UTR and amount for support.",
+      twitterImage: ogHome,
+      canonicalUrl: `${siteUrl}/payment-help`,
+    }),
   ];
 
   for (const p of pages) {
@@ -942,6 +969,9 @@ async function seedAdminRoles() {
     "chatbot:view", "chatbot:config_edit", "chatbot:knowledge_view", "chatbot:knowledge_edit", "chatbot:conversations_view", "chatbot:conversations_delete",
     // Withdraw permissions
     "withdraw:view", "withdraw:config_edit", "withdraw:approve", "withdraw:cancel",
+    // Cheater reports and Payment help permissions
+    "cheater_reports:view", "cheater_reports:edit", "cheater_reports:delete",
+    "payment_help:view", "payment_help:edit", "payment_help:delete",
   ]);
 
   await db.insert(adminRole).values({

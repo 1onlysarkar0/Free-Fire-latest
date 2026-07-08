@@ -811,3 +811,66 @@ export const faq = pgTable("faqs", {
 }, (t) => [
   index("faq_order_idx").on(t.order),
 ]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CHEATER REPORTS
+// User-submitted reports of cheaters in tournaments.
+// status: PENDING | REVIEWED | RESOLVED | DISMISSED
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const cheaterReport = pgTable("cheater_report", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  // The in-game UID of the reported player
+  reportedUid: text("reported_uid").notNull(),
+  // Date/time of the incident
+  reportedAt: timestamp("reported_at").notNull(),
+  // Optional: linked tournament
+  tournamentId: text("tournament_id").references(() => tournament.id, { onDelete: "set null" }),
+  // Clear description of what happened
+  description: text("description").notNull(),
+  // PENDING | REVIEWED | RESOLVED | DISMISSED
+  status: text("status").notNull().default("PENDING"),
+  // Admin's response note
+  adminNote: text("admin_note"),
+  reviewedByAdminId: text("reviewed_by_admin_id").references(() => user.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => [
+  index("cheater_report_user_idx").on(t.userId),
+  index("cheater_report_status_idx").on(t.status),
+  index("cheater_report_tournament_idx").on(t.tournamentId),
+  index("cheater_report_created_idx").on(t.createdAt),
+]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PAYMENT HELP REQUESTS
+// User-submitted requests for payment issues (UTR / transaction disputes).
+// status: PENDING | REVIEWED | RESOLVED | DISMISSED
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const paymentHelpRequest = pgTable("payment_help_request", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  // Amount in rupees (₹)
+  amount: integer("amount").notNull(),
+  // UTR number / transaction ID
+  utrNumber: text("utr_number").notNull(),
+  // Clear description of the issue
+  description: text("description").notNull(),
+  // PENDING | REVIEWED | RESOLVED | DISMISSED
+  status: text("status").notNull().default("PENDING"),
+  // Admin's response note
+  adminNote: text("admin_note"),
+  reviewedByAdminId: text("reviewed_by_admin_id").references(() => user.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => [
+  index("payment_help_user_idx").on(t.userId),
+  index("payment_help_status_idx").on(t.status),
+  index("payment_help_created_idx").on(t.createdAt),
+]);
