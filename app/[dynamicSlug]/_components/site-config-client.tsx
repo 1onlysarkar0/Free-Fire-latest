@@ -35,8 +35,23 @@ export default function SiteConfigClient({ initialData }: { initialData: SiteCon
     try {
       const res = await fetch("/api/admin/purge-cache", { method: "POST" });
       if (!res.ok) throw new Error(await res.text());
+
+      // 1. Client-side: Clear caches storage if supported
+      if ("caches" in window) {
+        try {
+          const names = await caches.keys();
+          await Promise.all(names.map((name) => caches.delete(name)));
+        } catch (err) {
+          console.error("Failed to delete window caches:", err);
+        }
+      }
+
       toast.success("All server-side cache and client browser caches purged successfully!");
-      router.refresh();
+      
+      // 2. Client-side: Force hard reload with cache buster query parameter
+      setTimeout(() => {
+        window.location.href = window.location.pathname + "?purge=" + Date.now();
+      }, 800);
     } catch (e: unknown) {
       toast.error("Purge cache failed: " + (e instanceof Error ? e.message : String(e)));
     } finally {
