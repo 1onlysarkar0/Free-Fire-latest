@@ -84,7 +84,10 @@ function Field({
   invalid,
   "data-invalid": dataInvalid,
   ...props
-}: React.ComponentProps<"div"> & VariantProps<typeof fieldVariants> & { invalid?: boolean | string }) {
+}: React.ComponentProps<"div"> & VariantProps<typeof fieldVariants> & { 
+  invalid?: boolean | string;
+  "data-invalid"?: boolean | string;
+}) {
   const isInvalid = invalid === "true" || invalid === true || dataInvalid === "true" || dataInvalid === true;
   return (
     <div
