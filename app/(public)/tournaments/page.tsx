@@ -42,7 +42,7 @@ export default async function TournamentsPage({ searchParams }: { searchParams: 
     : [];
 
   return (
-    <div className="flex-1 bg-background pt-[68px] flex flex-col">
+    <div className="flex-1 bg-background pt-20 md:pt-24 flex flex-col">
       <Suspense fallback={null}>
         <TournamentsClient
           initialData={initialData}

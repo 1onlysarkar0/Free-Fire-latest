@@ -41,7 +41,7 @@ export default async function DynamicSlugLayout({
             userImage={authState.user.image ?? null}
             isAdmin={authState.isAdmin}
           />
-          <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8 w-full">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden pt-6 pb-4 px-4 md:pt-8 md:pb-6 md:px-6 lg:pt-10 lg:pb-8 lg:px-8 w-full">
             {children}
           </main>
         </SidebarInset>

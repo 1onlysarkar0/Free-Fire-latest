@@ -120,7 +120,7 @@ export default async function TournamentDetailPage({ params }: { params: Promise
   }
 
   return (
-    <div className="flex-1 bg-background pt-[68px] flex flex-col">
+    <div className="flex-1 bg-background pt-20 md:pt-24 flex flex-col">
       {structuredData && (
         <script
           type="application/ld+json"

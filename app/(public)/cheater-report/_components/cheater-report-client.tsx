@@ -281,14 +281,10 @@ export default function CheaterReportClient({ userId, userName, userGameName }: 
   }
 
   return (
-    <div className="flex-1 bg-gradient-to-br from-background via-background to-primary/5 flex flex-col justify-center">
-      <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12 md:py-20 flex-grow flex flex-col justify-center">
+    <div className="flex-1 bg-gradient-to-br from-background via-background to-primary/5 flex flex-col pt-20 pb-12 md:pt-28 md:pb-20">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16 flex-grow flex flex-col">
         {/* Page Header */}
         <div className="max-w-2xl mb-10 mx-auto text-center flex flex-col items-center justify-center">
-          <div className="inline-flex items-center gap-2 rounded-full bg-destructive/10 border border-destructive/20 px-3.5 py-1.5 mb-4 shadow-xs">
-            <ShieldAlert className="w-3.5 h-3.5 text-destructive" />
-            <span className="text-xs font-bold text-destructive font-ibm tracking-wide uppercase">Report a Cheater</span>
-          </div>
           <h1 className="text-3xl md:text-5xl font-bold font-lora text-foreground leading-tight tracking-tight">
             Report Unfair Play
           </h1>

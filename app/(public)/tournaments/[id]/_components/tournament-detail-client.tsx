@@ -123,7 +123,7 @@ export default function TournamentDetailClient({ id, initialData, initialIsLogge
 
       {/* Hero Banner */}
       <div className="bg-background">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 py-12">
           <Link href="/tournaments" prefetch={true} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
             <ArrowLeft className="h-4 w-4" /> Back to Tournaments
           </Link>
@@ -145,30 +145,30 @@ export default function TournamentDetailClient({ id, initialData, initialIsLogge
               </p>
             </div>
 
-            <div className="grid grid-cols-3 gap-3 md:min-w-[280px]">
-              <div className="bg-primary/10 rounded-xl p-3 text-center border border-primary/15">
-                <Trophy className="h-5 w-5 mx-auto mb-1 text-primary" />
-                <p className="text-xl font-bold text-primary">{t.prizePool > 0 ? `₹${t.prizePool}` : "—"}</p>
-                <p className="text-xs text-primary font-medium uppercase">Winning Price</p>
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 md:min-w-[280px]">
+              <div className="bg-primary/10 rounded-xl p-2 sm:p-3 text-center border border-primary/15 min-w-0">
+                <Trophy className="h-4 w-4 sm:h-5 sm:w-5 mx-auto mb-1 text-primary" />
+                <p className="text-sm sm:text-xl font-bold text-primary truncate">{t.prizePool > 0 ? `₹${t.prizePool}` : "—"}</p>
+                <p className="text-[10px] sm:text-xs text-primary font-medium uppercase truncate">Winning Price</p>
               </div>
-              <div className="bg-secondary/80 rounded-xl p-3 text-center border border-border/80">
-                <Users className="h-5 w-5 mx-auto mb-1 text-foreground" />
-                <p className="text-xl font-bold text-foreground">
+              <div className="bg-secondary/80 rounded-xl p-2 sm:p-3 text-center border border-border/80 min-w-0">
+                <Users className="h-4 w-4 sm:h-5 sm:w-5 mx-auto mb-1 text-foreground" />
+                <p className="text-sm sm:text-xl font-bold text-foreground truncate">
                   {isTeamFormat ? `${Math.floor(t.bookedSlots / teamSize)}/${Math.floor(t.totalSlots / teamSize)}` : `${t.bookedSlots}/${t.totalSlots}`}
                 </p>
-                <p className="text-xs text-muted-foreground font-medium uppercase">{isTeamFormat ? "Teams" : "Slots"}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground font-medium uppercase truncate">{isTeamFormat ? "Teams" : "Slots"}</p>
               </div>
-              <div className="bg-secondary/80 rounded-xl p-3 text-center border border-border/80">
-                <Clock className="h-5 w-5 mx-auto mb-1 text-foreground" />
-                <p className="text-sm font-bold text-foreground">{format(new Date(t.startTime), "dd MMM")}</p>
-                <p className="text-xs text-muted-foreground font-medium">{format(new Date(t.startTime), "h:mm a")}</p>
+              <div className="bg-secondary/80 rounded-xl p-2 sm:p-3 text-center border border-border/80 min-w-0">
+                <Clock className="h-4 w-4 sm:h-5 sm:w-5 mx-auto mb-1 text-foreground" />
+                <p className="text-xs sm:text-sm font-bold text-foreground truncate">{format(new Date(t.startTime), "dd MMM")}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground font-medium truncate">{format(new Date(t.startTime), "h:mm a")}</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+      <div className="flex-1 w-full max-w-none px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">

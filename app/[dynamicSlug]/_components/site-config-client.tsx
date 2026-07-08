@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Save, Loader2, Settings } from "lucide-react";
+import { Save, Loader2, Settings, Zap, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,21 @@ export default function SiteConfigClient({ initialData }: { initialData: SiteCon
   const router = useRouter();
   const [data, setData] = useState<SiteConfigData>(initialData);
   const [saving, setSaving] = useState(false);
+  const [purging, setPurging] = useState(false);
+
+  async function handlePurgeCache() {
+    setPurging(true);
+    try {
+      const res = await fetch("/api/admin/purge-cache", { method: "POST" });
+      if (!res.ok) throw new Error(await res.text());
+      toast.success("All server-side cache and client browser caches purged successfully!");
+      router.refresh();
+    } catch (e: unknown) {
+      toast.error("Purge cache failed: " + (e instanceof Error ? e.message : String(e)));
+    } finally {
+      setPurging(false);
+    }
+  }
 
   useEffect(() => {
     if (!initialData) {
@@ -115,6 +130,29 @@ export default function SiteConfigClient({ initialData }: { initialData: SiteCon
               <Field><FieldLabel>Login Button URL</FieldLabel><Input value={data.authLoginUrl} onChange={e => set("authLoginUrl")(e.target.value)} /></Field>
               <Field><FieldLabel>Sign Up Button Text</FieldLabel><Input value={data.authSignupText} onChange={e => set("authSignupText")(e.target.value)} /></Field>
               <Field><FieldLabel>Sign Up Button URL</FieldLabel><Input value={data.authSignupUrl} onChange={e => set("authSignupUrl")(e.target.value)} /></Field>
+
+              <div className="md:col-span-2 border-t pt-6 mt-4 space-y-4">
+                <div className="rounded-2xl bg-destructive/5 border border-destructive/15 p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <h4 className="text-sm font-bold text-destructive flex items-center gap-2">
+                      <Zap className="h-4 w-4" /> Purge Cache Entirely
+                    </h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed max-w-xl">
+                      Clears Next.js static, layout, dynamic route and page data caches from the server, and tells browsers to clear locally-cached assets. Use this if updates do not appear immediately.
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    disabled={purging}
+                    onClick={handlePurgeCache}
+                    className="font-ibm font-bold h-10 px-4 rounded-xl cursor-pointer"
+                  >
+                    {purging ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                    {purging ? "Purging..." : "Purge Site Cache"}
+                  </Button>
+                </div>
+              </div>
             </TabsContent>
             <TabsContent value="hero" className="mt-0 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2"><Field><FieldLabel>Headline</FieldLabel><Input value={data.heroHeadline} onChange={e => set("heroHeadline")(e.target.value)} /></Field></div>

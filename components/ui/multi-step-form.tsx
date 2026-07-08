@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
@@ -69,19 +69,18 @@ const MultiStepForm = React.forwardRef<HTMLDivElement, MultiStepFormProps>(
     };
 
     return (
-      <Card
+      <div
         ref={ref}
         className={cn(
-          "bg-card/75 backdrop-blur-md border border-border/40 shadow-xl rounded-2xl md:rounded-3xl p-2 md:p-4",
           multiStepFormVariants({ size }),
-          "mx-auto w-full",
+          "mx-auto w-full space-y-6",
           className
         )}
         {...props}
       >
-        <CardHeader className="pb-4">
+        <div className="pb-4">
           <div className="flex items-start justify-between gap-4">
-            <CardTitle className="text-xl md:text-2xl font-bold font-lora text-foreground tracking-tight">{title}</CardTitle>
+            <h3 className="text-xl md:text-2xl font-bold font-lora text-foreground tracking-tight">{title}</h3>
             {onClose && (
               <Button
                 variant="ghost"
@@ -107,9 +106,9 @@ const MultiStepForm = React.forwardRef<HTMLDivElement, MultiStepFormProps>(
               </Button>
             )}
           </div>
-          <CardDescription className="text-sm font-medium text-muted-foreground mt-1.5 leading-relaxed">
+          <p className="text-sm font-medium text-muted-foreground mt-1.5 leading-relaxed">
             {description}
-          </CardDescription>
+          </p>
 
           {/* Progress bar */}
           <div className="flex items-center gap-3 pt-4">
@@ -126,25 +125,9 @@ const MultiStepForm = React.forwardRef<HTMLDivElement, MultiStepFormProps>(
             </p>
           </div>
 
-          {/* Step dots */}
-          <div className="flex items-center gap-2 pt-3">
-            {Array.from({ length: totalSteps }).map((_, i) => (
-              <div
-                key={i}
-                className={cn(
-                  "h-1.5 rounded-full transition-all duration-300",
-                  i + 1 < currentStep
-                    ? "bg-primary/60 w-4"
-                    : i + 1 === currentStep
-                    ? "bg-primary w-8 shadow-xs shadow-primary/20"
-                    : "bg-muted-foreground/20 w-4"
-                )}
-              />
-            ))}
-          </div>
-        </CardHeader>
+        </div>
 
-        <CardContent className="min-h-[290px] md:min-h-[310px] overflow-hidden py-2">
+        <div className="min-h-[140px] md:min-h-[180px] overflow-hidden py-2">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentStep}
@@ -157,9 +140,9 @@ const MultiStepForm = React.forwardRef<HTMLDivElement, MultiStepFormProps>(
               {children}
             </motion.div>
           </AnimatePresence>
-        </CardContent>
+        </div>
 
-        <CardFooter className="flex items-center justify-between pt-5 mt-2 border-t border-border/10">
+        <div className="flex items-center justify-between pt-5 mt-2 border-t border-border/10">
           <div className="text-xs md:text-sm font-semibold text-muted-foreground font-ibm">{footerContent}</div>
           <div className="flex items-center gap-2.5">
             {currentStep > 1 && (
@@ -187,8 +170,8 @@ const MultiStepForm = React.forwardRef<HTMLDivElement, MultiStepFormProps>(
               )}
             </Button>
           </div>
-        </CardFooter>
-      </Card>
+        </div>
+      </div>
     );
   }
 );

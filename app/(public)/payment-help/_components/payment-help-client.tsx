@@ -176,14 +176,10 @@ export default function PaymentHelpClient({ userId, userName, userEmail }: Props
   }
 
   return (
-    <div className="flex-1 bg-gradient-to-br from-background via-background to-primary/5 flex flex-col justify-center">
-      <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12 md:py-20 flex-1 flex flex-col justify-center">
+    <div className="flex-1 bg-gradient-to-br from-background via-background to-primary/5 flex flex-col pt-20 pb-12 md:pt-28 md:pb-20">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16 flex-1 flex flex-col">
         {/* Page Header */}
         <div className="max-w-2xl mb-10 mx-auto text-center flex flex-col items-center justify-center">
-          <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-3.5 py-1.5 mb-4 shadow-xs">
-            <BadgeDollarSign className="w-3.5 h-3.5 text-primary" />
-            <span className="text-xs font-bold text-primary font-ibm tracking-wide uppercase">Payment Help</span>
-          </div>
           <h1 className="text-3xl md:text-5xl font-bold font-lora text-foreground leading-tight tracking-tight">
             Payment Issue? We Can Help
           </h1>
@@ -195,10 +191,9 @@ export default function PaymentHelpClient({ userId, userName, userEmail }: Props
           </p>
         </div>
 
-        {/* Form Card */}
+        {/* Form */}
         <div className="w-full max-w-2xl mx-auto">
-          <div className="bg-card/70 backdrop-blur-md border border-border/40 shadow-xl rounded-2xl md:rounded-3xl p-6 md:p-10">
-            <form onSubmit={handleSubmit} noValidate className="space-y-6">
+          <form onSubmit={handleSubmit} noValidate className="space-y-6">
               <FieldGroup className="gap-6">
                 {/* Amount */}
                 <Field invalid={!!errors.amount}>
@@ -333,7 +328,6 @@ export default function PaymentHelpClient({ userId, userName, userEmail }: Props
             </form>
           </div>
         </div>
-      </div>
 
       {/* Guest Login Required Dialog */}
       <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>

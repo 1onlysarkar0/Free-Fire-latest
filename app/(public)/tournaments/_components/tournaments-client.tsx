@@ -145,7 +145,7 @@ export default function TournamentsClient({
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-16">
+    <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
       
       {/* Header & Main Search Row */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
@@ -155,7 +155,7 @@ export default function TournamentsClient({
         </div>
 
         <div className="flex items-center gap-3 w-full md:w-auto">
-          <div className="relative w-full md:w-80">
+          <div className="relative flex-1 md:flex-initial md:w-80">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground" />
             <Input
               className="w-full pl-10 pr-4 h-11 bg-background"
