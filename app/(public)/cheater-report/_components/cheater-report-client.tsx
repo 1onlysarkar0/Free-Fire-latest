@@ -281,21 +281,21 @@ export default function CheaterReportClient({ userId, userName, userGameName }: 
   }
 
   return (
-    <div className="flex-1 bg-background flex flex-col">
-      <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-10 md:py-14">
+    <div className="flex-1 bg-gradient-to-br from-background via-background to-primary/5 flex flex-col justify-center">
+      <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12 md:py-20 flex-grow flex flex-col justify-center">
         {/* Page Header */}
         <div className="max-w-2xl mb-10 mx-auto text-center flex flex-col items-center justify-center">
-          <div className="inline-flex items-center gap-2 rounded-full bg-destructive/8 px-3 py-1.5 mb-4">
+          <div className="inline-flex items-center gap-2 rounded-full bg-destructive/10 border border-destructive/20 px-3.5 py-1.5 mb-4 shadow-xs">
             <ShieldAlert className="w-3.5 h-3.5 text-destructive" />
-            <span className="text-xs font-semibold text-destructive font-ibm">Report a Cheater</span>
+            <span className="text-xs font-bold text-destructive font-ibm tracking-wide uppercase">Report a Cheater</span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold font-lora text-foreground leading-tight">
+          <h1 className="text-3xl md:text-5xl font-bold font-lora text-foreground leading-tight tracking-tight">
             Report Unfair Play
           </h1>
-          <p className="mt-3 text-muted-foreground font-ibm text-sm md:text-base leading-relaxed max-w-xl mx-auto">
+          <p className="mt-4 text-muted-foreground font-ibm text-sm md:text-base leading-relaxed max-w-lg mx-auto">
             Help us maintain fair competition. Submit detailed reports of cheating, hacking, or unfair play.
             {userGameName && (
-              <span className="text-foreground/70"> Reporting as <strong className="text-foreground">{userGameName || userName}</strong>.</span>
+              <span className="block mt-2 text-foreground/80 font-medium"> Reporting as <strong className="text-foreground font-bold">{userGameName || userName}</strong>.</span>
             )}
           </p>
         </div>
@@ -313,7 +313,7 @@ export default function CheaterReportClient({ userId, userName, userGameName }: 
           isLoading={isSubmitting}
           size="lg"
           footerContent={
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs font-bold text-muted-foreground/80 font-ibm">
               Step {currentStep} of {TOTAL_STEPS}
             </span>
           }
@@ -322,7 +322,7 @@ export default function CheaterReportClient({ userId, userName, userGameName }: 
           {currentStep === 1 && (
             <div className="space-y-5 py-2">
               <div className="space-y-2">
-                <Label htmlFor="reported-uid" className="font-ibm font-semibold text-sm">
+                <Label htmlFor="reported-uid" className="font-ibm font-semibold text-sm text-foreground">
                   Cheater&apos;s Free Fire UID <span className="text-destructive">*</span>
                 </Label>
                 <div className="relative">
@@ -338,27 +338,27 @@ export default function CheaterReportClient({ userId, userName, userGameName }: 
                       clearError("reportedUid");
                     }}
                     className={cn(
-                      "font-mono text-base h-12",
-                      errors.reportedUid && "ring-2 ring-destructive/50"
+                      "h-12 bg-background/50 border border-border/40 focus:border-primary/50 focus:ring-2 focus:ring-primary/25 rounded-xl font-mono text-base font-semibold transition-all duration-200",
+                      errors.reportedUid && "border-destructive/60 focus:border-destructive focus:ring-destructive/20"
                     )}
                     aria-describedby="uid-help uid-error"
                     maxLength={20}
                   />
                 </div>
                 {errors.reportedUid ? (
-                  <p id="uid-error" className="flex items-center gap-1.5 text-xs text-destructive font-ibm">
+                  <p id="uid-error" className="flex items-center gap-1.5 text-xs text-destructive font-semibold mt-1">
                     <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                     {errors.reportedUid}
                   </p>
                 ) : (
-                  <p id="uid-help" className="text-xs text-muted-foreground font-ibm">
+                  <p id="uid-help" className="text-xs text-muted-foreground font-ibm mt-1.5 leading-relaxed">
                     You can find a player&apos;s UID in their in-game profile page.
                   </p>
                 )}
               </div>
 
               {/* Info card */}
-              <div className="card-inset p-4 rounded-xl">
+              <div className="bg-accent/40 border border-border/30 p-4 rounded-xl">
                 <div className="flex items-start gap-3">
                   <AlertCircle className="w-4 h-4 text-warning shrink-0 mt-0.5" />
                   <div className="space-y-1">
@@ -377,8 +377,8 @@ export default function CheaterReportClient({ userId, userName, userGameName }: 
             <div className="space-y-5 py-2">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="incident-date" className="font-ibm font-semibold text-sm flex items-center gap-1.5">
-                    <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                  <Label htmlFor="incident-date" className="font-ibm font-semibold text-sm text-foreground flex items-center gap-1.5">
+                    <CalendarDays className="w-4 h-4 text-primary shrink-0" />
                     Date of Incident <span className="text-destructive">*</span>
                   </Label>
                   <Input
@@ -389,19 +389,18 @@ export default function CheaterReportClient({ userId, userName, userGameName }: 
                     onChange={(e) => {
                       setReportedDate(e.target.value);
                       clearError("reportedDate");
-                      // Reset tournament selection if date changes
                       setSelectedTournament(null);
                       setSearchResults([]);
                       setHasSearched(false);
                     }}
                     className={cn(
-                      "h-12 font-ibm",
-                      errors.reportedDate && "ring-2 ring-destructive/50"
+                      "h-12 bg-background/50 border border-border/40 focus:border-primary/50 focus:ring-2 focus:ring-primary/25 rounded-xl font-ibm transition-all duration-200",
+                      errors.reportedDate && "border-destructive/60 focus:border-destructive focus:ring-destructive/20"
                     )}
                     aria-describedby="date-error"
                   />
                   {errors.reportedDate && (
-                    <p id="date-error" className="flex items-center gap-1.5 text-xs text-destructive font-ibm">
+                    <p id="date-error" className="flex items-center gap-1.5 text-xs text-destructive font-semibold mt-1">
                       <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                       {errors.reportedDate}
                     </p>
@@ -409,8 +408,8 @@ export default function CheaterReportClient({ userId, userName, userGameName }: 
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="incident-time" className="font-ibm font-semibold text-sm flex items-center gap-1.5">
-                    <Clock className="w-4 h-4 text-muted-foreground" />
+                  <Label htmlFor="incident-time" className="font-ibm font-semibold text-sm text-foreground flex items-center gap-1.5">
+                    <Clock className="w-4 h-4 text-primary shrink-0" />
                     Approximate Time <span className="text-destructive">*</span>
                   </Label>
                   <Input
@@ -422,13 +421,13 @@ export default function CheaterReportClient({ userId, userName, userGameName }: 
                       clearError("reportedTime");
                     }}
                     className={cn(
-                      "h-12 font-ibm",
-                      errors.reportedTime && "ring-2 ring-destructive/50"
+                      "h-12 bg-background/50 border border-border/40 focus:border-primary/50 focus:ring-2 focus:ring-primary/25 rounded-xl font-ibm transition-all duration-200",
+                      errors.reportedTime && "border-destructive/60 focus:border-destructive focus:ring-destructive/20"
                     )}
                     aria-describedby="time-error"
                   />
                   {errors.reportedTime && (
-                    <p id="time-error" className="flex items-center gap-1.5 text-xs text-destructive font-ibm">
+                    <p id="time-error" className="flex items-center gap-1.5 text-xs text-destructive font-semibold mt-1">
                       <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                       {errors.reportedTime}
                     </p>
@@ -440,11 +439,11 @@ export default function CheaterReportClient({ userId, userName, userGameName }: 
                 <motion.div
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="card-inset p-4 rounded-xl"
+                  className="bg-accent/40 border border-border/30 p-4 rounded-xl"
                 >
                   <p className="text-sm font-ibm text-foreground">
-                    <span className="text-muted-foreground">Incident time: </span>
-                    <strong>
+                    <span className="text-muted-foreground font-medium">Incident time: </span>
+                    <strong className="font-bold">
                       {format(new Date(`${reportedDate}T${reportedTime}`), "PPp")}
                     </strong>
                   </p>
@@ -456,28 +455,28 @@ export default function CheaterReportClient({ userId, userName, userGameName }: 
           {/* ─── Step 3: Tournament Selection ─── */}
           {currentStep === 3 && (
             <div className="space-y-4 py-2">
-              <div className="flex items-center gap-2 text-xs font-ibm text-muted-foreground bg-accent/50 rounded-lg px-3 py-2">
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              <div className="flex items-center gap-2 text-xs font-semibold text-primary bg-primary/5 border border-primary/10 rounded-xl px-4 py-3 leading-relaxed">
+                <AlertCircle className="w-4 h-4 text-primary shrink-0" />
                 <span>This step is optional. You can skip if the incident was not in a specific tournament.</span>
               </div>
 
               {/* Search bar */}
               <div className="flex gap-2">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                   <Input
                     id="tournament-search"
                     placeholder="Search by name, mode, or format…"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                    className="pl-9 h-11 font-ibm"
+                    className="pl-10 h-12 bg-background/50 border border-border/40 focus:border-primary/50 focus:ring-2 focus:ring-primary/25 rounded-xl font-ibm transition-all duration-200"
                   />
                 </div>
                 <Button
                   onClick={handleSearch}
                   disabled={!reportedDate || isSearching}
-                  className="h-11 px-5 shrink-0 font-ibm"
+                  className="h-12 px-6 shrink-0 font-ibm font-bold rounded-xl active:scale-[0.98] cursor-pointer"
                   aria-label="Search tournaments"
                 >
                   {isSearching ? (
@@ -492,8 +491,8 @@ export default function CheaterReportClient({ userId, userName, userGameName }: 
               </div>
 
               {reportedDate && (
-                <p className="text-xs text-muted-foreground font-ibm">
-                  Searching tournaments on <strong>{format(new Date(reportedDate + "T12:00"), "PPP")}</strong>
+                <p className="text-xs text-muted-foreground font-ibm leading-relaxed">
+                  Searching tournaments on <strong className="text-foreground">{format(new Date(reportedDate + "T12:00"), "PPP")}</strong>
                 </p>
               )}
 
@@ -502,14 +501,14 @@ export default function CheaterReportClient({ userId, userName, userGameName }: 
                 <motion.div
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="border-2 border-primary/30 bg-primary/5 rounded-xl p-4 flex items-start gap-3"
+                  className="border border-primary/30 bg-primary/5 rounded-xl p-4 flex items-start gap-3 shadow-xs"
                 >
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-grow min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="badge badge-success text-[10px]">Selected</span>
+                      <span className="badge badge-success text-[10px] font-bold">Selected</span>
                     </div>
-                    <p className="font-semibold font-ibm text-foreground text-sm truncate">{selectedTournament.name}</p>
-                    <p className="text-xs text-muted-foreground font-ibm mt-0.5">
+                    <p className="font-bold font-ibm text-foreground text-sm truncate">{selectedTournament.name}</p>
+                    <p className="text-xs text-muted-foreground font-ibm font-semibold mt-0.5">
                       {GAME_MODE_LABEL[selectedTournament.gameMode] ?? selectedTournament.gameMode} ·{" "}
                       {TEAM_FORMAT_LABEL[selectedTournament.teamFormat] ?? selectedTournament.teamFormat}
                     </p>
@@ -517,7 +516,7 @@ export default function CheaterReportClient({ userId, userName, userGameName }: 
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="shrink-0 h-8 w-8 text-muted-foreground hover:text-destructive"
+                    className="shrink-0 h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg cursor-pointer transition-colors"
                     onClick={() => setSelectedTournament(null)}
                     aria-label="Remove selected tournament"
                   >
@@ -534,23 +533,23 @@ export default function CheaterReportClient({ userId, userName, userGameName }: 
               )}
 
               {!isSearching && hasSearched && searchResults.length === 0 && (
-                <div className="text-center py-8 space-y-2">
-                  <Trophy className="w-8 h-8 text-muted-foreground/40 mx-auto" />
-                  <p className="text-sm text-muted-foreground font-ibm">No tournaments found on this date.</p>
+                <div className="text-center py-8 space-y-2 border border-dashed border-border/60 rounded-xl">
+                  <Trophy className="w-8 h-8 text-muted-foreground/30 mx-auto" />
+                  <p className="text-sm text-muted-foreground font-ibm font-medium">No tournaments found on this date.</p>
                 </div>
               )}
 
               {!isSearching && searchResults.length > 0 && (
-                <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
                   {searchResults.map((t) => (
                     <button
                       key={t.id}
                       type="button"
                       onClick={() => setSelectedTournament(t)}
                       className={cn(
-                        "w-full text-left rounded-xl border p-3.5 transition-all duration-150 group",
+                        "w-full text-left rounded-xl border p-3.5 transition-all duration-150 group cursor-pointer",
                         selectedTournament?.id === t.id
-                          ? "border-primary/50 bg-primary/5"
+                          ? "border-primary/50 bg-primary/5 shadow-xs"
                           : "border-border/40 bg-card hover:border-primary/30 hover:bg-accent/30"
                       )}
                     >
@@ -560,24 +559,24 @@ export default function CheaterReportClient({ userId, userName, userGameName }: 
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-semibold font-ibm text-foreground text-sm truncate max-w-[200px]">
+                            <p className="font-bold font-ibm text-foreground text-sm truncate max-w-[200px]">
                               {t.name}
                             </p>
-                            <span className={cn(STATUS_BADGE[t.status] ?? "badge badge-muted", "text-[10px]")}>
+                            <span className={cn(STATUS_BADGE[t.status] ?? "badge badge-muted", "text-[10px] font-bold shadow-xs")}>
                               {t.status}
                             </span>
                           </div>
-                          <div className="flex items-center gap-3 mt-1 flex-wrap">
-                            <span className="flex items-center gap-1 text-xs text-muted-foreground font-ibm">
-                              <Gamepad2 className="w-3 h-3" />
+                          <div className="flex items-center gap-3 mt-1 flex-wrap text-muted-foreground">
+                            <span className="flex items-center gap-1 text-xs font-ibm font-medium">
+                              <Gamepad2 className="w-3.5 h-3.5" />
                               {GAME_MODE_LABEL[t.gameMode] ?? t.gameMode}
                             </span>
-                            <span className="flex items-center gap-1 text-xs text-muted-foreground font-ibm">
-                              <Users2 className="w-3 h-3" />
+                            <span className="flex items-center gap-1 text-xs font-ibm font-medium">
+                              <Users2 className="w-3.5 h-3.5" />
                               {TEAM_FORMAT_LABEL[t.teamFormat] ?? t.teamFormat}
                             </span>
-                            <span className="flex items-center gap-1 text-xs text-muted-foreground font-ibm">
-                              <Clock className="w-3 h-3" />
+                            <span className="flex items-center gap-1 text-xs font-ibm font-medium">
+                              <Clock className="w-3.5 h-3.5" />
                               {format(new Date(t.startTime), "h:mm a")}
                             </span>
                           </div>
@@ -597,26 +596,26 @@ export default function CheaterReportClient({ userId, userName, userGameName }: 
           {currentStep === 4 && (
             <div className="space-y-5 py-2">
               {/* Summary card */}
-              <div className="card-inset p-4 rounded-xl space-y-2">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider font-ibm">Report Summary</p>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+              <div className="bg-accent/40 border border-border/30 p-4 rounded-xl space-y-3">
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider font-ibm">Report Summary</p>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                   <div>
-                    <p className="text-xs text-muted-foreground font-ibm">Reported UID</p>
+                    <p className="text-xs text-muted-foreground font-ibm font-semibold mb-0.5">Reported UID</p>
                     <p className="text-sm font-mono font-bold text-foreground">{reportedUid}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground font-ibm">Incident Time</p>
-                    <p className="text-sm font-ibm font-medium text-foreground">
+                    <p className="text-xs text-muted-foreground font-ibm font-semibold mb-0.5">Incident Time</p>
+                    <p className="text-sm font-ibm font-bold text-foreground">
                       {reportedDate && reportedTime
                         ? format(new Date(`${reportedDate}T${reportedTime}`), "PPp")
                         : "—"}
                     </p>
                   </div>
                   {selectedTournament && (
-                    <div className="col-span-2">
-                      <p className="text-xs text-muted-foreground font-ibm">Tournament</p>
-                      <p className="text-sm font-ibm font-medium text-foreground flex items-center gap-1">
-                        <Trophy className="w-3 h-3 text-primary" />
+                    <div className="col-span-2 border-t border-border/20 pt-2 mt-1">
+                      <p className="text-xs text-muted-foreground font-ibm font-semibold mb-0.5">Tournament</p>
+                      <p className="text-sm font-ibm font-bold text-foreground flex items-center gap-1.5">
+                        <Trophy className="w-4 h-4 text-primary shrink-0" />
                         {selectedTournament.name}
                       </p>
                     </div>
@@ -625,7 +624,7 @@ export default function CheaterReportClient({ userId, userName, userGameName }: 
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description" className="font-ibm font-semibold text-sm">
+                <Label htmlFor="description" className="font-ibm font-semibold text-sm text-foreground">
                   Description <span className="text-destructive">*</span>
                 </Label>
                 <Textarea
@@ -639,26 +638,26 @@ export default function CheaterReportClient({ userId, userName, userGameName }: 
                   rows={6}
                   maxLength={2000}
                   className={cn(
-                    "font-ibm text-sm resize-none",
-                    errors.description && "ring-2 ring-destructive/50"
+                    "bg-background/50 border border-border/40 focus:border-primary/50 focus:ring-2 focus:ring-primary/25 rounded-xl font-ibm text-sm p-4 resize-none transition-all duration-200",
+                    errors.description && "border-destructive/60 focus:border-destructive focus:ring-destructive/20"
                   )}
                   aria-describedby="desc-error desc-count"
                 />
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mt-1.5">
                   {errors.description ? (
-                    <p id="desc-error" className="flex items-center gap-1.5 text-xs text-destructive font-ibm">
+                    <p id="desc-error" className="flex items-center gap-1.5 text-xs text-destructive font-semibold">
                       <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                       {errors.description}
                     </p>
                   ) : (
-                    <p className="text-xs text-muted-foreground font-ibm">
+                    <p className="text-xs text-muted-foreground font-ibm leading-relaxed">
                       Minimum 30 characters. Be as specific as possible.
                     </p>
                   )}
                   <span
                     id="desc-count"
                     className={cn(
-                      "text-xs font-ibm shrink-0",
+                      "text-xs font-ibm font-medium shrink-0 ml-2",
                       description.length > 1800 ? "text-warning" : "text-muted-foreground"
                     )}
                   >

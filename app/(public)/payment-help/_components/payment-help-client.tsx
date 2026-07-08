@@ -176,151 +176,162 @@ export default function PaymentHelpClient({ userId, userName, userEmail }: Props
   }
 
   return (
-    <div className="flex-1 bg-background flex flex-col">
-      <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-10 md:py-14">
+    <div className="flex-1 bg-gradient-to-br from-background via-background to-primary/5 flex flex-col justify-center">
+      <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12 md:py-20 flex-1 flex flex-col justify-center">
         {/* Page Header */}
         <div className="max-w-2xl mb-10 mx-auto text-center flex flex-col items-center justify-center">
-          <div className="inline-flex items-center gap-2 rounded-full bg-primary/8 px-3 py-1.5 mb-4">
+          <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-3.5 py-1.5 mb-4 shadow-xs">
             <BadgeDollarSign className="w-3.5 h-3.5 text-primary" />
-            <span className="text-xs font-semibold text-primary font-ibm">Payment Help</span>
+            <span className="text-xs font-bold text-primary font-ibm tracking-wide uppercase">Payment Help</span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold font-lora text-foreground leading-tight">
+          <h1 className="text-3xl md:text-5xl font-bold font-lora text-foreground leading-tight tracking-tight">
             Payment Issue? We Can Help
           </h1>
-          <p className="mt-3 text-muted-foreground font-ibm text-sm md:text-base leading-relaxed max-w-xl mx-auto">
+          <p className="mt-4 text-muted-foreground font-ibm text-sm md:text-base leading-relaxed max-w-lg mx-auto">
             If your payment wasn&apos;t credited, you have a dispute, or need help with a transaction, submit your details below.
             {userName && (
-              <span className="text-foreground/70"> Submitting as <strong className="text-foreground">{userName}</strong> ({userEmail}).</span>
+              <span className="block mt-2 text-foreground/80 font-medium"> Submitting as <strong className="text-foreground font-bold">{userName}</strong> ({userEmail}).</span>
             )}
           </p>
         </div>
 
-        <div className="max-w-2xl mx-auto">
-          {/* Form */}
-          <form onSubmit={handleSubmit} noValidate className="space-y-6">
-            <FieldGroup>
-              {/* Amount */}
-              <Field data-invalid={errors.amount ? "true" : undefined}>
-                <FieldLabel htmlFor="amount" className="flex items-center gap-1.5 font-semibold text-sm">
-                  <IndianRupee className="w-4 h-4 text-muted-foreground" />
-                  Amount (₹) <span className="text-destructive">*</span>
-                </FieldLabel>
-                <Input
-                  id="amount"
-                  type="number"
-                  inputMode="numeric"
-                  placeholder="e.g. 500"
-                  value={amount}
-                  min="1"
-                  max="100000"
-                  step="1"
-                  onChange={(e) => {
-                    setAmount(e.target.value);
-                    clearError("amount");
-                  }}
-                  className="h-11 font-ibm text-base font-semibold"
-                  aria-describedby="amount-error"
-                />
-                {errors.amount && (
-                  <FieldError id="amount-error">
-                    {errors.amount}
-                  </FieldError>
-                )}
-              </Field>
+        {/* Form Card */}
+        <div className="w-full max-w-2xl mx-auto">
+          <div className="bg-card/70 backdrop-blur-md border border-border/40 shadow-xl rounded-2xl md:rounded-3xl p-6 md:p-10">
+            <form onSubmit={handleSubmit} noValidate className="space-y-6">
+              <FieldGroup className="gap-6">
+                {/* Amount */}
+                <Field invalid={!!errors.amount}>
+                  <FieldLabel htmlFor="amount" className="flex items-center gap-2 font-bold text-sm text-foreground mb-1">
+                    <IndianRupee className="w-4 h-4 text-primary shrink-0" />
+                    Amount (₹) <span className="text-destructive">*</span>
+                  </FieldLabel>
+                  <Input
+                    id="amount"
+                    type="number"
+                    inputMode="numeric"
+                    placeholder="e.g. 500"
+                    value={amount}
+                    min="1"
+                    max="100000"
+                    step="1"
+                    onChange={(e) => {
+                      setAmount(e.target.value);
+                      clearError("amount");
+                    }}
+                    className={cn(
+                      "h-12 bg-background/50 border border-border/40 focus:border-primary/50 focus:ring-2 focus:ring-primary/25 rounded-xl font-ibm text-base font-semibold transition-all duration-200",
+                      errors.amount && "border-destructive/60 focus:border-destructive focus:ring-destructive/20"
+                    )}
+                    aria-describedby="amount-error"
+                  />
+                  {errors.amount && (
+                    <FieldError id="amount-error" className="mt-1.5 flex items-center gap-1.5 text-xs text-destructive font-semibold">
+                      {errors.amount}
+                    </FieldError>
+                  )}
+                </Field>
 
-              {/* UTR Number */}
-              <Field data-invalid={errors.utrNumber ? "true" : undefined}>
-                <FieldLabel htmlFor="utr-number" className="flex items-center gap-1.5 font-semibold text-sm">
-                  <Hash className="w-4 h-4 text-muted-foreground" />
-                  UTR / Transaction ID <span className="text-destructive">*</span>
-                </FieldLabel>
-                <Input
-                  id="utr-number"
-                  type="text"
-                  placeholder="e.g. UTR1234567890 or TXN-ABC-123"
-                  value={utrNumber}
-                  onChange={(e) => {
-                    setUtrNumber(e.target.value);
-                    clearError("utrNumber");
-                  }}
-                  className="h-11 font-mono text-base font-semibold"
-                  aria-describedby="utr-error utr-help"
-                  maxLength={50}
-                />
-                {errors.utrNumber ? (
-                  <FieldError id="utr-error">
-                    {errors.utrNumber}
-                  </FieldError>
-                ) : (
-                  <p id="utr-help" className="text-xs text-muted-foreground font-ibm">
-                    Find this in your UPI app under transaction history or in your SMS confirmation.
-                  </p>
-                )}
-              </Field>
-
-              {/* Description */}
-              <Field data-invalid={errors.description ? "true" : undefined}>
-                <FieldLabel htmlFor="pay-description" className="flex items-center gap-1.5 font-semibold text-sm">
-                  <FileText className="w-4 h-4 text-muted-foreground" />
-                  Description <span className="text-destructive">*</span>
-                </FieldLabel>
-                <Textarea
-                  id="pay-description"
-                  placeholder="Describe the issue clearly — e.g. 'I paid ₹500 for tournament XYZ on 5th July at 2PM. UTR is UTR1234567890. The amount was deducted but my wallet was not credited...'"
-                  value={description}
-                  onChange={(e) => {
-                    setDescription(e.target.value);
-                    clearError("description");
-                  }}
-                  rows={5}
-                  maxLength={2000}
-                  className="font-ibm text-sm resize-none"
-                  aria-describedby="pay-desc-error pay-desc-count"
-                />
-                <div className="flex items-center justify-between">
-                  {errors.description ? (
-                    <FieldError id="pay-desc-error">
-                      {errors.description}
+                {/* UTR Number */}
+                <Field invalid={!!errors.utrNumber}>
+                  <FieldLabel htmlFor="utr-number" className="flex items-center gap-2 font-bold text-sm text-foreground mb-1">
+                    <Hash className="w-4 h-4 text-primary shrink-0" />
+                    UTR / Transaction ID <span className="text-destructive">*</span>
+                  </FieldLabel>
+                  <Input
+                    id="utr-number"
+                    type="text"
+                    placeholder="e.g. UTR1234567890 or TXN-ABC-123"
+                    value={utrNumber}
+                    onChange={(e) => {
+                      setUtrNumber(e.target.value);
+                      clearError("utrNumber");
+                    }}
+                    className={cn(
+                      "h-12 bg-background/50 border border-border/40 focus:border-primary/50 focus:ring-2 focus:ring-primary/25 rounded-xl font-mono text-base font-semibold transition-all duration-200",
+                      errors.utrNumber && "border-destructive/60 focus:border-destructive focus:ring-destructive/20"
+                    )}
+                    aria-describedby="utr-error utr-help"
+                    maxLength={50}
+                  />
+                  {errors.utrNumber ? (
+                    <FieldError id="utr-error" className="mt-1.5 flex items-center gap-1.5 text-xs text-destructive font-semibold">
+                      {errors.utrNumber}
                     </FieldError>
                   ) : (
-                    <p className="text-xs text-muted-foreground font-ibm">
-                      Minimum 20 characters. Include all relevant details.
+                    <p id="utr-help" className="text-xs text-muted-foreground font-ibm mt-1.5 leading-relaxed">
+                      Find this in your UPI app under transaction history or in your SMS confirmation.
                     </p>
                   )}
-                  <span
-                    id="pay-desc-count"
-                    className={cn(
-                      "text-xs font-ibm shrink-0",
-                      description.length > 1800 ? "text-warning" : "text-muted-foreground"
-                    )}
-                  >
-                    {description.length}/2000
-                  </span>
-                </div>
-              </Field>
-            </FieldGroup>
+                </Field>
 
-            {/* Submit */}
-            <Button
-              type="submit"
-              size="lg"
-              disabled={isSubmitting}
-              className="w-full font-ibm h-12 text-base"
-              id="submit-payment-help"
-            >
-              {isSubmitting ? (
-                <span className="flex items-center gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Submitting…
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  <BadgeDollarSign className="w-4 h-4" />
-                  Submit Payment Help Request
-                </span>
-              )}
-            </Button>
-          </form>
+                {/* Description */}
+                <Field invalid={!!errors.description}>
+                  <FieldLabel htmlFor="pay-description" className="flex items-center gap-2 font-bold text-sm text-foreground mb-1">
+                    <FileText className="w-4 h-4 text-primary shrink-0" />
+                    Description <span className="text-destructive">*</span>
+                  </FieldLabel>
+                  <Textarea
+                    id="pay-description"
+                    placeholder="Describe the issue clearly — e.g. 'I paid ₹500 for tournament XYZ on 5th July at 2PM. UTR is UTR1234567890. The amount was deducted but my wallet was not credited...'"
+                    value={description}
+                    onChange={(e) => {
+                      setDescription(e.target.value);
+                      clearError("description");
+                    }}
+                    rows={5}
+                    maxLength={2000}
+                    className={cn(
+                      "bg-background/50 border border-border/40 focus:border-primary/50 focus:ring-2 focus:ring-primary/25 rounded-xl font-ibm text-sm p-4 resize-none transition-all duration-200",
+                      errors.description && "border-destructive/60 focus:border-destructive focus:ring-destructive/20"
+                    )}
+                    aria-describedby="pay-desc-error pay-desc-count"
+                  />
+                  <div className="flex items-center justify-between mt-1.5">
+                    {errors.description ? (
+                      <FieldError id="pay-desc-error" className="flex items-center gap-1.5 text-xs text-destructive font-semibold">
+                        {errors.description}
+                      </FieldError>
+                    ) : (
+                      <p className="text-xs text-muted-foreground font-ibm leading-relaxed">
+                        Minimum 20 characters. Include all relevant details.
+                      </p>
+                    )}
+                    <span
+                      id="pay-desc-count"
+                      className={cn(
+                        "text-xs font-ibm font-medium shrink-0 ml-2",
+                        description.length > 1800 ? "text-warning" : "text-muted-foreground"
+                      )}
+                    >
+                      {description.length}/2000
+                    </span>
+                  </div>
+                </Field>
+              </FieldGroup>
+
+              {/* Submit */}
+              <Button
+                type="submit"
+                size="lg"
+                disabled={isSubmitting}
+                className="w-full font-ibm h-12 text-base font-bold rounded-xl mt-4 hover:shadow-lg hover:shadow-primary/20 active:scale-[0.99] transition-all duration-200 cursor-pointer"
+                id="submit-payment-help"
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Submitting…
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <BadgeDollarSign className="w-4 h-4" />
+                    Submit Payment Help Request
+                  </span>
+                )}
+              </Button>
+            </form>
+          </div>
         </div>
       </div>
 

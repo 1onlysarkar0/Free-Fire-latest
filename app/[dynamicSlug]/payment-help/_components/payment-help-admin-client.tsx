@@ -205,14 +205,77 @@ export default function PaymentHelpAdminClient() {
 
       {/* Table */}
       <div className="card-list">
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
-          </div>
-        ) : requests.length === 0 ? (
+        {loading && requests.length === 0 ? (
+          <>
+            {/* Desktop Skeleton */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr>
+                    <th>User</th>
+                    <th>Amount</th>
+                    <th>UTR / Transaction ID</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Submitted</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.from({ length: 5 }).map((_, idx) => (
+                    <tr key={idx} className="animate-pulse">
+                      <td>
+                        <div className="space-y-2">
+                          <div className="h-4 bg-muted rounded-md w-28" />
+                          <div className="h-3 bg-muted rounded-md w-36" />
+                        </div>
+                      </td>
+                      <td><div className="h-5 bg-muted rounded-md w-14" /></td>
+                      <td><div className="h-5 bg-muted rounded-md w-28 font-mono" /></td>
+                      <td><div className="h-4 bg-muted rounded-md w-36" /></td>
+                      <td><div className="h-6 bg-muted rounded-full w-20" /></td>
+                      <td><div className="h-4 bg-muted rounded-md w-16" /></td>
+                      <td><div className="h-8 bg-muted rounded-md w-14" /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Skeleton */}
+            <div className="md:hidden divide-y divide-border/10">
+              {Array.from({ length: 5 }).map((_, idx) => (
+                <div key={idx} className="p-4 space-y-3 animate-pulse">
+                  <div className="flex justify-between items-center">
+                    <div className="space-y-1.5 flex-1">
+                      <div className="h-4 bg-muted rounded-md w-28" />
+                      <div className="h-3 bg-muted rounded-md w-36" />
+                    </div>
+                    <div className="h-6 bg-muted rounded-full w-20" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <div className="h-3 bg-muted rounded-md w-12 mb-1" />
+                      <div className="h-4 bg-muted rounded-md w-16" />
+                    </div>
+                    <div>
+                      <div className="h-3 bg-muted rounded-md w-16 mb-1" />
+                      <div className="h-4 bg-muted rounded-md w-24" />
+                    </div>
+                  </div>
+                  <div className="h-4 bg-muted rounded-md w-full" />
+                  <div className="flex gap-2">
+                    <div className="h-9 bg-muted rounded-xl flex-1" />
+                    <div className="h-9 bg-muted rounded-xl w-12" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : !loading && requests.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 gap-3">
             <BadgeDollarSign className="h-10 w-10 text-muted-foreground/30" />
-            <p className="text-sm text-muted-foreground font-ibm">No payment help requests found</p>
+            <p className="text-sm text-muted-foreground font-ibm font-semibold">No payment help requests found</p>
           </div>
         ) : (
           <>
@@ -238,17 +301,17 @@ export default function PaymentHelpAdminClient() {
                           <p className="font-semibold font-ibm text-sm text-foreground">{r.userName ?? "—"}</p>
                           <p className="text-xs text-muted-foreground font-ibm">{r.userEmail ?? ""}</p>
                           {r.userGameName && (
-                            <p className="text-xs text-muted-foreground font-ibm">🎮 {r.userGameName}</p>
+                            <p className="text-xs text-primary font-ibm font-medium mt-0.5">🎮 {r.userGameName}</p>
                           )}
                         </div>
                       </td>
                       <td>
-                        <span className="font-semibold font-ibm text-foreground">
+                        <span className="font-bold font-ibm text-sm text-foreground">
                           ₹{r.amount.toLocaleString("en-IN")}
                         </span>
                       </td>
                       <td>
-                        <span className="font-mono text-xs text-foreground bg-accent/50 px-2 py-0.5 rounded">
+                        <span className="font-mono text-xs font-semibold text-foreground bg-accent/50 px-2 py-0.5 rounded-lg border border-border/20">
                           {r.utrNumber}
                         </span>
                       </td>
@@ -260,7 +323,7 @@ export default function PaymentHelpAdminClient() {
                       <td>
                         <span
                           className={cn(
-                            "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold font-ibm",
+                            "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold font-ibm shadow-2xs",
                             STATUS_STYLES[r.status]?.badge
                           )}
                         >
@@ -269,7 +332,7 @@ export default function PaymentHelpAdminClient() {
                         </span>
                       </td>
                       <td>
-                        <p className="text-xs font-ibm text-muted-foreground whitespace-nowrap">
+                        <p className="text-xs font-ibm font-semibold text-muted-foreground whitespace-nowrap">
                           {format(new Date(r.createdAt), "PP")}
                         </p>
                       </td>
@@ -279,22 +342,22 @@ export default function PaymentHelpAdminClient() {
                             size="sm"
                             variant="ghost"
                             onClick={() => openDetail(r)}
-                            className="h-8 px-2"
+                            className="h-8 w-8 p-0 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
                             title="View & Update"
                           >
-                            <Eye className="h-3.5 w-3.5" />
+                            <Eye className="h-4 w-4" />
                           </Button>
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-8 px-2 text-destructive hover:text-destructive"
+                            className="h-8 w-8 p-0 rounded-lg text-destructive hover:bg-destructive/10 hover:text-destructive transition-colors cursor-pointer"
                             onClick={() => {
                               setDeleteId(r.id);
                               setDeleteDialogOpen(true);
                             }}
                             title="Delete"
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </td>
@@ -307,15 +370,15 @@ export default function PaymentHelpAdminClient() {
             {/* Mobile cards */}
             <div className="md:hidden divide-y divide-border/10">
               {requests.map((r) => (
-                <div key={r.id} className="p-4 space-y-3">
+                <div key={r.id} className="p-4 space-y-3.5 hover:bg-accent/5 transition-colors">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <p className="font-semibold font-ibm text-sm text-foreground">{r.userName ?? "Unknown"}</p>
+                      <p className="font-bold font-ibm text-sm text-foreground">{r.userName ?? "Unknown"}</p>
                       <p className="text-xs text-muted-foreground font-ibm">{r.userEmail}</p>
                     </div>
                     <span
                       className={cn(
-                        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold font-ibm shrink-0",
+                        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold font-ibm shrink-0 shadow-2xs",
                         STATUS_STYLES[r.status]?.badge
                       )}
                     >
@@ -323,31 +386,31 @@ export default function PaymentHelpAdminClient() {
                       {r.status}
                     </span>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 text-xs font-ibm">
+                  <div className="grid grid-cols-2 gap-3 text-xs font-ibm">
                     <div>
-                      <p className="text-muted-foreground">Amount</p>
-                      <p className="font-bold text-foreground">₹{r.amount.toLocaleString("en-IN")}</p>
+                      <p className="text-muted-foreground font-medium mb-0.5">Amount</p>
+                      <p className="font-bold text-foreground bg-primary/5 text-primary border border-primary/15 px-2 py-0.5 rounded-md w-fit">₹{r.amount.toLocaleString("en-IN")}</p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">UTR / TXN ID</p>
-                      <p className="font-mono text-foreground truncate">{r.utrNumber}</p>
+                      <p className="text-muted-foreground font-medium mb-0.5">UTR / TXN ID</p>
+                      <p className="font-mono font-bold text-foreground bg-accent/50 px-2 py-0.5 rounded-md border border-border/20 w-fit truncate max-w-[120px]">{r.utrNumber}</p>
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground font-ibm line-clamp-2">{r.description}</p>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" className="flex-1 font-ibm text-xs" onClick={() => openDetail(r)}>
-                      <Eye className="h-3.5 w-3.5 mr-1" /> View & Update
+                  <p className="text-xs text-muted-foreground font-ibm line-clamp-2 leading-relaxed bg-accent/20 p-2.5 rounded-lg border border-border/10">{r.description}</p>
+                  <div className="flex gap-2.5 pt-1">
+                    <Button size="sm" variant="outline" className="flex-1 font-ibm font-bold text-xs h-9 rounded-xl cursor-pointer hover:bg-accent/40" onClick={() => openDetail(r)}>
+                      <Eye className="h-4 w-4 mr-1.5" /> View & Update
                     </Button>
                     <Button
                       size="sm"
                       variant="outline"
-                      className="font-ibm text-xs text-destructive border-destructive/30"
+                      className="font-ibm font-bold text-xs text-destructive border-destructive/20 hover:bg-destructive/10 hover:text-destructive h-9 rounded-xl cursor-pointer"
                       onClick={() => {
                         setDeleteId(r.id);
                         setDeleteDialogOpen(true);
                       }}
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>

@@ -343,17 +343,37 @@ export default function SeoPage({ initialData, dynamicSlug }: Props) {
             </div>
           </div>
 
-          {loading ? (
-            <Card className="p-6">
-              <div className="flex items-center justify-center py-10">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            </Card>
-          ) : sortedRows.length === 0 ? (
-            <Card className="p-6">
-              <div className="flex flex-col items-center justify-center gap-2 py-10 text-center">
-                <Globe className="h-8 w-8 text-muted-foreground/40" />
-                <p className="text-sm text-muted-foreground">No SEO configs found</p>
+          {loading && rows.length === 0 ? (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <Card key={idx} className="flex flex-col p-5 space-y-4 animate-pulse border border-border/30 rounded-2xl bg-card">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-2 flex-1 mr-3">
+                      <div className="h-5 bg-muted rounded-md w-2/3" />
+                      <div className="h-4 bg-muted rounded-md w-1/2" />
+                    </div>
+                    <div className="h-6 bg-muted rounded-full w-14 shrink-0" />
+                  </div>
+                  <div className="h-4 bg-muted rounded-md w-3/4" />
+                  <div className="flex gap-2">
+                    <div className="h-5 bg-muted rounded-md w-12" />
+                    <div className="h-5 bg-muted rounded-md w-20" />
+                  </div>
+                  <div className="border-t border-border/10 pt-4 flex gap-2 justify-between">
+                    <div className="h-8 bg-muted rounded-lg w-16" />
+                    <div className="flex gap-1">
+                      <div className="h-8 bg-muted rounded-lg w-8" />
+                      <div className="h-8 bg-muted rounded-lg w-8" />
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : !loading && sortedRows.length === 0 ? (
+            <Card className="p-10 border border-border/40 rounded-2xl shadow-xs">
+              <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
+                <Globe className="h-10 w-10 text-muted-foreground/30" />
+                <p className="text-sm font-semibold text-muted-foreground font-ibm">No SEO configs found</p>
               </div>
             </Card>
           ) : (
@@ -361,15 +381,15 @@ export default function SeoPage({ initialData, dynamicSlug }: Props) {
               {sortedRows.map((row) => (
                 <Card
                   key={row.id}
-                  className="group relative flex flex-col overflow-hidden transition-all hover:shadow-md"
+                  className="group relative flex flex-col overflow-hidden bg-card/75 border border-border/40 shadow-xs rounded-2xl transition-all duration-300 hover:shadow-md hover:border-primary/30 hover:scale-[1.01] hover:bg-card"
                 >
-                  <div className="flex flex-1 flex-col gap-3 p-4">
+                  <div className="flex flex-1 flex-col gap-3.5 p-5">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
                         <PageInfo row={row} />
                       </div>
                       <span
-                        className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold ${getScoreColor(
+                        className={`shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] font-extrabold shadow-3xs ${getScoreColor(
                           row.seoScore
                         )}`}
                       >
@@ -378,24 +398,24 @@ export default function SeoPage({ initialData, dynamicSlug }: Props) {
                     </div>
 
                     {row.metaTitle ? (
-                      <p className="line-clamp-2 text-xs text-muted-foreground break-words">
+                      <p className="line-clamp-2 text-xs font-medium text-muted-foreground break-words font-ibm leading-relaxed">
                         {row.metaTitle}
                       </p>
                     ) : (
-                      <p className="text-xs italic text-muted-foreground/40">
+                      <p className="text-xs italic text-muted-foreground/40 font-ibm">
                         Using fallback
                       </p>
                     )}
 
-                    <div className="flex min-h-[20px] flex-wrap items-center gap-1.5">
+                    <div className="flex min-h-[20px] flex-wrap items-center gap-1.5 pt-1">
                       {row.robots && (
-                        <code className="rounded border bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground break-all">
+                        <code className="rounded border border-border/20 bg-background/50 px-1.5 py-0.5 font-mono text-[9px] font-bold text-muted-foreground break-all leading-normal">
                           {row.robots}
                         </code>
                       )}
 
                       {row.ogImageDynamic && (
-                        <Badge className="border-0 bg-green-100 text-[10px] text-green-800">
+                        <Badge className="border-0 bg-green-50 text-[10px] font-bold text-green-700 shadow-3xs">
                           OG: {row.ogImageTemplate?.toUpperCase() || "DYNAMIC"}
                         </Badge>
                       )}
@@ -403,7 +423,7 @@ export default function SeoPage({ initialData, dynamicSlug }: Props) {
                       {row.id === "global" && (
                         <Badge
                           variant="secondary"
-                          className="border-0 bg-primary/10 text-[10px] text-primary/80"
+                          className="border-0 bg-primary/10 text-[10px] font-bold text-primary/80 shadow-3xs"
                         >
                           GLOBAL
                         </Badge>
@@ -412,7 +432,7 @@ export default function SeoPage({ initialData, dynamicSlug }: Props) {
                       {!KNOWN_PAGES[row.id] && row.id !== "global" && (
                         <Badge
                           variant="secondary"
-                          className="border-0 bg-blue-50 text-[10px] text-blue-800"
+                          className="border-0 bg-blue-50 text-[10px] font-bold text-blue-700 shadow-3xs"
                         >
                           {row.id.startsWith("tournament-")
                             ? "TOURNAMENT"
@@ -422,14 +442,14 @@ export default function SeoPage({ initialData, dynamicSlug }: Props) {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1 border-t border-border/30 bg-accent/20 px-3 py-2">
+                  <div className="flex items-center gap-1 border-t border-border/30 bg-accent/20 px-4 py-2.5">
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-7 text-xs"
+                      className="h-8 text-xs font-bold text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors cursor-pointer"
                       onClick={() => triggerAudit(row.id)}
                     >
-                      <Play className="mr-1 h-3 w-3 text-primary" />
+                      <Play className="mr-1 h-3.5 w-3.5 text-primary" />
                       Audit
                     </Button>
 
@@ -439,7 +459,7 @@ export default function SeoPage({ initialData, dynamicSlug }: Props) {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7"
+                        className="h-8 w-8 p-0 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
                         title="Edit Config"
                       >
                         <Pencil className="h-3.5 w-3.5" />
@@ -450,7 +470,7 @@ export default function SeoPage({ initialData, dynamicSlug }: Props) {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 text-red-500 hover:bg-red-50 hover:text-red-600"
+                        className="h-8 w-8 p-0 rounded-lg text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer"
                         onClick={() => handleDelete(row.id)}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
