@@ -1,6 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: [
+    "10.109.88.98",
+    "localhost",
+    "127.0.0.1",
+    ...(process.env.ONESARKAR_DEV_DOMAIN ? [process.env.ONESARKAR_DEV_DOMAIN] : []),
+    ...(process.env.ALLOWED_DEV_ORIGINS
+      ? process.env.ALLOWED_DEV_ORIGINS.split(",").map((o) => o.trim())
+      : []),
+  ],
   output: "standalone",
   reactStrictMode: true,
   compress: true,
