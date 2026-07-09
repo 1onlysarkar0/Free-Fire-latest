@@ -78,8 +78,12 @@ export default function CacheBuster() {
 
         if (cancelled) return;
 
-        // 5. Hard-reload to pick up fresh assets
-        window.location.reload();
+        // 5. Hard-navigate with a version query param — this forces the browser
+        //    to treat it as a fresh URL, bypassing any page-level HTTP cache,
+        //    and the server returns new HTML referencing new content-hashed CSS.
+        const url = new URL(window.location.href);
+        url.searchParams.set("__cv", version);
+        window.location.replace(url.toString());
       } catch {
         // Network error or API down — silently skip, never crash
       }

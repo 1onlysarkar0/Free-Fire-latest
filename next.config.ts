@@ -100,12 +100,10 @@ const nextConfig: NextConfig = {
           { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
         ],
       },
-      {
-        source: "/_next/static/(.*)",
-        headers: [
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
-        ],
-      },
+      // NOTE: /_next/static/ is intentionally NOT overridden here.
+      // Next.js automatically sets max-age=31536000, immutable for production
+      // static assets because they are content-hashed (e.g. abc123.css).
+      // Overriding it here breaks dev mode by caching unhashed CSS as immutable.
       {
         source: "/api/(.*)",
         headers: [
