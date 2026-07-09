@@ -1,6 +1,9 @@
 import { requireAdminOrRole } from "@/lib/admin-auth";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { CACHE_TAGS } from "@/lib/cache";
+import { db } from "@/db/drizzle";
+import { siteConfig } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import fs from "fs";
 import path from "path";
 
@@ -9,18 +12,16 @@ export async function POST(request: Request) {
   if (admin instanceof Response) return admin;
 
   try {
-    // 1. Physically delete Next.js incremental cache folder (.next/cache) on server
-    try {
-      const cacheDir = path.join(process.cwd(), ".next", "cache");
-      if (fs.existsSync(cacheDir)) {
-        fs.rmSync(cacheDir, { recursive: true, force: true });
-        console.log("✓ Programmatically deleted .next/cache directory");
-      }
-    } catch (e) {
-      console.error("Failed to delete .next/cache folder programmatically:", e);
-    }
+    // ── 1. Bump the global cache version token in the DB ─────────────────────
+    // This is the KEY mechanism: every client browser checks this value on
+    // each page load. When it changes, they clear all local caches and reload.
+    const newVersion = Date.now().toString();
+    await db
+      .update(siteConfig)
+      .set({ cacheVersion: newVersion })
+      .where(eq(siteConfig.id, "default"));
 
-    // 2. Invalidate all standard cache tags
+    // ── 2. Invalidate all Next.js server-side cache tags ─────────────────────
     Object.values(CACHE_TAGS).forEach((tag) => {
       try {
         revalidateTag(tag, { expire: 0 });
@@ -29,17 +30,34 @@ export async function POST(request: Request) {
       }
     });
 
-    // 3. Revalidate the entire App Router path layout cache
+    // ── 3. Revalidate the entire App Router path layout cache ─────────────────
     revalidatePath("/", "layout");
 
-    // 4. Respond to client and instruct browser to clear local caches
-    return new Response(
-      JSON.stringify({ ok: true, message: "Server and browser caches purged successfully" }),
+    // ── 4. Physically delete Next.js incremental cache folder ────────────────
+    try {
+      const cacheDir = path.join(process.cwd(), ".next", "cache");
+      if (fs.existsSync(cacheDir)) {
+        fs.rmSync(cacheDir, { recursive: true, force: true });
+        console.log("✓ Deleted .next/cache directory");
+      }
+    } catch (e) {
+      console.error("Failed to delete .next/cache folder:", e);
+    }
+
+    console.log(`✓ Cache version bumped to: ${newVersion}`);
+
+    return Response.json(
+      {
+        ok: true,
+        version: newVersion,
+        message:
+          "Server cache purged. All users will receive a fresh cache on their next page load.",
+      },
       {
         status: 200,
         headers: {
-          "Content-Type": "application/json",
-          "Clear-Site-Data": '"cache"',
+          // Clear this admin's own browser cache immediately too
+          "Clear-Site-Data": '"cache", "storage"',
         },
       }
     );

@@ -11,6 +11,7 @@ import { getSeoData, buildMetadata, buildGeoMetadata } from "@/lib/seo";
 import { getSiteUrl } from "@/lib/site-url";
 
 import ChatbotLoader from "@/components/chatbot-loader";
+import CacheBuster from "@/components/cache-buster";
 
 const lora = Lora({ subsets: ["latin"], variable: "--font-lora", display: "swap" });
 const ibmPlex = IBM_Plex_Sans({
@@ -116,6 +117,7 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <CacheBuster />
           <ChatbotLoader />
           {process.env.NODE_ENV === "development" && <Agentation />}
           <Toaster position="top-center" richColors />

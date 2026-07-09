@@ -140,6 +140,11 @@ export const siteConfig = pgTable("site_config", {
 
   // ── Admin Panel Access ────────────────────────────────────────────────────
   adminSlug: text("admin_slug").default("admin"),
+
+  // ── Global Cache Version Token ────────────────────────────────────────────
+  // Bumped by admin "Purge Cache" action. Clients compare against localStorage
+  // and hard-reload once when mismatched, clearing all browser caches.
+  cacheVersion: text("cache_version").notNull().default("1"),
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -109,6 +109,9 @@ async function seedSiteConfig() {
 
       // Admin access slug (admin changes this via admin panel)
       adminSlug: "xpanel2024",
+
+      // Cache version token — starts at "1", bumped by admin Purge Cache
+      cacheVersion: "1",
     })
     .onConflictDoUpdate({
       target: siteConfig.id,
