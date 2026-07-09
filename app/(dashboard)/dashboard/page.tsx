@@ -1,40 +1,82 @@
+import { auth } from "@/lib/auth";
+import { db } from "@/db/drizzle";
+import { 
+  user, 
+  wallet, 
+  tournamentParticipant, 
+  tournamentWinner, 
+  notification 
+} from "@/db/schema";
+import { eq, and, sum, count } from "drizzle-orm";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { getUserProfileCached, getUserTournamentsForDashboard } from "@/lib/user-data";
+import DashboardClient from "./_components/dashboard-client";
+
 // Dashboard reads live session data — never cache at page level
 export const dynamic = "force-dynamic";
 
-import { auth } from "@/lib/auth";
-import { getDashboardConfig } from "@/lib/content";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
-import { H1, P } from "@/components/ui/typography";
-
-export default async function Dashboard() {
+export default async function DashboardPage() {
   const sessionResult = await auth.api.getSession({ headers: await headers() });
 
   if (!sessionResult?.user?.id) {
     redirect("/sign-in");
   }
 
-  const userName = sessionResult.user.name || "User";
-  const dashConfig = await getDashboardConfig();
+  const userId = sessionResult.user.id;
+
+  // Run stats queries in parallel to ensure optimal server rendering times
+  const [
+    dbUser,
+    walletRow,
+    joinedCountRow,
+    winsCountRow,
+    winningsSumRow,
+    unreadNotificationsRow,
+    joinedTournaments,
+  ] = await Promise.all([
+    getUserProfileCached(userId),
+    db.select({ balance: wallet.balance }).from(wallet).where(eq(wallet.userId, userId)).limit(1),
+    db.select({ count: count() }).from(tournamentParticipant).where(eq(tournamentParticipant.userId, userId)),
+    db.select({ count: count() }).from(tournamentWinner).where(and(eq(tournamentWinner.userId, userId), eq(tournamentWinner.placement, "1st"))),
+    db.select({ total: sum(tournamentWinner.prizeAmount) }).from(tournamentWinner).where(eq(tournamentWinner.userId, userId)),
+    db.select({ count: count() }).from(notification).where(and(eq(notification.userId, userId), eq(notification.isRead, false))),
+    getUserTournamentsForDashboard(userId),
+  ]);
+
+  if (!dbUser) {
+    redirect("/sign-in");
+  }
+
+  // Parse values safely
+  const balance = walletRow[0]?.balance ?? 0;
+  const joinedCount = joinedCountRow[0]?.count ?? 0;
+  const winsCount = winsCountRow[0]?.count ?? 0;
+  const totalWinnings = winningsSumRow[0]?.total ? parseInt(winningsSumRow[0].total) : 0;
+  const unreadNotifications = unreadNotificationsRow[0]?.count ?? 0;
+
+  // Only pass the top 3 most recent registered tournaments to the client
+  const recentTournaments = joinedTournaments.slice(0, 3);
+
+  const userData = {
+    name: dbUser.name,
+    gameName: dbUser.gameName,
+    uid: dbUser.uid,
+  };
+
+  const stats = {
+    balance,
+    joinedCount,
+    winsCount,
+    totalWinnings,
+    unreadNotifications,
+  };
 
   return (
-    <section className="flex flex-col items-start justify-start w-full h-full bg-background">
-      <div className="w-full bg-background p-6">
-        <div className="flex flex-col items-start justify-center gap-3">
-          <div className="inline-flex items-center gap-2 rounded-full bg-primary/5 px-4 py-1.5 mb-2">
-            <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-            <span className="text-xs font-semibold text-primary">
-              Welcome Back
-            </span>
-          </div>
-          <H1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground border-none pb-0 mt-0 font-lora">
-            Hey, {userName}!
-          </H1>
-          <P className="text-base text-muted-foreground mt-1 max-w-xl font-ibm">
-            {dashConfig.welcomeMessage}
-          </P>
-        </div>
-      </div>
-    </section>
+    <DashboardClient 
+      user={userData} 
+      stats={stats} 
+      recentTournaments={recentTournaments} 
+    />
   );
 }

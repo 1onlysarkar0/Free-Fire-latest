@@ -251,7 +251,7 @@ export default function TournamentsClient({
                         </div>
                         <div className="text-right">
                           <div className="flex items-center justify-end gap-1.5 text-primary font-lora">
-                            <Trophy className="h-4 w-4 shrink-0" aria-hidden="true" />
+                            <Trophy className="h-4 w-4 shrink-0 text-foreground" aria-hidden="true" />
                             <span className="text-base md:text-lg font-bold leading-none">₹{t.prizePool}</span>
                           </div>
                           <span className="block text-[9px] font-bold text-muted-foreground uppercase tracking-wider font-ibm mt-1">Winning Price</span>
@@ -276,13 +276,13 @@ export default function TournamentsClient({
                       <div className="space-y-3 mb-6 flex-1">
                         <div className="flex justify-between items-center text-muted-foreground text-xs font-ibm">
                           <div className="flex items-center gap-1.5">
-                            <Zap className="h-3.5 w-3.5" />
+                            <Zap className="h-3.5 w-3.5 text-foreground" />
                             <span className={cn("font-medium", t.type === "FREE" ? "text-success" : "")}>
                               {t.type === "FREE" ? "FREE ENTRY" : `₹${t.joiningFee} ENTRY`}
                             </span>
                           </div>
                           <div className="flex items-center gap-1.5">
-                            <Clock className="h-3.5 w-3.5" />
+                            <Clock className="h-3.5 w-3.5 text-foreground" />
                             <span className="font-medium">{format(new Date(t.startTime), "dd MMM, h:mm a")}</span>
                           </div>
                         </div>

@@ -146,10 +146,10 @@ export default function TournamentDetailClient({ id, initialData, initialIsLogge
             </div>
 
             <div className="grid grid-cols-3 gap-2 sm:gap-3 md:min-w-[280px]">
-              <div className="bg-primary/10 rounded-xl p-2 sm:p-3 text-center border border-primary/15 min-w-0">
-                <Trophy className="h-4 w-4 sm:h-5 sm:w-5 mx-auto mb-1 text-primary" />
-                <p className="text-sm sm:text-xl font-bold text-primary truncate">{t.prizePool > 0 ? `₹${t.prizePool}` : "—"}</p>
-                <p className="text-[10px] sm:text-xs text-primary font-medium uppercase truncate">Winning Price</p>
+              <div className="bg-secondary/80 rounded-xl p-2 sm:p-3 text-center border border-border/80 min-w-0">
+                <Trophy className="h-4 w-4 sm:h-5 sm:w-5 mx-auto mb-1 text-foreground" />
+                <p className="text-sm sm:text-xl font-bold text-foreground truncate">{t.prizePool > 0 ? `₹${t.prizePool}` : "—"}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground font-medium uppercase truncate">Winning Price</p>
               </div>
               <div className="bg-secondary/80 rounded-xl p-2 sm:p-3 text-center border border-border/80 min-w-0">
                 <Users className="h-4 w-4 sm:h-5 sm:w-5 mx-auto mb-1 text-foreground" />

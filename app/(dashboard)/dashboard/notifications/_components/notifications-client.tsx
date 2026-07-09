@@ -103,35 +103,15 @@ export default function NotificationsClient({ initialData }: NotificationsClient
   const getNotifDetails = (type: string) => {
     switch (type) {
       case "ROOM_REVEALED":
-        return {
-          icon: Trophy,
-          colorClass: "bg-primary/10 text-primary border-primary/20",
-          iconColor: "text-primary",
-        };
+        return { icon: Trophy };
       case "TOURNAMENT_CANCELLED":
-        return {
-          icon: AlertTriangle,
-          colorClass: "bg-destructive/10 text-destructive border-destructive/20",
-          iconColor: "text-destructive",
-        };
+        return { icon: AlertTriangle };
       case "PRIZE_CREDITED":
-        return {
-          icon: Sparkles,
-          colorClass: "bg-success/10 text-success border-success/20",
-          iconColor: "text-success",
-        };
+        return { icon: Sparkles };
       case "REFUND_CREDITED":
-        return {
-          icon: Wallet,
-          colorClass: "bg-info/10 text-info border-info/20",
-          iconColor: "text-info",
-        };
+        return { icon: Wallet };
       default:
-        return {
-          icon: Bell,
-          colorClass: "bg-muted/10 text-muted-foreground border-muted/20",
-          iconColor: "text-muted-foreground",
-        };
+        return { icon: Bell };
     }
   };
 
@@ -149,9 +129,7 @@ export default function NotificationsClient({ initialData }: NotificationsClient
       {/* Premium Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-5">
         <div className="flex items-center gap-3">
-          <div className="rounded-xl bg-primary/10 p-2.5">
-            <Bell className="h-5 w-5 text-primary" />
-          </div>
+          <Bell className="h-6 w-6 text-foreground shrink-0" />
           <div>
             <h1 className="text-xl font-bold tracking-tight text-foreground font-lora">Your Notifications</h1>
             <p className="text-sm text-muted-foreground mt-0.5 font-ibm">
@@ -161,7 +139,7 @@ export default function NotificationsClient({ initialData }: NotificationsClient
         </div>
         {unreadCount > 0 && (
           <Button onClick={handleMarkAllRead} variant="outline" className="sm:self-center border-border/60 hover:bg-accent/40 font-semibold self-start text-xs h-9">
-            <CheckSquare className="w-4 h-4 mr-1.5 text-primary" /> Mark all read
+            <CheckSquare className="w-4 h-4 mr-1.5 text-foreground" /> Mark all read
           </Button>
         )}
       </div>
@@ -217,7 +195,7 @@ export default function NotificationsClient({ initialData }: NotificationsClient
           </div>
         ) : (
           filteredNotifications.map((n) => {
-            const { icon: Icon, colorClass, iconColor } = getNotifDetails(n.type);
+            const { icon: Icon } = getNotifDetails(n.type);
             const link = getNotifLink(n);
             const label = CATEGORY_MAP[n.type] || "System Info";
 
@@ -228,15 +206,13 @@ export default function NotificationsClient({ initialData }: NotificationsClient
                 className={cn(
                   "group relative overflow-hidden transition-all duration-300 border shadow-3xs rounded-2xl cursor-pointer hover:shadow-md hover:-translate-y-[1px]",
                   n.isRead 
-                    ? "bg-white border-border/40" 
+                    ? "bg-card border-border/40" 
                     : "bg-primary/5 border-primary/20 ring-1 ring-primary/5"
                 )}
               >
                 <CardContent className="p-4 sm:p-5 flex items-start gap-4">
                   {/* Icon Indicator */}
-                  <div className={cn("h-10 w-10 shrink-0 rounded-xl flex items-center justify-center border", colorClass)}>
-                    <Icon className="h-5 w-5" />
-                  </div>
+                  <Icon className="h-5 w-5 text-foreground shrink-0 mt-0.5" />
 
                   {/* Main Content */}
                   <div className="flex-1 min-w-0 space-y-1">
