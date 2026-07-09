@@ -74,11 +74,11 @@
   --radius-xl: 1rem;
   --radius-full: 9999px;
 
-  --background: 0 0% 100%;
+  --background: 33 47% 96.3%;
   --foreground: 225 5% 22%;
-  --card: 36 33% 97%;
+  --card: 33 47% 96.3%;
   --card-foreground: 225 5% 22%;
-  --popover: 36 33% 97%;
+  --popover: 33 47% 96.3%;
   --popover-foreground: 225 5% 22%;
 
   --primary: 14 100% 50%;
@@ -103,7 +103,7 @@
   --input: 220 13% 91%;
   --ring: 14 100% 50%;
 
-  --sidebar: 36 33% 97%;
+  --sidebar: 33 47% 96.3%;
   --sidebar-foreground: 225 5% 22%;
   --sidebar-primary: 14 100% 50%;
   --sidebar-primary-foreground: 0 0% 100%;
@@ -247,7 +247,7 @@
   height: 2.75rem;
   width: 100%;
   border-radius: var(--radius-lg);
-  background-color: hsl(var(--background));
+  background-color: hsl(0, 0%, 100%);
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
   color: hsl(var(--foreground));
@@ -256,7 +256,7 @@
   border: none;
 
   &:focus {
-    background-color: hsl(var(--background));
+    background-color: hsl(0, 0%, 100%);
     box-shadow: 0 0 0 1.5px hsl(var(--ring));
   }
 }
