@@ -70,6 +70,7 @@ export const CircularTestimonials = ({
 
   // State
   const [mounted, setMounted] = useState(false);
+  const [initialReady, setInitialReady] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [hoverPrev, setHoverPrev] = useState(false);
   const [hoverNext, setHoverNext] = useState(false);
@@ -94,7 +95,15 @@ export const CircularTestimonials = ({
     }
     handleResize();
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+
+    const timer = setTimeout(() => {
+      setInitialReady(true);
+    }, 50);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      clearTimeout(timer);
+    };
   }, []);
 
   // Navigation handlers
@@ -139,13 +148,15 @@ export const CircularTestimonials = ({
     const isActive = index === activeIndex;
     const isLeft = (activeIndex - 1 + testimonialsLength) % testimonialsLength === index;
     const isRight = (activeIndex + 1) % testimonialsLength === index;
+    const transitionVal = initialReady ? "all 0.8s cubic-bezier(.4,2,.3,1)" : "none";
+
     if (isActive) {
       return {
         zIndex: 3,
         opacity: 1,
         pointerEvents: "auto",
         transform: `translateX(0px) translateY(0px) scale(1) rotateY(0deg)`,
-        transition: "all 0.8s cubic-bezier(.4,2,.3,1)",
+        transition: transitionVal,
       };
     }
     if (isLeft) {
@@ -154,7 +165,7 @@ export const CircularTestimonials = ({
         opacity: 1,
         pointerEvents: "auto",
         transform: `translateX(-${gap}px) translateY(-${maxStickUp}px) scale(0.85) rotateY(15deg)`,
-        transition: "all 0.8s cubic-bezier(.4,2,.3,1)",
+        transition: transitionVal,
       };
     }
     if (isRight) {
@@ -163,7 +174,7 @@ export const CircularTestimonials = ({
         opacity: 1,
         pointerEvents: "auto",
         transform: `translateX(${gap}px) translateY(-${maxStickUp}px) scale(0.85) rotateY(-15deg)`,
-        transition: "all 0.8s cubic-bezier(.4,2,.3,1)",
+        transition: transitionVal,
       };
     }
     // Hide all other images
@@ -171,7 +182,7 @@ export const CircularTestimonials = ({
       zIndex: 1,
       opacity: 0,
       pointerEvents: "none",
-      transition: "all 0.8s cubic-bezier(.4,2,.3,1)",
+      transition: transitionVal,
     };
   }
 

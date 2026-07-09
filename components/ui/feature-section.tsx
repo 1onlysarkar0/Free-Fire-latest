@@ -29,6 +29,11 @@ export function FeatureSteps({
 }: FeatureStepsProps) {
   const [currentFeature, setCurrentFeature] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -105,13 +110,18 @@ export function FeatureSteps({
                   key={index}
                   className="absolute inset-0"
                   initial={false}
-                  animate={{
+                  animate={mounted ? {
                     opacity: isActive ? 1 : 0,
                     y: isActive ? 0 : (index < currentFeature ? -100 : 100),
                     rotateX: isActive ? 0 : (index < currentFeature ? 20 : -20),
                     zIndex: isActive ? 10 : 0,
+                  } : {
+                    opacity: isActive ? 1 : 0,
+                    y: 0,
+                    rotateX: 0,
+                    zIndex: isActive ? 10 : 0,
                   }}
-                  transition={{ duration: 0.5, ease: "easeInOut" }}
+                  transition={mounted ? { duration: 0.5, ease: "easeInOut" } : { duration: 0 }}
                   style={{ pointerEvents: isActive ? "auto" : "none" }}
                 >
                   <Image

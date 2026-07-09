@@ -54,21 +54,9 @@ export default function DashboardClient({
         <div className="absolute top-0 right-0 h-40 w-40 bg-primary/5 rounded-full blur-3xl -mr-10 -mt-10" />
         
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-          <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-3.5 py-1">
-              <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-              <span className="text-[11px] font-bold uppercase tracking-wider text-primary">
-                Player Profile
-              </span>
-            </div>
-            
             <H3 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-lora border-none pb-0 mt-0">
               Welcome back, {user.name}!
             </H3>
-            
-            <p className="text-sm text-muted-foreground max-w-xl font-ibm leading-relaxed">
-              Track your wallet, view credentials for upcoming matches, and join new tournaments.
-            </p>
           </div>
 
           {/* Game Credentials Display */}

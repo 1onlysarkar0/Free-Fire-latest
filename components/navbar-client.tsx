@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, LogIn, UserPlus, LayoutDashboard } from "lucide-react";
+import { Menu, LogIn, UserPlus, LayoutDashboard, Bell } from "lucide-react";
 import NotificationsBell from "@/components/notifications-bell";
 import * as LucideIcons from "lucide-react";
 import { authClient } from "@/lib/auth-client";
@@ -90,8 +90,24 @@ export const NavbarClient = ({
 
   const authButtons = isLoggedIn ? (
     <>
-      {mounted && (
+      {mounted ? (
         <NotificationsBell initialNotifications={initialNotifications} initialUnreadCount={initialUnreadCount} />
+      ) : (
+        <div className="relative">
+          <button
+            type="button"
+            className="relative p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer"
+            aria-label="Notifications"
+            disabled
+          >
+            <Bell className="h-5 w-5 text-foreground" />
+            {initialUnreadCount > 0 && (
+              <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground ring-2 ring-background">
+                {initialUnreadCount > 9 ? "9+" : initialUnreadCount}
+              </span>
+            )}
+          </button>
+        </div>
       )}
       <Link
         href="/dashboard"
@@ -194,9 +210,27 @@ export const NavbarClient = ({
               </Large>
             </Link>
             <div className="flex items-center gap-1.5">
-              {mounted && isLoggedIn && (
-                <NotificationsBell initialNotifications={initialNotifications} initialUnreadCount={initialUnreadCount} />
-              )}
+              {isLoggedIn ? (
+                mounted ? (
+                  <NotificationsBell initialNotifications={initialNotifications} initialUnreadCount={initialUnreadCount} />
+                ) : (
+                  <div className="relative">
+                    <button
+                      type="button"
+                      className="relative p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer"
+                      aria-label="Notifications"
+                      disabled
+                    >
+                      <Bell className="h-5 w-5 text-foreground" />
+                      {initialUnreadCount > 0 && (
+                        <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground ring-2 ring-background">
+                          {initialUnreadCount > 9 ? "9+" : initialUnreadCount}
+                        </span>
+                      )}
+                    </button>
+                  </div>
+                )
+              ) : null}
               <Sheet>
                 <SheetTrigger asChild>
                   <button
