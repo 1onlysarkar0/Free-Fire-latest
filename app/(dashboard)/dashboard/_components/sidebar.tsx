@@ -1,7 +1,7 @@
 "use client";
 
 import UserProfile, { type PermissionData } from "@/components/user-profile";
-import { HomeIcon, Trophy, Wallet } from "lucide-react";
+import { HomeIcon, Trophy, Wallet, Bell } from "lucide-react";
 import AppSidebarShell, { type AppSidebarSection } from "@/components/app-sidebar";
 
 const getDashboardSections = (): AppSidebarSection[] => [
@@ -21,6 +21,12 @@ const getDashboardSections = (): AppSidebarSection[] => [
     title: "",
     items: [
       { label: "My Wallet", href: "/dashboard/wallet", icon: Wallet },
+    ],
+  },
+  {
+    title: "",
+    items: [
+      { label: "Notifications", href: "/dashboard/notifications", icon: Bell },
     ],
   },
 ];

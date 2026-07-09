@@ -3,6 +3,9 @@ import { db } from "@/db/drizzle";
 import { seoConfig } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { CACHE_TAGS, invalidatePublicCache } from "@/lib/cache";
+import { submitUrlForIndexing } from "@/lib/indexing";
+import { getSiteUrl } from "@/lib/site-url";
+import { KNOWN_PAGES } from "@/lib/seo/helpers";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const admin = await requireAdminOrRole(request, "seo:view");
@@ -31,6 +34,19 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await db.update(seoConfig).set(update as any).where(eq(seoConfig.id, id));
   await invalidatePublicCache({ tags: [CACHE_TAGS.seo], paths: ["/", `/${id}`, "/sitemap.xml"] });
+
+  // Determine path for indexing
+  let pathToIndex = "";
+  if (id === "global") pathToIndex = "/";
+  else if (KNOWN_PAGES[id]) pathToIndex = KNOWN_PAGES[id].path;
+  else if (id.startsWith("page-")) pathToIndex = `/${id.replace("page-", "")}`;
+  else if (id.startsWith("tournament-")) pathToIndex = `/tournaments/${id.replace("tournament-", "")}`;
+
+  if (pathToIndex && pathToIndex !== "—") {
+    const siteUrl = await getSiteUrl();
+    submitUrlForIndexing(`${siteUrl}${pathToIndex}`, "URL_UPDATED").catch(console.error);
+  }
+
   return Response.json({ ok: true });
 }
 

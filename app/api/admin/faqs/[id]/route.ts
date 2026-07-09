@@ -3,6 +3,8 @@ import { db } from "@/db/drizzle";
 import { faq } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { CACHE_TAGS, invalidatePublicCache } from "@/lib/cache";
+import { submitUrlForIndexing } from "@/lib/indexing";
+import { getSiteUrl } from "@/lib/site-url";
 
 export async function PUT(
   request: Request,
@@ -38,6 +40,9 @@ export async function PUT(
     paths: ["/faq", "/sitemap.xml"],
   });
 
+  const siteUrl = await getSiteUrl();
+  submitUrlForIndexing(`${siteUrl}/faq`, "URL_UPDATED").catch(console.error);
+
   return Response.json(updated);
 }
 
@@ -62,6 +67,9 @@ export async function DELETE(
     tags: [CACHE_TAGS.pages, CACHE_TAGS.seo],
     paths: ["/faq", "/sitemap.xml"],
   });
+
+  const siteUrl = await getSiteUrl();
+  submitUrlForIndexing(`${siteUrl}/faq`, "URL_UPDATED").catch(console.error);
 
   return Response.json({ ok: true });
 }

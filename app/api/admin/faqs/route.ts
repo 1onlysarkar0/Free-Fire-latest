@@ -3,6 +3,8 @@ import { db } from "@/db/drizzle";
 import { faq } from "@/db/schema";
 import { asc, sql } from "drizzle-orm";
 import { CACHE_TAGS, invalidatePublicCache } from "@/lib/cache";
+import { submitUrlForIndexing } from "@/lib/indexing";
+import { getSiteUrl } from "@/lib/site-url";
 
 export async function GET(request: Request) {
   const admin = await requireAdminOrRole(request, "pages:view");
@@ -45,6 +47,9 @@ export async function POST(request: Request) {
     tags: [CACHE_TAGS.pages, CACHE_TAGS.seo],
     paths: ["/faq", "/sitemap.xml"],
   });
+
+  const siteUrl = await getSiteUrl();
+  submitUrlForIndexing(`${siteUrl}/faq`, "URL_UPDATED").catch(console.error);
 
   return Response.json(created, { status: 201 });
 }

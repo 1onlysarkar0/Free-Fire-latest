@@ -3,6 +3,8 @@ import { db } from "@/db/drizzle";
 import { siteConfig } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { CACHE_TAGS, invalidatePublicCache } from "@/lib/cache";
+import { submitUrlForIndexing } from "@/lib/indexing";
+import { getSiteUrl } from "@/lib/site-url";
 
 const FIELD_PERMISSIONS: Record<string, string> = {
   logoUrl: "site_config:edit_branding",
@@ -90,5 +92,10 @@ export async function PUT(request: Request) {
     tags: [CACHE_TAGS.siteConfig, CACHE_TAGS.navigation, CACHE_TAGS.seo],
     paths: ["/", "/sign-in", "/sign-up", "/dashboard"],
   });
+
+  // Notify search engines of homepage update
+  const siteUrl = await getSiteUrl();
+  submitUrlForIndexing(siteUrl, "URL_UPDATED").catch(console.error);
+
   return Response.json({ ok: true });
 }

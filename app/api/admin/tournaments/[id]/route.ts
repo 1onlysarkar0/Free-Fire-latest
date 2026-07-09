@@ -5,6 +5,7 @@ import { tournament, tournamentSlot, tournamentParticipant, tournamentWinner, us
 import { count, eq, sql } from "drizzle-orm";
 import { invalidateTournamentCache } from "@/lib/cache";
 import { getSiteUrl } from "@/lib/site-url";
+import { submitUrlForIndexing } from "@/lib/indexing";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const adminUser = await requireAdminOrRole(req, "tournaments:view");
@@ -164,6 +165,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     await invalidateTournamentCache(id);
 
+    // Notify search engines in the background
+    const siteUrl = await getSiteUrl();
+    submitUrlForIndexing(`${siteUrl}/tournaments/${id}`, "URL_UPDATED").catch(console.error);
+
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[API/admin/tournaments/[id]] PATCH:", err);
@@ -195,6 +200,11 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
         .where(eq(siteConfig.id, "default"));
     });
     await invalidateTournamentCache(id);
+    
+    // Notify search engines of deletion
+    const siteUrl = await getSiteUrl();
+    submitUrlForIndexing(`${siteUrl}/tournaments/${id}`, "URL_DELETED").catch(console.error);
+
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[API/admin/tournaments/[id]] DELETE:", err);

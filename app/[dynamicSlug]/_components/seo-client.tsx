@@ -28,6 +28,7 @@ import {
   getScoreColor,
   getScoreBadge,
 } from "@/lib/seo/helpers";
+import IndexingSettings from "../seo/_components/indexing-settings";
 
 interface Props {
   initialData: SeoRow[];
@@ -320,12 +321,16 @@ export default function SeoPage({ initialData, dynamicSlug }: Props) {
           </div>
         </div>
       </div>
-
       <Tabs defaultValue="pages" className="space-y-4 md:space-y-6">
         <div className="overflow-x-auto">
-          <TabsList className="grid min-w-[320px] grid-cols-2">
+          <TabsList className="grid min-w-[320px] grid-cols-3">
             <TabsTrigger value="pages">SEO Pages ({rows.length})</TabsTrigger>
-            <TabsTrigger value="robots">Robots.txt Rules</TabsTrigger>
+            <TabsTrigger value="robots" className="px-6 data-[state=active]:bg-[#FF5A1F] data-[state=active]:text-white">
+              Robots.txt
+            </TabsTrigger>
+            <TabsTrigger value="indexing" className="px-6 data-[state=active]:bg-[#FF5A1F] data-[state=active]:text-white">
+              Instant Indexing
+            </TabsTrigger>
           </TabsList>
         </div>
 
@@ -532,6 +537,10 @@ export default function SeoPage({ initialData, dynamicSlug }: Props) {
               </Button>
             </div>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="indexing" className="outline-none">
+          <IndexingSettings />
         </TabsContent>
       </Tabs>
     </div>

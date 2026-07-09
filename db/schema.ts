@@ -879,3 +879,33 @@ export const paymentHelpRequest = pgTable("payment_help_request", {
   index("payment_help_status_idx").on(t.status),
   index("payment_help_created_idx").on(t.createdAt),
 ]);
+// -----------------------------------------------------------------------------
+// INDEXING API CONFIGURATION
+// -----------------------------------------------------------------------------
+
+export const indexingApiConfig = pgTable("indexing_api_config", {
+  id: text("id").primaryKey().default("default"),
+  googleServiceAccountJson: text("google_service_account_json"),
+  indexNowKey: text("indexnow_key"),
+  autoSubmitGoogle: boolean("auto_submit_google").notNull().default(false),
+  autoSubmitIndexNow: boolean("auto_submit_indexnow").notNull().default(false),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// -----------------------------------------------------------------------------
+// INDEXING LOGS
+// -----------------------------------------------------------------------------
+
+export const indexingLog = pgTable("indexing_log", {
+  id: text("id").primaryKey(),
+  url: text("url").notNull(),
+  api: text("api").notNull(),
+  status: text("status").notNull(),
+  response: text("response"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => [
+  index("indexing_log_url_idx").on(t.url),
+  index("indexing_log_api_idx").on(t.api),
+  index("indexing_log_status_idx").on(t.status),
+  index("indexing_log_created_idx").on(t.createdAt),
+]);

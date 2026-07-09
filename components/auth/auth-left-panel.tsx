@@ -36,7 +36,7 @@ export default function AuthLeftPanel({ config, quote, subtext }: AuthLeftPanelP
             alt={config.logo.alt}
             width={36}
             height={36}
-            className="rounded-sm"
+            className="w-9 h-9 rounded-sm"
             priority
           />
           <Large className="text-white text-2xl font-bold font-momo">

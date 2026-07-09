@@ -44,7 +44,7 @@ export default async function SignInPage() {
             alt={config.logo.alt}
             width={28}
             height={28}
-            className="rounded-sm"
+            className="w-7 h-7 rounded-sm"
             priority
           />
           <span className="text-lg sm:text-xl font-bold font-momo text-foreground">

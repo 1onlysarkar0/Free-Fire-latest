@@ -6,6 +6,7 @@ import { desc, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { invalidateTournamentCache } from "@/lib/cache";
 import { getSiteUrl } from "@/lib/site-url";
+import { submitUrlForIndexing } from "@/lib/indexing";
 
 // Convert slot number to team label (1→A, 2→B, ..., 26→Z, 27→AA, ...)
 function slotLabel(n: number): string {
@@ -170,7 +171,11 @@ export async function POST(req: NextRequest) {
 
     await invalidateTournamentCache(id);
 
-    return NextResponse.json({ success: true, id }, { status: 201 });
+    // Submits the new tournament URL to search engines in the background
+    const siteUrl = await getSiteUrl();
+    submitUrlForIndexing(`${siteUrl}/tournaments/${id}`, "URL_UPDATED").catch(console.error);
+
+    return NextResponse.json({ id, message: "Tournament created successfully" });
   } catch (err) {
     console.error("[API/admin/tournaments] POST:", err);
     return NextResponse.json({ error: "Failed to create tournament" }, { status: 500 });

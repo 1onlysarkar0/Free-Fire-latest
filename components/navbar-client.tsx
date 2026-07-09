@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Menu, LogIn, UserPlus, LayoutDashboard } from "lucide-react";
@@ -78,13 +79,20 @@ export const NavbarClient = ({
   initialUnreadCount = 0,
 }: Navbar1Props) => {
   const { data: session, isPending } = authClient.useSession();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Use server-provided initial value while client hydrates — eliminates flash
   const isLoggedIn = isPending ? initialIsLoggedIn : !!session?.user;
 
   const authButtons = isLoggedIn ? (
     <>
-      <NotificationsBell initialNotifications={initialNotifications} initialUnreadCount={initialUnreadCount} />
+      {mounted && (
+        <NotificationsBell initialNotifications={initialNotifications} initialUnreadCount={initialUnreadCount} />
+      )}
       <Link
         href="/dashboard"
         prefetch={true}
@@ -185,17 +193,20 @@ export const NavbarClient = ({
                 {logo.title}
               </Large>
             </Link>
-
-            <Sheet>
-              <SheetTrigger asChild>
-                <button
-                  type="button"
-                  className="h-11 w-11 flex items-center justify-center rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors cursor-pointer"
-                  aria-label="Open menu"
-                >
-                  <Menu className="size-5 text-foreground" />
-                </button>
-              </SheetTrigger>
+            <div className="flex items-center gap-1.5">
+              {mounted && isLoggedIn && (
+                <NotificationsBell initialNotifications={initialNotifications} initialUnreadCount={initialUnreadCount} />
+              )}
+              <Sheet>
+                <SheetTrigger asChild>
+                  <button
+                    type="button"
+                    className="h-11 w-11 flex items-center justify-center rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors cursor-pointer"
+                    aria-label="Open menu"
+                  >
+                    <Menu className="size-5 text-foreground" />
+                  </button>
+                </SheetTrigger>
               <SheetContent
                 side="right"
                 className="w-[300px] overflow-y-auto p-6 bg-background border-none"
@@ -237,6 +248,7 @@ export const NavbarClient = ({
                 </div>
               </SheetContent>
             </Sheet>
+            </div>
           </div>
 
         </div>

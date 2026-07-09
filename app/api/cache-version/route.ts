@@ -2,6 +2,8 @@ import { db } from "@/db/drizzle";
 import { siteConfig } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
+export const dynamic = "force-dynamic";
+
 /**
  * Public endpoint — no auth required.
  * Returns the current global cache version token from the DB.

@@ -36,6 +36,7 @@ import {
   customPage,
   robotsConfig,
   faq,
+  indexingApiConfig,
 } from "./schema";
 
 // ─── DB Connection ────────────────────────────────────────────────────────────

@@ -4,6 +4,7 @@ import { customPage, seoConfig } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { CACHE_TAGS, invalidatePublicCache } from "@/lib/cache";
 import { getSiteUrl } from "@/lib/site-url";
+import { submitUrlForIndexing } from "@/lib/indexing";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const admin = await requireAdminOrRole(request, "pages:view");
@@ -63,6 +64,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
           updatedAt: new Date(),
         }
       });
+
+      // Notify search engines in the background
+      const siteUrl = await getSiteUrl();
+      const pageUrl = `${siteUrl}/${updatedRow.slug}`;
+      submitUrlForIndexing(pageUrl, "URL_UPDATED").catch(console.error);
+
     } else if (updatedRow && updatedRow.status !== "published") {
       await db.delete(seoConfig).where(eq(seoConfig.id, `page-${updatedRow.slug}`));
     }
@@ -93,6 +100,11 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   
   if (existing) {
     await db.delete(seoConfig).where(eq(seoConfig.id, `page-${existing.slug}`));
+    
+    // Notify search engines of deletion
+    const siteUrl = await getSiteUrl();
+    const pageUrl = `${siteUrl}/${existing.slug}`;
+    submitUrlForIndexing(pageUrl, "URL_DELETED").catch(console.error);
   }
 
   await db.delete(customPage).where(eq(customPage.id, id));
