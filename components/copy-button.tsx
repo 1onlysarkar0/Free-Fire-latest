@@ -91,7 +91,7 @@ export function CopyWrapper({ children, className }: { children: React.ReactNode
   };
 
   return (
-    <div className={cn("relative group", className)}>
+    <div className={cn("relative group min-w-0", className)}>
       <div ref={contentRef} className="w-full">
         {children}
       </div>

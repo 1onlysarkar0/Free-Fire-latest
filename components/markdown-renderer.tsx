@@ -355,7 +355,7 @@ export function MarkdownRenderer({ content, className, variant = "default", isSt
         }
 
         return (
-          <CopyWrapper>
+          <CopyWrapper className="w-full overflow-hidden min-w-0">
             <pre 
               className={cn("bg-card border border-border shadow-xs p-4 rounded-xl overflow-x-auto text-sm font-mono text-foreground [&>code]:!bg-transparent [&>code]:!p-0 [&>code]:!text-inherit [&>code]:!font-normal", isChat ? "my-3" : "my-8")} 
               {...props} 
@@ -371,7 +371,7 @@ export function MarkdownRenderer({ content, className, variant = "default", isSt
 
         if (isInline) {
           return (
-            <code className={cn("bg-primary/10 text-primary px-1.5 py-0.5 rounded-md font-medium text-[0.9em]", className)} {...props}>
+            <code className={cn("bg-primary/10 text-primary px-1.5 py-0.5 rounded-md font-medium text-[0.9em] break-words", className)} {...props}>
               {children}
             </code>
           );
@@ -397,10 +397,10 @@ export function MarkdownRenderer({ content, className, variant = "default", isSt
         );
       },
       ul: ({ node: _, ...props }) => (
-        <ul className={cn("ml-6 list-disc [&>li]:mt-1 marker:text-primary", isChat ? "my-2 text-foreground font-medium" : "my-6 font-ibm text-muted-foreground")} {...props} />
+        <ul className={cn("ml-6 list-disc [&>li]:mt-1 marker:text-primary break-words", isChat ? "my-2 text-foreground font-medium" : "my-6 font-ibm text-muted-foreground")} {...props} />
       ),
       ol: ({ node: _, ...props }) => (
-        <ol className={cn("ml-6 list-decimal [&>li]:mt-1 marker:text-primary", isChat ? "my-2 text-foreground font-medium" : "my-6 font-ibm text-muted-foreground")} {...props} />
+        <ol className={cn("ml-6 list-decimal [&>li]:mt-1 marker:text-primary break-words", isChat ? "my-2 text-foreground font-medium" : "my-6 font-ibm text-muted-foreground")} {...props} />
       ),
       input: ({ node: _, ...props }) => {
         if (props.type === "checkbox") {
@@ -410,11 +410,11 @@ export function MarkdownRenderer({ content, className, variant = "default", isSt
       },
       section: ({ node: _, className, ...props }) => {
         if (className === "footnotes") {
-          return <section className="footnotes mt-12 border-t border-border/60 pt-6 text-sm text-muted-foreground" {...props} />;
+          return <section className="footnotes mt-12 border-t border-border/60 pt-6 text-sm text-muted-foreground break-words" {...props} />;
         }
         return <section {...props} />;
       },
-      dl: ({ node: _, ...props }) => <dl className="my-6 space-y-3" {...props} />,
+      dl: ({ node: _, ...props }) => <dl className="my-6 space-y-3 break-words" {...props} />,
       dt: ({ node: _, ...props }) => <dt className="font-bold text-foreground" {...props} />,
       dd: ({ node: _, ...props }) => <dd className="ml-6 text-muted-foreground" {...props} />,
       img: ({ node: _, src, alt, title, ...props }) => (
@@ -433,7 +433,7 @@ export function MarkdownRenderer({ content, className, variant = "default", isSt
       hr: ({ node: _, ...props }) => <hr className="my-8 border-t border-border/60" {...props} />,
       del: ({ node: _, ...props }) => <del className="line-through text-muted-foreground/70" {...props} />,
       table: ({ node: _, ...props }) => (
-        <CopyWrapper className={isChat ? "my-3" : "my-8"}>
+        <CopyWrapper className={cn("w-full overflow-hidden min-w-0", isChat ? "my-3" : "my-8")}>
           <div className="w-full overflow-x-auto rounded-xl border border-border shadow-sm bg-card">
             <Table {...props} className="w-full text-left border-collapse" />
           </div>
@@ -442,14 +442,14 @@ export function MarkdownRenderer({ content, className, variant = "default", isSt
       thead: ({ node: _, ...props }) => <TableHeader className="bg-muted/60 border-b border-border" {...props} />,
       tbody: ({ node: _, ...props }) => <TableBody className="divide-y divide-border" {...props} />,
       tr: ({ node: _, ...props }) => <TableRow className="hover:bg-muted/40 transition-colors" {...props} />,
-      th: ({ node: _, ...props }) => <TableHead className={cn("font-semibold text-foreground align-middle", isChat ? "p-2" : "p-4")} {...props} />,
+      th: ({ node: _, ...props }) => <TableHead className={cn("font-semibold text-foreground align-middle whitespace-nowrap", isChat ? "p-2" : "p-4")} {...props} />,
       td: ({ node: _, ...props }) => <TableCell className={cn("align-middle text-muted-foreground", isChat ? "p-2" : "p-4")} {...props} />,
       a: ({ node: _, href, children, ...props }) => {
         const isInternal = href?.startsWith("/");
         const isHash = !href || href.startsWith("#");
         
         if (isChat) {
-          const linkClasses = "inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-colors my-0.5 mx-0.5 align-baseline";
+          const linkClasses = "inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-colors my-0.5 mx-0.5 align-baseline break-all";
           if (isHash) {
             return (
               <a {...props} href={href || "#"} className={linkClasses} title={href}>
@@ -474,7 +474,7 @@ export function MarkdownRenderer({ content, className, variant = "default", isSt
         }
 
         // Default global variant
-        const globalLinkClasses = "font-semibold text-primary underline underline-offset-4 hover:text-primary/80 transition-colors";
+        const globalLinkClasses = "font-semibold text-primary underline underline-offset-4 hover:text-primary/80 transition-colors break-words";
         if (isHash) {
           return (
             <a {...props} href={href || "#"} className={globalLinkClasses}>
@@ -495,22 +495,22 @@ export function MarkdownRenderer({ content, className, variant = "default", isSt
           </a>
         );
       },
-      sup: ({ node: _, ...props }) => <sup className="text-[0.75em] leading-none vertical-align-super font-mono" {...props} />,
-      sub: ({ node: _, ...props }) => <sub className="text-[0.75em] leading-none vertical-align-sub font-mono" {...props} />,
-      mark: ({ node: _, ...props }) => <mark className="bg-warning/20 text-warning px-1 py-0.5 rounded font-medium" {...props} />,
-      kbd: ({ node: _, ...props }) => <kbd className="bg-muted border border-border px-1.5 py-0.5 rounded text-xs font-mono shadow-xs text-foreground" {...props} />,
-      details: ({ node: _, ...props }) => <details className="border border-border rounded-xl p-4 bg-muted/20 my-4 space-y-2 cursor-pointer transition-colors" {...props} />,
-      summary: ({ node: _, ...props }) => <summary className="font-semibold text-foreground select-none" {...props} />,
-      figure: ({ node: _, ...props }) => <figure className="my-6 text-center space-y-2 border border-border/40 p-4 rounded-xl bg-card" {...props} />,
-      figcaption: ({ node: _, ...props }) => <figcaption className="text-xs text-muted-foreground italic" {...props} />,
-      abbr: ({ node: _, ...props }) => <abbr className="underline decoration-dotted cursor-help text-foreground font-medium" {...props} />,
-      cite: ({ node: _, ...props }) => <cite className="text-muted-foreground italic border-l-2 border-border/60 pl-3 my-2 block" {...props} />,
-      time: ({ node: _, ...props }) => <time className="text-xs text-muted-foreground font-semibold font-mono bg-muted/65 px-1.5 py-0.5 rounded" {...props} />,
+      sup: ({ node: _, ...props }) => <sup className="text-[0.75em] leading-none vertical-align-super font-mono break-words" {...props} />,
+      sub: ({ node: _, ...props }) => <sub className="text-[0.75em] leading-none vertical-align-sub font-mono break-words" {...props} />,
+      mark: ({ node: _, ...props }) => <mark className="bg-warning/20 text-warning px-1 py-0.5 rounded font-medium break-words" {...props} />,
+      kbd: ({ node: _, ...props }) => <kbd className="bg-muted border border-border px-1.5 py-0.5 rounded text-xs font-mono shadow-xs text-foreground break-words" {...props} />,
+      details: ({ node: _, ...props }) => <details className="border border-border rounded-xl p-4 bg-muted/20 my-4 space-y-2 cursor-pointer transition-colors break-words" {...props} />,
+      summary: ({ node: _, ...props }) => <summary className="font-semibold text-foreground select-none break-words" {...props} />,
+      figure: ({ node: _, ...props }) => <figure className="my-6 text-center space-y-2 border border-border/40 p-4 rounded-xl bg-card break-words" {...props} />,
+      figcaption: ({ node: _, ...props }) => <figcaption className="text-xs text-muted-foreground italic break-words" {...props} />,
+      abbr: ({ node: _, ...props }) => <abbr className="underline decoration-dotted cursor-help text-foreground font-medium break-words" {...props} />,
+      cite: ({ node: _, ...props }) => <cite className="text-muted-foreground italic border-l-2 border-border/60 pl-3 my-2 block break-words" {...props} />,
+      time: ({ node: _, ...props }) => <time className="text-xs text-muted-foreground font-semibold font-mono bg-muted/65 px-1.5 py-0.5 rounded break-words" {...props} />,
     };
   }, [isChat, isStreaming, variant]);
 
   return (
-    <div className={cn("w-full max-w-none", className)}>
+    <div className={cn("w-full max-w-none min-w-0 break-words overflow-x-hidden", className)}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath, remarkEmoji, remarkBreaks] as any}
         rehypePlugins={[rehypeRaw, [rehypeSanitize, customSchema], rehypeSlug, rehypeKatex] as any}
