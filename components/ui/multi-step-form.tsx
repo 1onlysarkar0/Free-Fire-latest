@@ -127,7 +127,7 @@ const MultiStepForm = React.forwardRef<HTMLDivElement, MultiStepFormProps>(
 
         </div>
 
-        <div className="min-h-[140px] md:min-h-[180px] overflow-hidden py-2">
+        <div className="min-h-[140px] md:min-h-[180px] overflow-hidden py-2 px-4 -mx-4">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentStep}

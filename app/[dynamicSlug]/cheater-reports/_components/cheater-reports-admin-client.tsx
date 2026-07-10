@@ -567,7 +567,7 @@ export default function CheaterReportsAdminClient() {
 
       {/* ── Detail Dialog ─────────────────────────────────────── */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg w-full max-h-[90dvh] overflow-y-auto">
+        <DialogContent className="max-w-xl w-[95vw] md:w-full max-h-[90dvh] overflow-y-auto p-4 md:p-6">
           <DialogHeader>
             <DialogTitle className="font-lora flex items-center gap-2">
               <ShieldAlert className="h-5 w-5 text-foreground shrink-0" />
@@ -623,7 +623,7 @@ export default function CheaterReportsAdminClient() {
                   <Trophy className="w-4 h-4 text-foreground shrink-0 mt-0.5" />
                   <div>
                     <p className="text-[10px] text-muted-foreground font-ibm font-bold uppercase tracking-wider mb-1">Tournament</p>
-                    <p className="text-sm font-ibm font-semibold text-foreground">{selectedReport.tournamentName}</p>
+                    <p className="text-sm font-ibm font-semibold text-foreground break-words">{selectedReport.tournamentName}</p>
                     {(selectedReport.tournamentMode || selectedReport.tournamentFormat) && (
                       <p className="text-xs text-muted-foreground font-ibm uppercase mt-0.5">
                         {selectedReport.tournamentMode?.replace("_", " ")} · {selectedReport.tournamentFormat}
@@ -634,9 +634,9 @@ export default function CheaterReportsAdminClient() {
               )}
 
               {/* Description */}
-              <div className="space-y-2">
+              <div className="space-y-2 w-full max-w-full overflow-hidden">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-ibm">Description</p>
-                <div className="bg-accent/40 rounded-xl p-4 text-sm font-ibm text-foreground leading-relaxed whitespace-pre-wrap border border-border/20 max-h-40 overflow-y-auto">
+                <div className="bg-accent/40 rounded-xl p-4 text-sm font-ibm text-foreground leading-relaxed whitespace-pre-wrap break-words border border-border/20 max-h-40 overflow-y-auto w-full">
                   {selectedReport.description}
                 </div>
               </div>

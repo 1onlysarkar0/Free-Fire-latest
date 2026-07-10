@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -251,7 +252,7 @@ export default function CheaterReportClient({ userId, userName, userGameName }: 
   }
 
   return (
-    <div className="flex-1 bg-gradient-to-br from-background via-background to-primary/5 flex flex-col pt-20 pb-12 md:pt-28 md:pb-20">
+    <div className="flex-1 bg-gradient-to-br from-background via-background to-primary/5 flex flex-col pt-20 pb-12 md:pt-28 md:pb-20 overflow-x-hidden">
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16 flex-grow flex flex-col">
         {/* Page Header */}
         <div className="max-w-2xl mb-10 mx-auto text-center flex flex-col items-center justify-center">
@@ -427,7 +428,8 @@ export default function CheaterReportClient({ userId, userName, userGameName }: 
                   className="h-12 px-5 shrink-0 font-ibm font-bold rounded-xl active:scale-[0.98] cursor-pointer"
                   aria-label="Search tournaments"
                 >
-                  {isSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Search className="w-4 h-4 mr-1.5" />Search</>}
+                  <Search className="w-4 h-4 mr-1.5" />
+                  {isSearching ? "Searching..." : "Search"}
                 </Button>
               </div>
 
@@ -465,8 +467,20 @@ export default function CheaterReportClient({ userId, userName, userGameName }: 
               )}
 
               {isSearching && (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                <div className="space-y-3 py-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-start gap-3 p-3.5 border rounded-xl border-border/40">
+                      <Skeleton className="w-9 h-9 rounded-lg shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-3/4 rounded" />
+                        <div className="flex items-center gap-2">
+                          <Skeleton className="h-3 w-16 rounded" />
+                          <Skeleton className="h-3 w-16 rounded" />
+                          <Skeleton className="h-3 w-16 rounded" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
 
@@ -521,7 +535,7 @@ export default function CheaterReportClient({ userId, userName, userGameName }: 
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                   <div>
                     <p className="text-xs text-muted-foreground font-ibm font-semibold mb-0.5">Reported UID</p>
-                    <p className="text-sm font-mono font-bold text-foreground">{reportedUid}</p>
+                    <p className="text-sm font-mono font-bold text-foreground break-all">{reportedUid}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground font-ibm font-semibold mb-0.5">Incident Time</p>
@@ -532,7 +546,7 @@ export default function CheaterReportClient({ userId, userName, userGameName }: 
                   {selectedTournament && (
                     <div className="col-span-2 border-t border-border/20 pt-2 mt-1">
                       <p className="text-xs text-muted-foreground font-ibm font-semibold mb-0.5">Tournament</p>
-                      <p className="text-sm font-ibm font-bold text-foreground flex items-center gap-1.5">
+                      <p className="text-sm font-ibm font-bold text-foreground flex items-center gap-1.5 break-words">
                         <Trophy className="w-4 h-4 text-primary shrink-0" />{selectedTournament.name}
                       </p>
                     </div>
