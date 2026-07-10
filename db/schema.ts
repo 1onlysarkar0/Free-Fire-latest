@@ -89,6 +89,7 @@ export const twoFactor = pgTable("twoFactor", {
   userId: text("userId")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
+  failedVerificationCount: integer("failedVerificationCount").default(0),
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
