@@ -27,6 +27,9 @@ export const user = pgTable("user", {
   gameName: text("gameName"),
   uid: text("uid"),
   twoFactorEnabled: boolean("twoFactorEnabled").default(false),
+  // Required by better-auth twoFactor plugin (v1.6+): tracks failed attempts & lockout
+  failedVerificationCount: integer("failedVerificationCount").default(0),
+  lockedUntil: timestamp("lockedUntil"),
   topPlayer: boolean("top_player").default(false),
   isAdmin: boolean("is_admin").notNull().default(false),
   // Ban system

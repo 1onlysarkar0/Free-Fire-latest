@@ -170,11 +170,14 @@ export default function IndexingSettings() {
               </div>
               
               <Field>
-                <FieldLabel>Your Generated Key</FieldLabel>
+                <FieldLabel>Active IndexNow Key</FieldLabel>
                 <div className="bg-white border border-border rounded-xl px-4 py-3 font-mono text-xs break-all text-muted-foreground shadow-3xs">
-                  {config.indexNowKey || "Key will be generated automatically..."}
+                  {config.indexNowKey || "Not configured. Set INDEXNOW_KEY in your .env file."}
                 </div>
                 <p className="text-[11px] text-muted-foreground mt-1.5 leading-relaxed">
+                  To change this key, update the <code className="bg-background px-1 py-0.5 rounded border">INDEXNOW_KEY</code> variable in your server's environment config or <code className="bg-background px-1 py-0.5 rounded border">.env</code> file.
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
                   This validation key is dynamically served at <code className="bg-background px-1.5 py-0.5 rounded border">/api/indexnow-key</code> to verify your ownership of the domain.
                 </p>
               </Field>

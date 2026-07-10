@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { format } from "date-fns";
 import {
   AlertTriangle, RefreshCw, Eye, ChevronLeft, ChevronRight,
-  User, Trophy, CheckCircle, XCircle, Clock, Search, Trash2,
-  ShieldAlert, Calendar, Loader2,
+  User, Trophy, CheckCircle, XCircle, Clock, Trash2,
+  ShieldAlert, Loader2, Filter, Search, X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -45,24 +45,43 @@ interface CheaterReport {
 
 const STATUS_OPTIONS = ["", "PENDING", "REVIEWED", "RESOLVED", "DISMISSED"] as const;
 
-const STATUS_STYLES: Record<string, { badge: string; dot: string }> = {
+const STATUS_CONFIG: Record<string, { badge: string; dot: string; label: string; icon: React.FC<{className?:string}> }> = {
   PENDING: {
     badge: "bg-amber-50 text-amber-700 border border-amber-200",
     dot: "bg-amber-500",
+    label: "Pending",
+    icon: Clock,
   },
   REVIEWED: {
     badge: "bg-blue-50 text-blue-700 border border-blue-200",
     dot: "bg-blue-500",
+    label: "Reviewed",
+    icon: Eye,
   },
   RESOLVED: {
     badge: "bg-emerald-50 text-emerald-700 border border-emerald-200",
     dot: "bg-emerald-500",
+    label: "Resolved",
+    icon: CheckCircle,
   },
   DISMISSED: {
     badge: "bg-rose-50 text-rose-700 border border-rose-200",
     dot: "bg-rose-500",
+    label: "Dismissed",
+    icon: XCircle,
   },
 };
+
+function StatusBadge({ status, className }: { status: string; className?: string }) {
+  const cfg = STATUS_CONFIG[status];
+  if (!cfg) return <span className="text-xs text-muted-foreground font-ibm">{status}</span>;
+  return (
+    <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold font-ibm", cfg.badge, className)}>
+      <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", cfg.dot)} />
+      {cfg.label}
+    </span>
+  );
+}
 
 export default function CheaterReportsAdminClient() {
   const [reports, setReports] = useState<CheaterReport[]>([]);
@@ -71,6 +90,8 @@ export default function CheaterReportsAdminClient() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
 
   // Detail dialog
   const [selectedReport, setSelectedReport] = useState<CheaterReport | null>(null);
@@ -160,17 +181,35 @@ export default function CheaterReportsAdminClient() {
     }
   };
 
+  // Client-side search filter
+  const filteredReports = searchQuery.trim()
+    ? reports.filter(r =>
+        r.reportedUid.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (r.userName?.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (r.userEmail?.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (r.userGameName?.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
+    : reports;
+
+  const statusCounts = {
+    PENDING: reports.filter(r => r.status === "PENDING").length,
+    REVIEWED: reports.filter(r => r.status === "REVIEWED").length,
+    RESOLVED: reports.filter(r => r.status === "RESOLVED").length,
+    DISMISSED: reports.filter(r => r.status === "DISMISSED").length,
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Header */}
       <div className="header-admin">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <AlertTriangle className="h-5 w-5 text-destructive" />
+          <div className="flex items-center gap-2.5 mb-1">
+            <ShieldAlert className="h-5 w-5 text-foreground" />
             <h1 className="text-2xl font-bold font-lora text-foreground">Cheater Reports</h1>
           </div>
           <p className="text-sm text-muted-foreground font-ibm">
-            Review and manage cheater reports submitted by users. Total: {total}
+            Review and manage cheater reports submitted by users.{" "}
+            <span className="font-semibold text-foreground">{total} total</span>
           </p>
         </div>
         <Button
@@ -185,108 +224,149 @@ export default function CheaterReportsAdminClient() {
         </Button>
       </div>
 
-      {/* Filters */}
-      <div className="card-settings p-4">
-        <div className="flex flex-wrap gap-2 items-center">
-          <span className="text-sm font-semibold font-ibm text-foreground">Filter by status:</span>
-          {STATUS_OPTIONS.map((s) => (
+      {/* Quick Stats Row */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {(["PENDING", "REVIEWED", "RESOLVED", "DISMISSED"] as const).map((s) => {
+          const cfg = STATUS_CONFIG[s];
+          const StatusIcon = cfg.icon;
+          return (
             <button
-              key={s || "all"}
+              key={s}
               type="button"
-              onClick={() => {
-                setStatusFilter(s);
-                setPage(1);
-              }}
+              onClick={() => { setStatusFilter(statusFilter === s ? "" : s); setPage(1); }}
               className={cn(
-                "px-3 py-1.5 rounded-lg text-xs font-semibold font-ibm transition-all duration-150 border",
+                "flex items-center gap-3 p-3.5 rounded-xl border transition-all duration-200 text-left group cursor-pointer",
                 statusFilter === s
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-card text-foreground border-border/40 hover:border-primary/30"
+                  ? cn(cfg.badge, "ring-2 ring-offset-1 ring-primary/20")
+                  : "bg-card border-border/50 hover:border-border"
               )}
             >
-              {s || "All"}
+              <StatusIcon className="h-4 w-4 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-wider opacity-70">{cfg.label}</p>
+                <p className="text-lg font-extrabold font-ibm leading-none mt-0.5">{statusCounts[s]}</p>
+              </div>
             </button>
-          ))}
-        </div>
+          );
+        })}
       </div>
 
-      {/* Table */}
+      {/* Search & Filter Bar */}
+      <div className="card-settings p-3 sm:p-4">
+        <div className="flex flex-col sm:flex-row gap-3">
+          {/* Search */}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search by UID, name, email, game name…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 pr-9 font-ibm bg-background"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Mobile filter toggle */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="sm:hidden font-ibm gap-2"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <Filter className="h-3.5 w-3.5" />
+              Filter
+              {statusFilter && <span className="h-2 w-2 rounded-full bg-primary" />}
+            </Button>
+          </div>
+
+          {/* Desktop: inline status pills */}
+          <div className="hidden sm:flex flex-wrap gap-1.5 items-center">
+            {STATUS_OPTIONS.map((s) => (
+              <button
+                key={s || "all"}
+                type="button"
+                onClick={() => { setStatusFilter(s); setPage(1); }}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-xs font-semibold font-ibm transition-all duration-150 border",
+                  statusFilter === s
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-card text-foreground border-border/50 hover:border-border"
+                )}
+              >
+                {s || "All"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Mobile: inline filter pills */}
+        {showFilters && (
+          <div className="flex flex-wrap gap-1.5 mt-3 sm:hidden">
+            {STATUS_OPTIONS.map((s) => (
+              <button
+                key={s || "all"}
+                type="button"
+                onClick={() => { setStatusFilter(s); setPage(1); setShowFilters(false); }}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-xs font-semibold font-ibm transition-all duration-150 border",
+                  statusFilter === s
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-card text-foreground border-border/50 hover:border-border"
+                )}
+              >
+                {s || "All"}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Table / Cards */}
       <div className="card-list">
         {loading && reports.length === 0 ? (
-          <>
-            {/* Desktop Skeleton */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr>
-                    <th>Reporter</th>
-                    <th>Reported UID</th>
-                    <th>Incident</th>
-                    <th>Tournament</th>
-                    <th>Status</th>
-                    <th>Submitted</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Array.from({ length: 5 }).map((_, idx) => (
-                    <tr key={idx} className="animate-pulse">
-                      <td>
-                        <div className="space-y-2">
-                          <div className="h-4 bg-muted rounded-md w-28" />
-                          <div className="h-3 bg-muted rounded-md w-36" />
-                        </div>
-                      </td>
-                      <td><div className="h-5 bg-muted rounded-md w-24 font-mono" /></td>
-                      <td><div className="h-4 bg-muted rounded-md w-32" /></td>
-                      <td>
-                        <div className="space-y-1">
-                          <div className="h-4 bg-muted rounded-md w-24" />
-                          <div className="h-3 bg-muted rounded-md w-16" />
-                        </div>
-                      </td>
-                      <td><div className="h-6 bg-muted rounded-full w-20" /></td>
-                      <td><div className="h-4 bg-muted rounded-md w-16" /></td>
-                      <td><div className="h-8 bg-muted rounded-md w-14" /></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Mobile Skeleton */}
-            <div className="md:hidden divide-y divide-border/10">
-              {Array.from({ length: 5 }).map((_, idx) => (
-                <div key={idx} className="p-4 space-y-3 animate-pulse">
-                  <div className="flex justify-between items-center">
-                    <div className="space-y-1.5 flex-1">
-                      <div className="h-4 bg-muted rounded-md w-28" />
-                      <div className="h-3 bg-muted rounded-md w-36" />
-                    </div>
-                    <div className="h-6 bg-muted rounded-full w-20" />
+          <div className="divide-y divide-border/10">
+            {Array.from({ length: 6 }).map((_, idx) => (
+              <div key={idx} className="p-4 sm:p-5 animate-pulse">
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="space-y-2 flex-1">
+                    <div className="h-4 bg-muted rounded-md w-32" />
+                    <div className="h-3 bg-muted rounded-md w-44" />
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <div className="h-3 bg-muted rounded-md w-16 mb-1" />
-                      <div className="h-4 bg-muted rounded-md w-24" />
-                    </div>
-                    <div>
-                      <div className="h-3 bg-muted rounded-md w-16 mb-1" />
-                      <div className="h-4 bg-muted rounded-md w-20" />
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="h-9 bg-muted rounded-xl flex-1" />
-                    <div className="h-9 bg-muted rounded-xl w-12" />
-                  </div>
+                  <div className="h-6 bg-muted rounded-full w-20 shrink-0" />
                 </div>
-              ))}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div className="h-12 bg-muted rounded-xl" />
+                  <div className="h-12 bg-muted rounded-xl" />
+                  <div className="h-12 bg-muted rounded-xl hidden sm:block" />
+                </div>
+                <div className="flex gap-2 mt-3">
+                  <div className="h-9 bg-muted rounded-xl flex-1" />
+                  <div className="h-9 bg-muted rounded-xl w-12" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : !loading && filteredReports.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 gap-4">
+            <div className="h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center">
+              <ShieldAlert className="h-8 w-8 text-muted-foreground/40" />
             </div>
-          </>
-        ) : !loading && reports.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-3">
-            <ShieldAlert className="h-10 w-10 text-muted-foreground/30" />
-            <p className="text-sm text-muted-foreground font-ibm font-semibold">No reports found</p>
+            <div className="text-center">
+              <p className="text-sm font-semibold font-ibm text-foreground">No reports found</p>
+              <p className="text-xs text-muted-foreground font-ibm mt-1">
+                {searchQuery || statusFilter ? "Try clearing your filters" : "No cheater reports have been submitted yet"}
+              </p>
+            </div>
           </div>
         ) : (
           <>
@@ -305,50 +385,50 @@ export default function CheaterReportsAdminClient() {
                   </tr>
                 </thead>
                 <tbody>
-                  {reports.map((r) => (
+                  {filteredReports.map((r) => (
                     <tr key={r.id}>
                       <td>
                         <div>
                           <p className="font-semibold font-ibm text-sm text-foreground">{r.userName ?? "—"}</p>
                           <p className="text-xs text-muted-foreground font-ibm">{r.userEmail ?? ""}</p>
                           {r.userGameName && (
-                            <p className="text-xs text-primary font-ibm font-medium mt-0.5">🎮 {r.userGameName}</p>
+                            <p className="text-xs text-foreground/70 font-ibm font-medium mt-0.5 flex items-center gap-1">
+                              <span className="inline-block h-1.5 w-1.5 rounded-full bg-foreground/40" />
+                              {r.userGameName}
+                            </p>
                           )}
                         </div>
                       </td>
                       <td>
-                        <span className="font-mono text-sm font-bold text-foreground bg-accent/50 px-2 py-0.5 rounded-lg border border-border/20">{r.reportedUid}</span>
+                        <span className="font-mono text-sm font-bold text-foreground bg-accent/50 px-2 py-0.5 rounded-lg border border-border/30">
+                          {r.reportedUid}
+                        </span>
                       </td>
                       <td>
                         <p className="text-xs font-ibm font-medium text-foreground">
-                          {format(new Date(r.reportedAt), "PPp")}
+                          {format(new Date(r.reportedAt), "PP")}
+                        </p>
+                        <p className="text-[10px] font-ibm text-muted-foreground">
+                          {format(new Date(r.reportedAt), "p")}
                         </p>
                       </td>
                       <td>
                         {r.tournamentName ? (
-                          <div className="max-w-[200px]">
+                          <div className="max-w-[180px]">
                             <p className="text-xs font-ibm font-semibold text-foreground truncate">{r.tournamentName}</p>
-                            <p className="text-[10px] text-muted-foreground font-ibm font-bold mt-0.5 uppercase tracking-wider">
+                            <p className="text-[10px] text-muted-foreground font-ibm font-medium mt-0.5 uppercase tracking-wider">
                               {r.tournamentMode?.replace("_", " ")} · {r.tournamentFormat}
                             </p>
                           </div>
                         ) : (
-                          <span className="text-xs text-muted-foreground/50 font-ibm italic">— None —</span>
+                          <span className="text-xs text-muted-foreground/50 font-ibm">—</span>
                         )}
                       </td>
                       <td>
-                        <span
-                          className={cn(
-                            "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold font-ibm shadow-2xs",
-                            STATUS_STYLES[r.status]?.badge
-                          )}
-                        >
-                          <span className={cn("w-1.5 h-1.5 rounded-full", STATUS_STYLES[r.status]?.dot)} />
-                          {r.status}
-                        </span>
+                        <StatusBadge status={r.status} />
                       </td>
                       <td>
-                        <p className="text-xs font-ibm font-semibold text-muted-foreground whitespace-nowrap">
+                        <p className="text-xs font-ibm font-medium text-muted-foreground whitespace-nowrap">
                           {format(new Date(r.createdAt), "PP")}
                         </p>
                       </td>
@@ -358,7 +438,7 @@ export default function CheaterReportsAdminClient() {
                             size="sm"
                             variant="ghost"
                             onClick={() => openDetail(r)}
-                            className="h-8 w-8 p-0 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
+                            className="h-8 w-8 p-0 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
                             title="View & Update"
                           >
                             <Eye className="h-4 w-4" />
@@ -367,10 +447,7 @@ export default function CheaterReportsAdminClient() {
                             size="sm"
                             variant="ghost"
                             className="h-8 w-8 p-0 rounded-lg text-destructive hover:bg-destructive/10 hover:text-destructive transition-colors cursor-pointer"
-                            onClick={() => {
-                              setDeleteId(r.id);
-                              setDeleteDialogOpen(true);
-                            }}
+                            onClick={() => { setDeleteId(r.id); setDeleteDialogOpen(true); }}
                             title="Delete"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -383,56 +460,71 @@ export default function CheaterReportsAdminClient() {
               </table>
             </div>
 
-            {/* Mobile cards */}
+            {/* Mobile / Tablet Cards */}
             <div className="md:hidden divide-y divide-border/10">
-              {reports.map((r) => (
-                <div key={r.id} className="p-4 space-y-3.5 hover:bg-accent/5 transition-colors">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="font-bold font-ibm text-sm text-foreground">{r.userName ?? "Unknown"}</p>
-                      <p className="text-xs text-muted-foreground font-ibm">{r.userEmail}</p>
-                    </div>
-                    <span
-                      className={cn(
-                        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold font-ibm shrink-0 shadow-2xs",
-                        STATUS_STYLES[r.status]?.badge
+              {filteredReports.map((r) => (
+                <div key={r.id} className="p-4 space-y-3.5">
+                  {/* Header Row */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold font-ibm text-sm text-foreground truncate">{r.userName ?? "Unknown"}</p>
+                      <p className="text-xs text-muted-foreground font-ibm truncate">{r.userEmail}</p>
+                      {r.userGameName && (
+                        <p className="text-xs text-foreground/60 font-ibm mt-0.5">{r.userGameName}</p>
                       )}
-                    >
-                      <span className={cn("w-1.5 h-1.5 rounded-full", STATUS_STYLES[r.status]?.dot)} />
-                      {r.status}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3 text-xs font-ibm">
-                    <div>
-                      <p className="text-muted-foreground font-medium mb-0.5">Reported UID</p>
-                      <p className="font-mono font-bold text-foreground bg-accent/50 px-2 py-0.5 rounded-md border border-border/20 w-fit">{r.reportedUid}</p>
                     </div>
-                    <div>
-                      <p className="text-muted-foreground font-medium mb-0.5">Incident</p>
-                      <p className="text-foreground font-bold">{format(new Date(r.reportedAt), "PP")}</p>
+                    <StatusBadge status={r.status} className="shrink-0" />
+                  </div>
+
+                  {/* Info Grid */}
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div className="bg-accent/40 rounded-xl p-3 border border-border/30">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-ibm mb-1">Reported UID</p>
+                      <p className="font-mono text-xs font-bold text-foreground break-all">{r.reportedUid}</p>
+                    </div>
+                    <div className="bg-accent/40 rounded-xl p-3 border border-border/30">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-ibm mb-1">Incident</p>
+                      <p className="text-xs font-bold text-foreground">{format(new Date(r.reportedAt), "PP")}</p>
+                      <p className="text-[10px] text-muted-foreground font-ibm">{format(new Date(r.reportedAt), "p")}</p>
                     </div>
                     {r.tournamentName && (
-                      <div className="col-span-2 border-t border-border/10 pt-2">
-                        <p className="text-muted-foreground font-medium mb-0.5">Tournament</p>
-                        <p className="text-foreground font-bold flex items-center gap-1">
-                          <Trophy className="w-3.5 h-3.5 text-primary shrink-0" />
-                          {r.tournamentName}
+                      <div className="col-span-2 bg-accent/40 rounded-xl p-3 border border-border/30">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-ibm mb-1 flex items-center gap-1">
+                          <Trophy className="h-3 w-3" /> Tournament
                         </p>
+                        <p className="text-xs font-bold text-foreground">{r.tournamentName}</p>
+                        {(r.tournamentMode || r.tournamentFormat) && (
+                          <p className="text-[10px] text-muted-foreground font-ibm mt-0.5 uppercase">
+                            {r.tournamentMode?.replace("_", " ")} {r.tournamentMode && r.tournamentFormat && "·"} {r.tournamentFormat}
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
-                  <div className="flex gap-2.5 pt-1">
-                    <Button size="sm" variant="outline" className="flex-1 font-ibm font-bold text-xs h-9 rounded-xl cursor-pointer hover:bg-accent/40" onClick={() => openDetail(r)}>
-                      <Eye className="h-4 w-4 mr-1.5" /> View & Update
+
+                  {/* Description Preview */}
+                  {r.description && (
+                    <p className="text-xs text-muted-foreground font-ibm line-clamp-2 leading-relaxed bg-accent/20 p-2.5 rounded-lg border border-border/10">
+                      {r.description}
+                    </p>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 pt-0.5">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 font-ibm font-semibold text-xs h-9 rounded-xl cursor-pointer"
+                      onClick={() => openDetail(r)}
+                    >
+                      <Eye className="h-3.5 w-3.5 mr-1.5" />
+                      View & Update
                     </Button>
                     <Button
                       size="sm"
                       variant="outline"
-                      className="font-ibm font-bold text-xs text-destructive border-destructive/20 hover:bg-destructive/10 hover:text-destructive h-9 rounded-xl cursor-pointer"
-                      onClick={() => {
-                        setDeleteId(r.id);
-                        setDeleteDialogOpen(true);
-                      }}
+                      className="font-ibm text-xs text-destructive border-destructive/20 hover:bg-destructive/10 hover:text-destructive h-9 w-11 rounded-xl cursor-pointer p-0"
+                      onClick={() => { setDeleteId(r.id); setDeleteDialogOpen(true); }}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -446,9 +538,9 @@ export default function CheaterReportsAdminClient() {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between px-1">
           <p className="text-sm text-muted-foreground font-ibm">
-            Page {page} of {totalPages} · {total} reports
+            Page <span className="font-semibold text-foreground">{page}</span> of {totalPages} · {total} reports
           </p>
           <div className="flex items-center gap-2">
             <Button
@@ -473,88 +565,107 @@ export default function CheaterReportsAdminClient() {
         </div>
       )}
 
-      {/* Detail Dialog */}
+      {/* ── Detail Dialog ─────────────────────────────────────── */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg w-full max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-lora flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
-              Cheater Report Details
+              <ShieldAlert className="h-5 w-5 text-foreground shrink-0" />
+              Report Details
             </DialogTitle>
             <DialogDescription className="font-ibm">
-              Review this report and update its status. The user will be notified of any changes.
+              Review this report and update its status. The user will be notified.
             </DialogDescription>
           </DialogHeader>
 
           {selectedReport && (
-            <div className="space-y-5 py-2">
-              {/* Reporter Info */}
-              <div className="card-inset rounded-xl p-4 space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground font-ibm">Reporter</p>
+            <div className="space-y-4 py-1">
+              {/* Reporter */}
+              <div className="card-inset rounded-xl p-4">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-ibm mb-2.5">Reporter</p>
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <User className="w-4 h-4 text-primary" />
+                  <div className="w-10 h-10 rounded-full bg-accent border border-border flex items-center justify-center shrink-0">
+                    <User className="w-4 h-4 text-foreground" />
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="font-semibold font-ibm text-sm text-foreground">{selectedReport.userName ?? "Unknown"}</p>
-                    <p className="text-xs text-muted-foreground font-ibm">{selectedReport.userEmail}</p>
+                    <p className="text-xs text-muted-foreground font-ibm truncate">{selectedReport.userEmail}</p>
                     {selectedReport.userGameName && (
-                      <p className="text-xs text-muted-foreground font-ibm">Game: {selectedReport.userGameName}</p>
+                      <p className="text-xs text-muted-foreground font-ibm">{selectedReport.userGameName}</p>
                     )}
                   </div>
                 </div>
               </div>
 
-              {/* Report Info */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* Report Facts */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="card-inset rounded-xl p-3">
-                  <p className="text-xs text-muted-foreground font-ibm mb-1">Reported UID</p>
-                  <p className="font-mono font-bold text-foreground">{selectedReport.reportedUid}</p>
+                  <p className="text-[10px] text-muted-foreground font-ibm font-bold uppercase tracking-wider mb-1.5">Reported UID</p>
+                  <p className="font-mono font-bold text-foreground text-sm break-all">{selectedReport.reportedUid}</p>
                 </div>
                 <div className="card-inset rounded-xl p-3">
-                  <p className="text-xs text-muted-foreground font-ibm mb-1">Incident Time</p>
-                  <p className="text-sm font-ibm text-foreground">{format(new Date(selectedReport.reportedAt), "PPp")}</p>
+                  <p className="text-[10px] text-muted-foreground font-ibm font-bold uppercase tracking-wider mb-1.5">Incident Time</p>
+                  <p className="text-sm font-ibm text-foreground font-medium">{format(new Date(selectedReport.reportedAt), "PP")}</p>
+                  <p className="text-xs text-muted-foreground font-ibm">{format(new Date(selectedReport.reportedAt), "p")}</p>
+                </div>
+                <div className="card-inset rounded-xl p-3">
+                  <p className="text-[10px] text-muted-foreground font-ibm font-bold uppercase tracking-wider mb-1.5">Current Status</p>
+                  <StatusBadge status={selectedReport.status} />
+                </div>
+                <div className="card-inset rounded-xl p-3">
+                  <p className="text-[10px] text-muted-foreground font-ibm font-bold uppercase tracking-wider mb-1.5">Submitted</p>
+                  <p className="text-sm font-ibm text-foreground font-medium">{format(new Date(selectedReport.createdAt), "PP")}</p>
                 </div>
               </div>
 
               {selectedReport.tournamentName && (
-                <div className="card-inset rounded-xl p-3 flex items-center gap-2">
-                  <Trophy className="w-4 h-4 text-primary shrink-0" />
+                <div className="card-inset rounded-xl p-3 flex items-start gap-3">
+                  <Trophy className="w-4 h-4 text-foreground shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-xs text-muted-foreground font-ibm">Tournament</p>
-                    <p className="text-sm font-ibm font-medium text-foreground">{selectedReport.tournamentName}</p>
+                    <p className="text-[10px] text-muted-foreground font-ibm font-bold uppercase tracking-wider mb-1">Tournament</p>
+                    <p className="text-sm font-ibm font-semibold text-foreground">{selectedReport.tournamentName}</p>
+                    {(selectedReport.tournamentMode || selectedReport.tournamentFormat) && (
+                      <p className="text-xs text-muted-foreground font-ibm uppercase mt-0.5">
+                        {selectedReport.tournamentMode?.replace("_", " ")} · {selectedReport.tournamentFormat}
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
 
               {/* Description */}
-              <div className="space-y-1.5">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground font-ibm">Description</p>
-                <div className="bg-accent/40 rounded-xl p-4 text-sm font-ibm text-foreground leading-relaxed whitespace-pre-wrap">
+              <div className="space-y-2">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-ibm">Description</p>
+                <div className="bg-accent/40 rounded-xl p-4 text-sm font-ibm text-foreground leading-relaxed whitespace-pre-wrap border border-border/20 max-h-40 overflow-y-auto">
                   {selectedReport.description}
                 </div>
               </div>
 
               {/* Status Update */}
-              <div className="space-y-3 border-t border-border/10 pt-4">
+              <div className="space-y-4 border-t border-border/20 pt-4">
                 <div className="space-y-2">
                   <Label className="font-ibm font-semibold text-sm">Update Status</Label>
                   <div className="grid grid-cols-2 gap-2">
-                    {(["PENDING", "REVIEWED", "RESOLVED", "DISMISSED"] as const).map((s) => (
-                      <button
-                        key={s}
-                        type="button"
-                        onClick={() => setNewStatus(s)}
-                        className={cn(
-                          "rounded-xl px-3 py-2 text-xs font-semibold font-ibm border transition-all duration-150",
-                          newStatus === s
-                            ? cn(STATUS_STYLES[s]?.badge, "ring-2 ring-offset-1 ring-primary/30")
-                            : "border-border/40 text-foreground hover:border-primary/30 bg-card"
-                        )}
-                      >
-                        {s}
-                      </button>
-                    ))}
+                    {(["PENDING", "REVIEWED", "RESOLVED", "DISMISSED"] as const).map((s) => {
+                      const cfg = STATUS_CONFIG[s];
+                      const Icon = cfg.icon;
+                      return (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() => setNewStatus(s)}
+                          className={cn(
+                            "rounded-xl px-3 py-2.5 text-xs font-semibold font-ibm border transition-all duration-150 flex items-center gap-2 cursor-pointer",
+                            newStatus === s
+                              ? cn(cfg.badge, "ring-2 ring-offset-1 ring-primary/20")
+                              : "border-border/40 text-muted-foreground hover:text-foreground hover:border-border bg-card"
+                          )}
+                        >
+                          <Icon className="h-3.5 w-3.5 shrink-0" />
+                          {s}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -576,7 +687,7 @@ export default function CheaterReportsAdminClient() {
             </div>
           )}
 
-          <DialogFooter className="flex-col-reverse sm:flex-row gap-2">
+          <DialogFooter className="flex-col-reverse sm:flex-row gap-2 pt-2">
             <Button variant="outline" onClick={() => setDialogOpen(false)} className="font-ibm">
               Cancel
             </Button>
@@ -588,7 +699,7 @@ export default function CheaterReportsAdminClient() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Dialog */}
+      {/* ── Delete Dialog ─────────────────────────────────────── */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
@@ -604,12 +715,7 @@ export default function CheaterReportsAdminClient() {
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} className="font-ibm">
               Cancel
             </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={deleting}
-              className="font-ibm"
-            >
+            <Button variant="destructive" onClick={handleDelete} disabled={deleting} className="font-ibm">
               {deleting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Trash2 className="h-4 w-4 mr-2" />}
               Delete
             </Button>

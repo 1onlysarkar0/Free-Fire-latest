@@ -9,26 +9,7 @@ export type IndexingType = "URL_UPDATED" | "URL_DELETED";
  * Ensures an IndexNow key exists in the database. If not, generates one.
  */
 export async function getOrGenerateIndexNowKey(): Promise<string> {
-  const [config] = await db.select().from(indexingApiConfig).limit(1);
-
-  if (config?.indexNowKey) {
-    return config.indexNowKey;
-  }
-
-  // Generate a new 32-character hex key
-  const newKey = crypto.randomBytes(16).toString("hex");
-
-  // Save to database
-  if (config) {
-    await db.update(indexingApiConfig).set({ indexNowKey: newKey });
-  } else {
-    await db.insert(indexingApiConfig).values({
-      id: "default",
-      indexNowKey: newKey,
-    });
-  }
-
-  return newKey;
+  return process.env.INDEXNOW_KEY || "";
 }
 
 /**

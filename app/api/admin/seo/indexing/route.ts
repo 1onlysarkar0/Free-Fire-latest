@@ -13,7 +13,18 @@ export async function GET(request: Request) {
     const [config] = await db.select().from(indexingApiConfig).limit(1);
     const logs = await db.select().from(indexingLog).orderBy(desc(indexingLog.createdAt)).limit(50);
 
-    return NextResponse.json({ config, logs });
+    const activeConfig = config ? {
+      ...config,
+      indexNowKey: process.env.INDEXNOW_KEY || "",
+    } : {
+      id: "default",
+      googleServiceAccountJson: "",
+      indexNowKey: process.env.INDEXNOW_KEY || "",
+      autoSubmitGoogle: false,
+      autoSubmitIndexNow: false,
+    };
+
+    return NextResponse.json({ config: activeConfig, logs });
   } catch (error: any) {
     console.error("GET Indexing Config Error:", error);
     return new NextResponse(error.message || "Internal Server Error", { status: 500 });
@@ -38,7 +49,6 @@ export async function PUT(request: Request) {
       await db.insert(indexingApiConfig).values({
         id: "default",
         googleServiceAccountJson: body.googleServiceAccountJson,
-        indexNowKey: body.indexnowKey || "",
         autoSubmitGoogle: body.autoSubmitGoogle,
         autoSubmitIndexNow: body.autoSubmitIndexNow,
       });

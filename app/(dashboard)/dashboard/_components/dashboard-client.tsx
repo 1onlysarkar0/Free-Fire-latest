@@ -54,6 +54,7 @@ export default function DashboardClient({
         <div className="absolute top-0 right-0 h-40 w-40 bg-primary/5 rounded-full blur-3xl -mr-10 -mt-10" />
         
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+          <div className="space-y-3">
             <H3 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-lora border-none pb-0 mt-0">
               Welcome back, {user.name}!
             </H3>
