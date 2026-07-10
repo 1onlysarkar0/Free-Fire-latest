@@ -155,7 +155,10 @@ export function buildMetadata(
     }
   }
 
-  const twitterImageFinal = seo.twitterImage || ogImageFinal || null;
+  let twitterImageFinal = seo.twitterImage || ogImageFinal || null;
+  if (twitterImageFinal && !twitterImageFinal.startsWith("http") && base) {
+    twitterImageFinal = `${base}${twitterImageFinal.startsWith("/") ? "" : "/"}${twitterImageFinal}`;
+  }
 
   if (seo.ogTitle || seo.ogDescription || ogImageFinal || siteName) {
     const og: Record<string, unknown> = {};

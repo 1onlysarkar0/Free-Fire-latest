@@ -190,7 +190,7 @@ export default function NotificationsClient({ initialData }: NotificationsClient
             <Bell className="mb-4 h-8 w-8 text-muted-foreground/30 animate-pulse" />
             <H4 className="mt-0 font-lora">No notifications found</H4>
             <Muted className="mt-1.5 max-w-sm text-xs leading-5 font-ibm">
-              No matching alerts or messages fit your current filter settings. You're all caught up!
+              No matching alerts or messages fit your current filter settings. You&apos;re all caught up!
             </Muted>
           </div>
         ) : (

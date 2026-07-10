@@ -53,7 +53,13 @@ export async function GET() {
     md += `## Navigation and Information Routes\n\n`;
     md += `### Public Pages\n`;
 
-    const publicNavs = navItems.filter(item => !item.isSocial && !item.url.startsWith("http"));
+    const seenNavUrls = new Set<string>();
+    const publicNavs = navItems.filter((item) => {
+      if (item.isSocial || item.url.startsWith("http") || item.url.startsWith("/dashboard")) return false;
+      if (seenNavUrls.has(item.url)) return false;
+      seenNavUrls.add(item.url);
+      return true;
+    });
     if (publicNavs.length > 0) {
       for (const item of publicNavs) {
         md += `- [${item.title}](${baseUrl}${item.url.startsWith("/") ? "" : "/"}${item.url})${item.description ? ` — ${item.description}` : ""}\n`;
@@ -93,16 +99,13 @@ export async function GET() {
     const signupSeo = seoMap.get("sign-up");
     md += `- [Sign Up](${baseUrl}/sign-up)${signupSeo?.metaDescription ? ` — ${signupSeo.metaDescription}` : ""}\n`;
 
-    const forgotSeo = seoMap.get("forgot-password");
-    md += `- [Forgot Password](${baseUrl}/forgot-password)${forgotSeo?.metaDescription ? ` — ${forgotSeo.metaDescription}` : ""}\n`;
-
     if (activeTournaments.length > 0) {
       md += `\n## Active Tournaments\n\n`;
       for (const t of activeTournaments) {
         const tournamentSeo = seoMap.get(`tournament-${t.id}`);
         const modeLabel = t.gameMode.replace(/_/g, " ").toUpperCase();
         const formatLabel = t.teamFormat.toUpperCase();
-        md += `- **[${t.name}](${baseUrl}/tournaments/${t.id})**${tournamentSeo?.metaDescription ? ` — ${tournamentSeo.metaDescription}` : ""} (${modeLabel}, ${formatLabel}, Prize: ₹${t.prizePool})\n`;
+        md += `- **[${t.name}](${baseUrl}/tournaments/${t.id})**${tournamentSeo?.metaDescription ? ` - ${tournamentSeo.metaDescription}` : ""} (${modeLabel}, ${formatLabel}, Prize: ${t.prizePool} coins)\n`;
       }
     }
 

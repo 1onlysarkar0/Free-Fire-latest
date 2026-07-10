@@ -6,9 +6,6 @@ import { getAdminSiteConfigCached } from "@/lib/admin-data";
 import { getSiteUrl } from "@/lib/site-url";
 import PaymentHelpClient from "./_components/payment-help-client";
 import { getUserProfileCached } from "@/lib/user-data";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { BadgeDollarSign, LogIn } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -29,19 +26,35 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function PaymentHelpPage() {
-  const session = await auth.api
-    .getSession({ headers: await headers() })
-    .catch(() => null);
+  const [session, seoData] = await Promise.all([
+    auth.api.getSession({ headers: await headers() }).catch(() => null),
+    getSeoData("payment-help").catch(() => null)
+  ]);
 
   const dbUser = session?.user?.id
     ? await getUserProfileCached(session.user.id).catch(() => null)
     : null;
 
+  let structuredData = null;
+  if (seoData?.structuredDataJson) {
+    try {
+      structuredData = JSON.parse(seoData.structuredDataJson);
+    } catch {}
+  }
+
   return (
-    <PaymentHelpClient
-      userId={session?.user?.id ?? null}
-      userName={dbUser?.name ?? session?.user?.name ?? ""}
-      userEmail={dbUser?.email ?? session?.user?.email ?? ""}
-    />
+    <>
+      {structuredData && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
+      )}
+      <PaymentHelpClient
+        userId={session?.user?.id ?? null}
+        userName={dbUser?.name ?? session?.user?.name ?? ""}
+        userEmail={dbUser?.email ?? session?.user?.email ?? ""}
+      />
+    </>
   );
 }

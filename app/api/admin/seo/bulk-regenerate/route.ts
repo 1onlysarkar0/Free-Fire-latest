@@ -4,6 +4,7 @@ import { tournament, seoConfig, siteConfig } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { auditSeo } from "@/lib/seo/audit";
 import { getSiteUrl } from "@/lib/site-url";
+import { buildTournamentMeta, buildTournamentSportsEventSchema } from "@/lib/seo/tournament";
 
 export async function POST(request: Request) {
   const admin = await requireAdminOrRole(request, "seo:edit");
@@ -24,28 +25,23 @@ export async function POST(request: Request) {
     let regeneratedCount = 0;
 
     for (const t of tournaments) {
-      const metaTitle = `${t.name} — ${siteName}`;
-      const metaDescription = `Join ${t.name}. ${t.type.toUpperCase() === "FREE" ? "Free entry" : `Entry fee: ₹${t.joiningFee}`}. Prize pool: ₹${t.prizePool}. ${t.gameMode.replace(/_/g, " ")} mode. ${t.teamFormat.toUpperCase()} format. Register now!`;
-
-      const sportsEventSchema = {
-        "@context": "https://schema.org",
-        "@type": "SportsEvent",
-        "name": t.name,
-        "description": metaDescription,
-        "url": `${baseUrl}/tournaments/${t.id}`,
-        "startDate": t.startTime.toISOString(),
-        "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
-        "location": {
-          "@type": "VirtualLocation",
-          "url": `${baseUrl}/tournaments/${t.id}`
-        },
-        "offers": {
-          "@type": "Offer",
-          "price": t.joiningFee ?? 0,
-          "priceCurrency": "INR",
-          "availability": "https://schema.org/InStock"
-        }
+      const tournamentSeoInput = {
+        id: t.id,
+        name: t.name,
+        type: t.type,
+        joiningFee: t.joiningFee,
+        prizePool: t.prizePool,
+        gameMode: t.gameMode,
+        teamFormat: t.teamFormat,
+        totalSlots: t.totalSlots,
+        startTime: t.startTime,
+        status: t.status,
+        siteName,
+        baseUrl,
+        logoSrc: configRow.logoSrc,
       };
+      const { metaTitle, metaDescription } = buildTournamentMeta(tournamentSeoInput);
+      const sportsEventSchema = buildTournamentSportsEventSchema(tournamentSeoInput);
 
       const seoId = `tournament-${t.id}`;
 
@@ -63,7 +59,7 @@ export async function POST(request: Request) {
         twitterDescription: metaDescription,
         twitterImage: `/api/og-image?tournament=${t.id}`,
         canonicalUrl: `${baseUrl}/tournaments/${t.id}`,
-        robots: "index, follow",
+        robots: "index, follow, max-image-preview:large",
         structuredDataJson: JSON.stringify(sportsEventSchema),
         schemaType: "SportsEvent",
         ogImageDynamic: true,
@@ -81,6 +77,7 @@ export async function POST(request: Request) {
           twitterDescription: metaDescription,
           twitterImage: `/api/og-image?tournament=${t.id}`,
           canonicalUrl: `${baseUrl}/tournaments/${t.id}`,
+          robots: "index, follow, max-image-preview:large",
           structuredDataJson: JSON.stringify(sportsEventSchema),
           schemaType: "SportsEvent",
           ogImageDynamic: true,

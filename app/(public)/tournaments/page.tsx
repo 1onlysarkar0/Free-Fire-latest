@@ -30,8 +30,27 @@ export default async function TournamentsPage({ searchParams }: { searchParams: 
   const dataPromise = getTournamentsPaginated(statusFilter, null, null, null, 1, 50)
     .then((res) => res.data)
     .catch(() => []);
+  const siteUrlPromise = getSiteUrl().catch(() => "");
 
-  const [session, initialData] = await Promise.all([sessionPromise, dataPromise]);
+  const [session, initialData, siteUrl] = await Promise.all([sessionPromise, dataPromise, siteUrlPromise]);
+  const baseUrl = siteUrl || process.env.NEXT_PUBLIC_APP_URL || "";
+  const collectionSchema = baseUrl
+    ? {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": "Free Fire Tournaments",
+        "url": `${baseUrl}/tournaments`,
+        "mainEntity": {
+          "@type": "ItemList",
+          "itemListElement": initialData.slice(0, 20).map((item, index) => ({
+            "@type": "ListItem",
+            "position": index + 1,
+            "name": item.name,
+            "url": `${baseUrl}/tournaments/${item.id}`,
+          })),
+        },
+      }
+    : null;
   const joinedIds = session?.user?.id
     ? await db
         .select({ tournamentId: tournamentParticipant.tournamentId })
@@ -43,6 +62,12 @@ export default async function TournamentsPage({ searchParams }: { searchParams: 
 
   return (
     <div className="flex-1 bg-background pt-20 md:pt-24 flex flex-col">
+      {collectionSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema).replace(/</g, "\\u003c") }}
+        />
+      )}
       <Suspense fallback={null}>
         <TournamentsClient
           initialData={initialData}

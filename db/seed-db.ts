@@ -80,7 +80,7 @@ async function seedSiteConfig() {
       // Brand
       logoUrl: "/",
       logoSrc: "/assets/logo.webp",
-      logoAlt: "1onlysarkar logo",
+      logoAlt: "1OnlySarkar Free Fire tournament logo",
       logoTitle: "1OnlySarkar",
 
       // Navbar auth buttons
@@ -97,9 +97,9 @@ async function seedSiteConfig() {
       copyrightText: `© ${year} 1OnlySarkar. All rights reserved.`,
 
       // Homepage hero
-      heroHeadline: "Free Fire Tournament",
-      heroSubheadline: "Join India's most exciting Free Fire tournament platform. Register now and prove you're the best player.",
-      heroCtaPrimaryText: "Join a Tournament",
+      heroHeadline: "Free Fire Tournaments",
+      heroSubheadline: "Join Solo, Duo, and Squad Free Fire custom-room tournaments on 1OnlySarkar. Compare slots, entry fees, prize pools, and match times before you register.",
+      heroCtaPrimaryText: "Browse Tournaments",
       heroCtaPrimaryUrl: "/tournaments",
 
 
@@ -109,6 +109,8 @@ async function seedSiteConfig() {
       userProfileLogOutText: "Log out",
 
       // Admin access slug (admin changes this via admin panel)
+      contactEmail: "sauravmiami@gmail.com",
+      jurisdictionName: "India",
       adminSlug: "xpanel2024",
 
       // Cache version token — starts at "1", bumped by admin Purge Cache
@@ -118,8 +120,27 @@ async function seedSiteConfig() {
       target: siteConfig.id,
       set: {
         siteUrl,
+        logoUrl: "/",
         logoSrc: "/assets/logo.webp",
-        authPanelImageUrl: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=1920&q=85"
+        logoAlt: "1OnlySarkar Free Fire tournament logo",
+        logoTitle: "1OnlySarkar",
+        authLoginText: "Log in",
+        authLoginUrl: "/sign-in",
+        authSignupText: "Create account",
+        authSignupUrl: "/sign-up",
+        authPanelImageUrl: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=1920&q=85",
+        authPanelColor: "#FF5A1F",
+        copyrightText: `© ${year} 1OnlySarkar. All rights reserved.`,
+        heroHeadline: "Free Fire Tournaments",
+        heroSubheadline: "Join Solo, Duo, and Squad Free Fire custom-room tournaments on 1OnlySarkar. Compare slots, entry fees, prize pools, and match times before you register.",
+        heroCtaPrimaryText: "Browse Tournaments",
+        heroCtaPrimaryUrl: "/tournaments",
+        navbarDashboardText: "Dashboard",
+        userProfileMyAccountText: "My Account",
+        userProfileLogOutText: "Log out",
+        contactEmail: "sauravmiami@gmail.com",
+        jurisdictionName: "India",
+        adminSlug: "xpanel2024",
       }
     });
 
@@ -133,10 +154,10 @@ async function seedNavigation() {
 
   const headerItems = [
     { id: "h-home", title: "Home", url: "/", order: 1 },
-    { id: "h-tournament", title: "Tournament", url: "/tournament", order: 2 },
+    { id: "h-tournament", title: "Tournaments", url: "/tournaments", order: 2 },
     { id: "h-how-to-join", title: "How to Join", url: "/how-to-join", order: 3 },
     { id: "h-rules", title: "Rules", url: "/rules", order: 4 },
-    { id: "h-faq", title: "Faq", url: "/faq", order: 5 },
+    { id: "h-faq", title: "FAQ", url: "/faq", order: 5 },
     { id: "h-contact", title: "Contact", url: "/contact", order: 6 },
   ];
 
@@ -157,28 +178,44 @@ async function seedNavigation() {
     { id: "mob-contact", title: "Contact", url: "/contact", order: 1 },
   ];
 
+  const upsertNavigationItem = async (
+    item: { id: string; title: string; url: string; order: number; icon?: string },
+    flags: { isMobileExtra: boolean; isFooter: boolean; isSocial: boolean },
+  ) => {
+    const values = {
+      ...item,
+      icon: item.icon ?? null,
+      ...flags,
+    };
+
+    await db.insert(navigationItem).values(values).onConflictDoUpdate({
+      target: navigationItem.id,
+      set: {
+        title: values.title,
+        url: values.url,
+        icon: values.icon,
+        order: values.order,
+        isMobileExtra: values.isMobileExtra,
+        isFooter: values.isFooter,
+        isSocial: values.isSocial,
+      },
+    });
+  };
+
   for (const item of headerItems) {
-    await db.insert(navigationItem).values({
-      ...item, isMobileExtra: false, isFooter: false, isSocial: false,
-    }).onConflictDoNothing();
+    await upsertNavigationItem(item, { isMobileExtra: false, isFooter: false, isSocial: false });
   }
 
   for (const item of footerItems) {
-    await db.insert(navigationItem).values({
-      ...item, isMobileExtra: false, isFooter: true, isSocial: false,
-    }).onConflictDoNothing();
+    await upsertNavigationItem(item, { isMobileExtra: false, isFooter: true, isSocial: false });
   }
 
   for (const item of socialItems) {
-    await db.insert(navigationItem).values({
-      ...item, isMobileExtra: false, isFooter: true, isSocial: true,
-    }).onConflictDoNothing();
+    await upsertNavigationItem(item, { isMobileExtra: false, isFooter: true, isSocial: true });
   }
 
   for (const item of mobileExtras) {
-    await db.insert(navigationItem).values({
-      ...item, isMobileExtra: true, isFooter: false, isSocial: false,
-    }).onConflictDoNothing();
+    await upsertNavigationItem(item, { isMobileExtra: true, isFooter: false, isSocial: false });
   }
 
   console.log("✅ navigation_item seeded.");
@@ -218,7 +255,14 @@ async function seedAuthPageContent() {
   ];
 
   for (const page of pages) {
-    await db.insert(authPageContent).values(page).onConflictDoNothing();
+    await db.insert(authPageContent).values(page).onConflictDoUpdate({
+      target: authPageContent.id,
+      set: {
+        quote: page.quote,
+        subtext: page.subtext,
+        updatedAt: new Date(),
+      },
+    });
   }
 
   console.log("✅ auth_page_content seeded.");
@@ -574,7 +618,7 @@ async function seedSeoConfig() {
       ogType: "website",
       twitterCard: "summary_large_image",
       twitterSite: "@1onlysarkar",
-      robots: "index, follow",
+      robots: "index, follow, max-image-preview:large",
       schemaType: "WebPage",
       ogImageDynamic: false,
     };
@@ -585,13 +629,13 @@ async function seedSeoConfig() {
     // ── Global (merged only when no specific page row exists) ──
     pageMeta("global", {
       metaTitle: "1OnlySarkar Free Fire Tournaments",
-      metaDescription: "Join daily Free Fire tournaments on 1OnlySarkar — Solo, Duo & Squad. Low entry fees, real cash prize pools, and instant UPI withdrawal. Register free and start competing today!",
-      metaKeywords: "gaming tournament, India, Free Fire, esports, 1onlysarkar, compete, leaderboard",
+      metaDescription: "1OnlySarkar hosts Free Fire custom-room tournaments with Solo, Duo, and Squad formats, visible slots, match timings, wallet entry fees, and prize pools.",
+      metaKeywords: "1OnlySarkar, Free Fire tournaments, Free Fire custom room, Solo Duo Squad tournaments, esports tournaments India",
       ogTitle: "1OnlySarkar Free Fire Tournaments",
-      ogDescription: "Join daily Free Fire tournaments on 1OnlySarkar — Solo, Duo & Squad. Low entry fees, real cash prize pools, and instant UPI withdrawal. Register free and start competing today!",
+      ogDescription: "Free Fire custom-room tournaments with Solo, Duo, and Squad formats, visible slots, match timings, wallet entry fees, and prize pools.",
       ogImage: ogHome,
       twitterTitle: "1OnlySarkar Free Fire Tournaments",
-      twitterDescription: "Join daily Free Fire tournaments on 1OnlySarkar — Solo, Duo & Squad. Low entry fees, real cash prize pools, and instant UPI withdrawal.",
+      twitterDescription: "Free Fire custom-room tournaments with Solo, Duo, and Squad formats, visible slots, wallet entry fees, and prize pools.",
       twitterImage: ogHome,
       canonicalUrl: siteUrl,
       schemaType: "WebSite",
@@ -603,8 +647,14 @@ async function seedSeoConfig() {
             "@id": `${siteUrl}/#website`,
             "url": siteUrl,
             "name": "1OnlySarkar",
-            "description": "Join daily Free Fire tournaments on 1OnlySarkar — Solo, Duo & Squad.",
+            "description": "Free Fire custom-room tournament platform for Solo, Duo, and Squad players in India.",
             "publisher": { "@id": `${siteUrl}/#organization` },
+            "about": { "@id": `${siteUrl}/#free-fire` },
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": `${siteUrl}/tournaments?search={search_term_string}`,
+              "query-input": "required name=search_term_string"
+            },
             "inLanguage": "en-IN"
           },
           {
@@ -618,7 +668,23 @@ async function seedSeoConfig() {
             },
             "sameAs": [
               "https://www.instagram.com/1onlysarkar"
-            ]
+            ],
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "email": "sauravmiami@gmail.com",
+              "contactType": "customer support",
+              "areaServed": "IN",
+              "availableLanguage": ["en", "hi"]
+            }
+          },
+          {
+            "@type": "VideoGame",
+            "@id": `${siteUrl}/#free-fire`,
+            "name": "Free Fire",
+            "publisher": "Garena",
+            "applicationCategory": "Game",
+            "operatingSystem": "Android, iOS",
+            "url": "https://ff.garena.com/"
           }
         ]
       }),
@@ -626,44 +692,46 @@ async function seedSeoConfig() {
 
     // ── Home ──
     pageMeta("home", {
-      metaTitle: "1OnlySarkar Free Fire Tournaments — Play & Win Cash Prizes",
-      metaDescription: "Join daily Free Fire tournaments on 1OnlySarkar — Solo, Duo & Squad. Low entry fees, real cash prize pools, and instant UPI withdrawal. Register free and start competing today!",
-      metaKeywords: "free fire tournaments India, 1onlysarkar, esports gaming, play free fire earn money, free fire custom room, free fire khel kar paise kamaye",
-      ogTitle: "1OnlySarkar Free Fire Tournaments — Play & Win Cash Prizes",
-      ogDescription: "Join daily Free Fire tournaments on 1OnlySarkar — Solo, Duo & Squad. Low entry fees, real cash prize pools, and instant UPI withdrawal. Register free and start competing today!",
+      metaTitle: "1OnlySarkar - Free Fire Custom Room Tournaments",
+      metaDescription: "Browse Free Fire Solo, Duo, and Squad tournaments on 1OnlySarkar. Check entry fees, prize pools, available slots, room details, and result updates.",
+      metaKeywords: "Free Fire tournaments India, 1OnlySarkar, Free Fire custom room, Solo Duo Squad tournament, Free Fire UID tournament",
+      ogTitle: "1OnlySarkar - Free Fire Custom Room Tournaments",
+      ogDescription: "Browse Free Fire Solo, Duo, and Squad tournaments with entry fees, prize pools, available slots, room details, and result updates.",
       ogImage: ogHome,
-      twitterTitle: "1OnlySarkar — Play Free Fire Tournaments & Win Cash",
-      twitterDescription: "Join daily Free Fire tournaments on 1OnlySarkar — Solo, Duo & Squad. Low entry fees, real cash prizes, and instant UPI withdrawal.",
+      twitterTitle: "1OnlySarkar - Free Fire Tournaments",
+      twitterDescription: "Browse Free Fire Solo, Duo, and Squad tournaments with slot, fee, prize pool, room, and result details.",
       twitterImage: ogHome,
       canonicalUrl: `${siteUrl}/`,
     }),
 
     // ── Sign In ──
     pageMeta("sign-in", {
-      metaTitle: "Sign In | 1OnlySarkar — Free Fire Esports Tournaments",
-      metaDescription: "Sign in to your 1OnlySarkar account to register for daily Free Fire tournaments, track your wallet transactions, and claim prizes.",
+      metaTitle: "Sign In | 1OnlySarkar",
+      metaDescription: "Sign in to 1OnlySarkar to manage your Free Fire tournament profile, wallet balance, joined slots, room details, and results.",
       metaKeywords: "1onlysarkar login, sign in, free fire login, tournament login, gaming portal login, 1onlysarkar sign in",
-      ogTitle: "Sign In | 1OnlySarkar — Free Fire Esports Tournaments",
-      ogDescription: "Sign in to your 1OnlySarkar account to register for daily Free Fire tournaments, track your wallet transactions, and claim prizes.",
+      ogTitle: "Sign In | 1OnlySarkar",
+      ogDescription: "Sign in to manage your tournament profile, wallet balance, joined slots, room details, and results.",
       ogImage: ogSignin,
       twitterTitle: "Sign In | 1OnlySarkar",
-      twitterDescription: "Sign in to your 1OnlySarkar account to register for daily Free Fire tournaments.",
+      twitterDescription: "Sign in to manage your Free Fire tournament profile and joined slots.",
       twitterImage: ogSignin,
       canonicalUrl: `${siteUrl}/sign-in`,
+      robots: "noindex, follow",
     }),
 
     // ── Sign Up ──
     pageMeta("sign-up", {
-      metaTitle: "Sign Up & Register | 1OnlySarkar — Esports Tournaments",
-      metaDescription: "Create a free account on 1OnlySarkar today. Play daily Free Fire solo, duo, and squad matches to win real cash prizes. Register now!",
+      metaTitle: "Create Account | 1OnlySarkar Free Fire Tournaments",
+      metaDescription: "Create a 1OnlySarkar account, add your Free Fire game name and UID, then register for Solo, Duo, and Squad custom-room tournaments.",
       metaKeywords: "register 1onlysarkar, sign up gaming, free fire tournament register, play esports India, free fire account create",
-      ogTitle: "Sign Up & Register | 1OnlySarkar — Esports Tournaments",
-      ogDescription: "Create a free account on 1OnlySarkar today. Play daily Free Fire solo, duo, and squad matches to win real cash prizes. Register now!",
+      ogTitle: "Create Account | 1OnlySarkar",
+      ogDescription: "Add your Free Fire game name and UID, then register for Solo, Duo, and Squad custom-room tournaments.",
       ogImage: ogSignup,
       twitterTitle: "Sign Up | 1OnlySarkar",
-      twitterDescription: "Create a free account on 1OnlySarkar. Play Free Fire tournaments and win real cash prizes.",
+      twitterDescription: "Create an account, add your Free Fire UID, and register for custom-room tournaments.",
       twitterImage: ogSignup,
       canonicalUrl: `${siteUrl}/sign-up`,
+      robots: "noindex, follow",
     }),
 
     // ── Forgot Password ──
@@ -678,7 +746,7 @@ async function seedSeoConfig() {
       twitterDescription: "Forgot your 1OnlySarkar password? Request a secure password reset link.",
       twitterImage: ogSignin,
       canonicalUrl: `${siteUrl}/forgot-password`,
-      robots: "noindex, nofollow",
+      robots: "noindex, follow",
     }),
 
     // ── Reset Password ──
@@ -693,7 +761,7 @@ async function seedSeoConfig() {
       twitterDescription: "Enter your new password to complete the account recovery process.",
       twitterImage: ogSignin,
       canonicalUrl: `${siteUrl}/reset-password`,
-      robots: "noindex, nofollow",
+      robots: "noindex, follow",
     }),
 
     // ── Two-Factor Authentication ──
@@ -708,7 +776,7 @@ async function seedSeoConfig() {
       twitterDescription: "Secure your 1OnlySarkar account with two-factor authentication.",
       twitterImage: ogSignin,
       canonicalUrl: `${siteUrl}/two-factor`,
-      robots: "noindex, nofollow",
+      robots: "noindex, follow",
     }),
 
     // ── Complete Profile ──
@@ -723,19 +791,19 @@ async function seedSeoConfig() {
       twitterDescription: "Set your Free Fire game name and UID to start joining tournaments.",
       twitterImage: ogSignup,
       canonicalUrl: `${siteUrl}/complete-profile`,
-      robots: "noindex, nofollow",
+      robots: "noindex, follow",
     }),
 
     // ── Tournaments (List) ──
     pageMeta("tournaments", {
-      metaTitle: "Free Fire Esports Tournaments | 1OnlySarkar",
-      metaDescription: "Explore upcoming Free Fire tournaments on 1OnlySarkar. Join daily Solo, Duo, and Squad matches. Check entry fees, slot availability, and prize pools.",
-      metaKeywords: "free fire tournaments, esports tournaments India, custom room match, win cash gaming, free fire solo duo squad, free fire tournament list",
-      ogTitle: "Free Fire Esports Tournaments | 1OnlySarkar",
-      ogDescription: "Explore upcoming Free Fire tournaments on 1OnlySarkar. Join daily Solo, Duo, and Squad matches. Check entry fees, slot availability, and prize pools.",
+      metaTitle: "Free Fire Tournaments - Solo, Duo & Squad | 1OnlySarkar",
+      metaDescription: "Find upcoming and live Free Fire tournaments on 1OnlySarkar. Compare entry fees, prize pools, team formats, game modes, slots, and start times.",
+      metaKeywords: "Free Fire tournaments, Free Fire custom room, Solo Duo Squad Free Fire, Free Fire tournament list, 1OnlySarkar tournaments",
+      ogTitle: "Free Fire Tournaments | 1OnlySarkar",
+      ogDescription: "Find upcoming and live Free Fire tournaments. Compare entry fees, prize pools, team formats, game modes, slots, and start times.",
       ogImage: ogTournaments,
       twitterTitle: "Free Fire Tournaments | 1OnlySarkar",
-      twitterDescription: "Explore upcoming Free Fire tournaments on 1OnlySarkar. Join daily Solo, Duo, and Squad matches.",
+      twitterDescription: "Compare Free Fire tournament fees, prize pools, team formats, game modes, slots, and start times.",
       twitterImage: ogTournaments,
       canonicalUrl: `${siteUrl}/tournaments`,
       schemaType: "CollectionPage",
@@ -753,7 +821,7 @@ async function seedSeoConfig() {
       twitterDescription: "Your tournament dashboard. View stats, manage your profile, and track your performance.",
       twitterImage: ogHome,
       canonicalUrl: `${siteUrl}/dashboard`,
-      robots: "noindex, nofollow",
+      robots: "noindex, follow",
     }),
 
     // ── My Tournaments ──
@@ -768,7 +836,7 @@ async function seedSeoConfig() {
       twitterDescription: "Access joined matches and tournament custom room details.",
       twitterImage: ogTournaments,
       canonicalUrl: `${siteUrl}/dashboard/my-tournaments`,
-      robots: "noindex, nofollow",
+      robots: "noindex, follow",
     }),
 
     // ── Wallet ──
@@ -783,7 +851,7 @@ async function seedSeoConfig() {
       twitterDescription: "Manage UPI deposits, verify payment transactions, and submit withdrawal requests.",
       twitterImage: ogHome,
       canonicalUrl: `${siteUrl}/dashboard/wallet`,
-      robots: "noindex, nofollow",
+      robots: "noindex, follow",
     }),
 
     // ── Settings ──
@@ -798,19 +866,19 @@ async function seedSeoConfig() {
       twitterDescription: "Configure your game handles and profile security settings.",
       twitterImage: ogHome,
       canonicalUrl: `${siteUrl}/dashboard/settings`,
-      robots: "noindex, nofollow",
+      robots: "noindex, follow",
     }),
 
     // ── FAQ ──
     pageMeta("page-faq", {
-      metaTitle: "Frequently Asked Questions — 1OnlySarkar",
-      metaDescription: "Got questions about 1OnlySarkar? Find answers about tournament registration, wallet deposits, Room ID, withdrawals, results, and more in our FAQ.",
-      metaKeywords: "1onlysarkar faq, free fire tournament questions india, how to join free fire tournament, tournament room id password, upi deposit free fire tournament, 1onlysarkar help",
-      ogTitle: "Frequently Asked Questions — 1OnlySarkar",
-      ogDescription: "Got questions about 1OnlySarkar? Find answers about tournament registration, wallet deposits, Room ID, withdrawals, results, and more.",
+      metaTitle: "1OnlySarkar FAQ - Free Fire Tournament Help",
+      metaDescription: "Answers about 1OnlySarkar Free Fire tournament registration, wallet deposits, UTR verification, Room ID, passwords, results, withdrawals, and fair play.",
+      metaKeywords: "1OnlySarkar FAQ, Free Fire tournament help, room ID password, UTR verification, wallet withdrawal, tournament rules",
+      ogTitle: "1OnlySarkar FAQ - Free Fire Tournament Help",
+      ogDescription: "Answers about registration, wallet deposits, UTR verification, Room ID, passwords, results, withdrawals, and fair play.",
       ogImage: ogTournaments,
-      twitterTitle: "FAQ — 1OnlySarkar",
-      twitterDescription: "Find answers about tournament registration, wallet deposits, Room ID, withdrawals, and more.",
+      twitterTitle: "FAQ | 1OnlySarkar",
+      twitterDescription: "Tournament help for registration, wallet deposits, UTR verification, room details, results, and withdrawals.",
       twitterImage: ogTournaments,
       canonicalUrl: `${siteUrl}/faq`,
       schemaType: "FAQPage",
@@ -818,14 +886,14 @@ async function seedSeoConfig() {
 
     // ── Contact ──
     pageMeta("page-contact", {
-      metaTitle: "Contact Us — 1OnlySarkar",
-      metaDescription: "Get in touch with 1OnlySarkar for tournament support, payment issues, or general questions. Reach us on Instagram or via email.",
+      metaTitle: "Contact 1OnlySarkar - Tournament & Payment Support",
+      metaDescription: "Contact 1OnlySarkar for Free Fire tournament support, payment verification, account issues, cheater reports, and general help.",
       metaKeywords: "1onlysarkar contact, free fire tournament support india, 1onlysarkar instagram, contact 1onlysarkar, tournament help india",
-      ogTitle: "Contact Us — 1OnlySarkar",
-      ogDescription: "Get in touch with 1OnlySarkar for tournament support, payment issues, or general questions.",
+      ogTitle: "Contact 1OnlySarkar",
+      ogDescription: "Get help with Free Fire tournaments, payment verification, account issues, cheater reports, and general support.",
       ogImage: ogHome,
-      twitterTitle: "Contact Us — 1OnlySarkar",
-      twitterDescription: "Get in touch with 1OnlySarkar for tournament support and payment issues.",
+      twitterTitle: "Contact 1OnlySarkar",
+      twitterDescription: "Get help with tournaments, payment verification, account issues, and reports.",
       twitterImage: ogHome,
       canonicalUrl: `${siteUrl}/contact`,
       schemaType: "ContactPage",
@@ -833,41 +901,41 @@ async function seedSeoConfig() {
 
     // ── How To Join ──
     pageMeta("page-how-to-join", {
-      metaTitle: "How to Join a Tournament — 1OnlySarkar",
-      metaDescription: "Step-by-step guide to joining Free Fire tournaments on 1OnlySarkar. Book your slot, get the Room ID, enter the custom room, and compete for real cash prizes.",
+      metaTitle: "How to Join a Free Fire Tournament | 1OnlySarkar",
+      metaDescription: "Learn how to join a Free Fire tournament on 1OnlySarkar: create an account, add your UID, add wallet balance, book a slot, and enter the room.",
       metaKeywords: "how to join free fire tournament, 1onlysarkar tournament guide, free fire custom room india, solo duo squad free fire tournament, free fire tournament registration, tournament kaise khele",
-      ogTitle: "How to Join a Tournament — 1OnlySarkar",
-      ogDescription: "Step-by-step guide to joining Free Fire tournaments on 1OnlySarkar. Book your slot, get the Room ID, and compete for cash prizes.",
+      ogTitle: "How to Join a Free Fire Tournament | 1OnlySarkar",
+      ogDescription: "Create an account, add your UID, add wallet balance, book a slot, and enter the Free Fire custom room.",
       ogImage: ogTournaments,
       twitterTitle: "How to Join | 1OnlySarkar",
-      twitterDescription: "Step-by-step guide to joining Free Fire tournaments on 1OnlySarkar.",
+      twitterDescription: "Create an account, add your UID, book a slot, and enter the Free Fire custom room.",
       twitterImage: ogTournaments,
       canonicalUrl: `${siteUrl}/how-to-join`,
     }),
 
     // ── Rules ──
     pageMeta("page-rules", {
-      metaTitle: "Tournament Rules & Fair Play — 1OnlySarkar",
-      metaDescription: "Official rules and fair play guidelines for 1OnlySarkar Free Fire tournaments. Read before joining — violations result in an immediate permanent ban with no refund.",
+      metaTitle: "Free Fire Tournament Rules & Fair Play | 1OnlySarkar",
+      metaDescription: "Read the official 1OnlySarkar Free Fire tournament rules for UID accuracy, slot discipline, room privacy, fair play, cheating, teaming, refunds, and disputes.",
       metaKeywords: "free fire tournament rules india, 1onlysarkar rules, fair play policy, no hack free fire tournament, anti cheat free fire, tournament conduct policy india",
-      ogTitle: "Tournament Rules & Fair Play — 1OnlySarkar",
-      ogDescription: "Official rules and fair play guidelines for 1OnlySarkar Free Fire tournaments. Read before joining.",
+      ogTitle: "Free Fire Tournament Rules & Fair Play | 1OnlySarkar",
+      ogDescription: "Rules for UID accuracy, slot discipline, room privacy, fair play, cheating, teaming, refunds, and disputes.",
       ogImage: ogTournaments,
-      twitterTitle: "Rules — 1OnlySarkar",
-      twitterDescription: "Official rules and fair play guidelines for 1OnlySarkar Free Fire tournaments.",
+      twitterTitle: "Rules | 1OnlySarkar",
+      twitterDescription: "Read the Free Fire tournament rules for fair play, slots, room privacy, refunds, and disputes.",
       twitterImage: ogTournaments,
       canonicalUrl: `${siteUrl}/rules`,
     }),
 
     // ── Privacy Policy ──
     pageMeta("page-privacy", {
-      metaTitle: "Privacy Policy — 1OnlySarkar",
+      metaTitle: "Privacy Policy | 1OnlySarkar",
       metaDescription: "Read 1OnlySarkar's Privacy Policy. Learn what data we collect, how we use it, and how your personal information is protected on our platform.",
       metaKeywords: "1onlysarkar privacy policy, free fire tournament data policy india, user data protection 1onlysarkar, 1onlysarkar personal information",
-      ogTitle: "Privacy Policy — 1OnlySarkar",
+      ogTitle: "Privacy Policy | 1OnlySarkar",
       ogDescription: "Read 1OnlySarkar's Privacy Policy. Learn what data we collect and how it is protected.",
       ogImage: ogHome,
-      twitterTitle: "Privacy Policy — 1OnlySarkar",
+      twitterTitle: "Privacy Policy | 1OnlySarkar",
       twitterDescription: "Read 1OnlySarkar's Privacy Policy. Learn what data we collect and how it is protected.",
       twitterImage: ogHome,
       canonicalUrl: `${siteUrl}/privacy`,
@@ -875,13 +943,13 @@ async function seedSeoConfig() {
 
     // ── Terms & Conditions ──
     pageMeta("page-terms", {
-      metaTitle: "Terms & Conditions — 1OnlySarkar",
+      metaTitle: "Terms & Conditions | 1OnlySarkar",
       metaDescription: "Read the full Terms & Conditions for 1OnlySarkar. These govern your use of the platform, tournament participation, wallet transactions, and prize eligibility.",
       metaKeywords: "1onlysarkar terms and conditions, free fire tournament platform terms india, tournament participation agreement, 1onlysarkar user agreement, free fire esports platform terms",
-      ogTitle: "Terms & Conditions — 1OnlySarkar",
+      ogTitle: "Terms & Conditions | 1OnlySarkar",
       ogDescription: "Read the full Terms & Conditions for 1OnlySarkar governing platform use, tournament participation, and prize eligibility.",
       ogImage: ogHome,
-      twitterTitle: "Terms & Conditions — 1OnlySarkar",
+      twitterTitle: "Terms & Conditions | 1OnlySarkar",
       twitterDescription: "Read the full Terms & Conditions for 1OnlySarkar governing platform use and tournament participation.",
       twitterImage: ogHome,
       canonicalUrl: `${siteUrl}/terms`,
@@ -889,17 +957,17 @@ async function seedSeoConfig() {
 
     // ── llms-txt ──
     pageMeta("llms-txt", {
-      metaTitle: "1OnlySarkar — AI/LLM Overview",
-      metaDescription: "Indian Free Fire esports platform, offering structured tournament match slots and real money payouts.",
-      robots: "index, follow",
+      metaTitle: "1OnlySarkar - AI/LLM Overview",
+      metaDescription: "Structured overview of 1OnlySarkar Free Fire tournaments, public help pages, tournament formats, wallet flow, and support routes.",
+      robots: "index, follow, max-image-preview:large",
       canonicalUrl: `${siteUrl}/llms.txt`,
       schemaType: "WebPage",
       structuredDataJson: JSON.stringify({
         entities: [
-          { name: "1OnlySarkar", description: "Indian Free Fire esports platform, offering structured tournament match slots and real money payouts." },
+          { name: "1OnlySarkar", description: "Indian Free Fire custom-room tournament platform with structured match slots and wallet-based entry flow." },
           { name: "Free Fire", description: "Mobile battle royale game by Garena (package: com.dts.freefireth)." },
           { name: "Tournament Format", description: "SOLO (single player slot), DUO (team of 2 players), SQUAD (team of 4 players)." },
-          { name: "Prize Pool", description: "Real money (INR) credited directly to player wallets, withdrawable instantly via registered UPI." }
+          { name: "Prize Pool", description: "Tournament prize amounts are credited to player wallets after results are verified, subject to platform rules." }
         ],
         references: [
           `Organization: ${siteUrl}/#organization`,
@@ -910,14 +978,14 @@ async function seedSeoConfig() {
     }),
     // ── Cheater Report ──
     pageMeta("cheater-report", {
-      metaTitle: "Report a Cheater | 1OnlySarkar — Esports Fair Play",
-      metaDescription: "Help us keep matches fair. Report cheaters, hackers, or teamers with UIDs and evidence on 1OnlySarkar. We take strict actions against unfair play.",
+      metaTitle: "Report a Cheater | 1OnlySarkar Fair Play",
+      metaDescription: "Report Free Fire tournament cheating, hacking, teaming, or unfair play on 1OnlySarkar with UID details, match context, and evidence.",
       metaKeywords: "report cheater free fire, free fire hack report, custom room cheating, 1onlysarkar report, free fire uid hack report, esports fair play",
       ogTitle: "Report a Cheater | 1OnlySarkar",
-      ogDescription: "Report cheaters, hackers, or teamers with UIDs and evidence on 1OnlySarkar. Help us keep competitive gaming fair.",
+      ogDescription: "Report tournament cheating, hacking, teaming, or unfair play with UID details, match context, and evidence.",
       ogImage: ogTournaments,
       twitterTitle: "Report a Cheater | 1OnlySarkar",
-      twitterDescription: "Report cheaters, hackers, or teamers with UIDs and evidence on 1OnlySarkar.",
+      twitterDescription: "Report Free Fire tournament cheating, hacking, teaming, or unfair play with evidence.",
       twitterImage: ogTournaments,
       canonicalUrl: `${siteUrl}/cheater-report`,
     }),
@@ -925,13 +993,13 @@ async function seedSeoConfig() {
     // ── Payment Help ──
     pageMeta("payment-help", {
       metaTitle: "Payment Help & Support | 1OnlySarkar",
-      metaDescription: "Facing payment issues? Submit your transaction ID/UTR and amount on 1OnlySarkar for quick deposit verification and support.",
-      metaKeywords: "payment help, utr verify, deposit pending free fire, 1onlysarkar payment issue, transaction support",
+      metaDescription: "Get help with 1OnlySarkar wallet deposits, UPI payments, missing credits, failed payments, UTR/reference numbers, and transaction verification.",
+      metaKeywords: "1OnlySarkar payment help, UPI payment support, UTR verification, wallet deposit issue, Free Fire tournament payment",
       ogTitle: "Payment Help & Support | 1OnlySarkar",
-      ogDescription: "Facing payment issues? Submit your transaction ID/UTR and amount for quick deposit verification.",
+      ogDescription: "Get help with wallet deposits, UPI payments, missing credits, failed payments, UTR numbers, and transaction verification.",
       ogImage: ogHome,
       twitterTitle: "Payment Help & Support | 1OnlySarkar",
-      twitterDescription: "Facing payment issues? Submit your transaction ID/UTR and amount for support.",
+      twitterDescription: "Help for wallet deposits, UPI payments, missing credits, failed payments, UTR, and verification.",
       twitterImage: ogHome,
       canonicalUrl: `${siteUrl}/payment-help`,
     }),
@@ -1231,6 +1299,7 @@ async function seedCustomPages() {
     {
       id: "contact",
       slug: "contact",
+      title: "Contact 1OnlySarkar",
       content: `# Contact
 
 Have a question, a payment issue, or something else on your mind? Here's how to reach us.
@@ -1310,6 +1379,7 @@ A lot of common questions are already answered in our help pages:
     {
       id: "how-to-join",
       slug: "how-to-join",
+      title: "How to Join a Free Fire Tournament",
       content: `# How to Join a Tournament
 
 Joining a tournament on 1OnlySarkar takes less than a minute once your account is set up. This guide walks you through everything — from registration to entering the custom room on match day.
@@ -1437,6 +1507,7 @@ From your wallet, you can withdraw to your UPI ID or bank account whenever you l
     {
       id: "rules",
       slug: "rules",
+      title: "Tournament Rules & Fair Play",
       content: `# Tournament Rules & Fair Play
 
 These rules apply to every player on 1OnlySarkar — across every tournament, every format, and every match. By registering for any event on this platform, you confirm that you have read and fully accepted what's written here.
@@ -1556,6 +1627,7 @@ Entry fees are deducted at the moment you book your slot. Once a slot is booked,
     {
       id: "privacy",
       slug: "privacy",
+      title: "Privacy Policy",
       content: `# Privacy Policy
 
 **Effective Date: June 29, 2025**
@@ -1693,6 +1765,7 @@ For any privacy-related queries, access requests, or data deletion requests:
     {
       id: "terms",
       slug: "terms",
+      title: "Terms & Conditions",
       content: `# Terms & Conditions
 
 **Effective Date: June 29, 2025**
@@ -1859,7 +1932,7 @@ For questions about these Terms:
       await db
         .update(customPage)
         .set({
-          title: page.slug,
+          title: page.title,
           content: page.content,
           status: page.status,
           updatedAt: new Date(),
@@ -1870,7 +1943,7 @@ For questions about these Terms:
         .insert(customPage)
         .values({
           ...page,
-          title: page.slug,
+          title: page.title,
           createdAt: new Date(),
           updatedAt: new Date(),
         });
@@ -1883,15 +1956,19 @@ For questions about these Terms:
 async function seedRobotsConfig() {
   console.log("💾 Seeding robots_config...");
   const defaultRules = [
-    { userAgent: "*", allow: ["/"], disallow: ["/dashboard"] },
+    { userAgent: "*", allow: ["/"], disallow: ["/api/", "/dashboard/", "/xpanel2024/"] },
     { userAgent: "GPTBot", allow: ["/"] },
     { userAgent: "ChatGPT-User", allow: ["/"] },
+    { userAgent: "OAI-SearchBot", allow: ["/"] },
     { userAgent: "Google-Extended", allow: ["/"] },
     { userAgent: "Anthropic-AI", allow: ["/"] },
     { userAgent: "Claude-Web", allow: ["/"] },
+    { userAgent: "ClaudeBot", allow: ["/"] },
     { userAgent: "CCBot", allow: ["/"] },
     { userAgent: "PerplexityBot", allow: ["/"] },
-    { userAgent: "Cohere-ai", allow: ["/"] }
+    { userAgent: "Perplexity-User", allow: ["/"] },
+    { userAgent: "Applebot-Extended", allow: ["/"] },
+    { userAgent: "cohere-ai", allow: ["/"] }
   ];
 
   await db.insert(robotsConfig).values({
@@ -1958,7 +2035,7 @@ async function seedFaqs() {
     {
       id: "faq-8",
       question: "What is a UTR number and where do I find it?",
-      answer: "UTR stands for Unique Transaction Reference. It's a 12-digit number generated by your bank or UPI app for every transaction. You can find it in your payment app under transaction history or in the payment confirmation SMS. It's how we verify that your payment actually went through.",
+      answer: "UTR stands for Unique Transaction Reference. Many UPI apps show a 12-digit UPI reference number, but some banks or apps may show a longer transaction reference. Open the payment in your app's transaction history and copy the exact UPI Ref/UTR/reference number shown there. That's how we verify that your payment actually went through.",
       order: 8
     },
     {

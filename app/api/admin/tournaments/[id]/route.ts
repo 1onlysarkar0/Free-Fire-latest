@@ -6,6 +6,7 @@ import { count, eq, sql } from "drizzle-orm";
 import { invalidateTournamentCache } from "@/lib/cache";
 import { getSiteUrl } from "@/lib/site-url";
 import { submitUrlForIndexing } from "@/lib/indexing";
+import { buildTournamentMeta, buildTournamentSportsEventSchema } from "@/lib/seo/tournament";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const adminUser = await requireAdminOrRole(req, "tournaments:view");
@@ -105,33 +106,23 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       const baseUrl = await getSiteUrl();
 
       if (siteName && baseUrl) {
-        const metaTitle = `${updated.name} — ${siteName}`;
-        const metaDescription = `Join ${updated.name}. ${updated.type === "FREE" ? "Free entry" : `Entry fee: ₹${updated.joiningFee}`}. Prize pool: ₹${updated.prizePool}. ${updated.gameMode.replace(/_/g, " ")} mode. ${updated.teamFormat.toUpperCase()} format. Register now!`;
-
-        const sportsEventSchema = {
-          "@context": "https://schema.org",
-          "@type": "SportsEvent",
-          "name": updated.name,
-          "description": metaDescription,
-          "url": `${baseUrl}/tournaments/${id}`,
-          "startDate": updated.startTime instanceof Date ? updated.startTime.toISOString() : new Date(updated.startTime).toISOString(),
-          "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
-          "eventStatus": updated.status === "UPCOMING" ? "https://schema.org/EventScheduled"
-            : updated.status === "LIVE" || updated.status === "ACTIVE" ? "https://schema.org/EventActive"
-            : updated.status === "COMPLETED" ? "https://schema.org/EventCompleted"
-            : updated.status === "CANCELLED" ? "https://schema.org/EventCancelled"
-            : "https://schema.org/EventScheduled",
-          "location": {
-            "@type": "VirtualLocation",
-            "url": `${baseUrl}/tournaments/${id}`
-          },
-          "offers": {
-            "@type": "Offer",
-            "price": updated.joiningFee ?? 0,
-            "priceCurrency": "INR",
-            "availability": updated.status === "UPCOMING" ? "https://schema.org/InStock" : "https://schema.org/SoldOut"
-          }
+        const tournamentSeoInput = {
+          id,
+          name: updated.name,
+          type: updated.type,
+          joiningFee: updated.joiningFee,
+          prizePool: updated.prizePool,
+          gameMode: updated.gameMode,
+          teamFormat: updated.teamFormat,
+          totalSlots: updated.totalSlots,
+          startTime: updated.startTime,
+          status: updated.status,
+          siteName,
+          baseUrl,
+          logoSrc: configRow.logoSrc,
         };
+        const { metaTitle, metaDescription } = buildTournamentMeta(tournamentSeoInput);
+        const sportsEventSchema = buildTournamentSportsEventSchema(tournamentSeoInput);
 
         await db.insert(seoConfig).values({
           id: `tournament-${id}`,
@@ -142,7 +133,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
           ogImage: `/api/og-image?tournament=${id}`,
           ogType: "website",
           canonicalUrl: `${baseUrl}/tournaments/${id}`,
-          robots: "index, follow",
+          robots: "index, follow, max-image-preview:large",
           structuredDataJson: JSON.stringify(sportsEventSchema),
           schemaType: "SportsEvent",
           ogImageDynamic: true,
@@ -156,7 +147,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
             ogDescription: metaDescription,
             ogImage: `/api/og-image?tournament=${id}`,
             canonicalUrl: `${baseUrl}/tournaments/${id}`,
+            robots: "index, follow, max-image-preview:large",
             structuredDataJson: JSON.stringify(sportsEventSchema),
+            schemaType: "SportsEvent",
+            ogImageDynamic: true,
+            ogImageTemplate: "tournament",
             updatedAt: new Date(),
           },
         });

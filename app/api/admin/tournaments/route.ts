@@ -7,6 +7,7 @@ import { nanoid } from "nanoid";
 import { invalidateTournamentCache } from "@/lib/cache";
 import { getSiteUrl } from "@/lib/site-url";
 import { submitUrlForIndexing } from "@/lib/indexing";
+import { buildTournamentMeta, buildTournamentSportsEventSchema } from "@/lib/seo/tournament";
 
 // Convert slot number to team label (1→A, 2→B, ..., 26→Z, 27→AA, ...)
 function slotLabel(n: number): string {
@@ -64,6 +65,8 @@ export async function POST(req: NextRequest) {
     if (!registrationDeadline) return NextResponse.json({ error: "Registration deadline is required" }, { status: 400 });
 
     const rawSlots = Math.max(2, Math.min(500, parseInt(totalSlots) || 12));
+    const parsedJoiningFee = Math.max(0, parseInt(joiningFee) || 0);
+    const parsedPrizePool = Math.max(0, parseInt(prizePool) || 0);
     const format = (teamFormat as string).toLowerCase();
 
     // Create slot records for all individual player spots
@@ -84,8 +87,8 @@ export async function POST(req: NextRequest) {
         id,
         name: name.trim(),
         type: type.toUpperCase(),
-        joiningFee: Math.max(0, parseInt(joiningFee) || 0),
-        prizePool: Math.max(0, parseInt(prizePool) || 0),
+        joiningFee: parsedJoiningFee,
+        prizePool: parsedPrizePool,
         gameMode,
         teamFormat,
         maps: JSON.stringify(Array.isArray(maps) ? maps : []),
@@ -129,28 +132,24 @@ export async function POST(req: NextRequest) {
       const baseUrl = await getSiteUrl();
       if (!baseUrl) throw new Error("Site URL not configured in database");
 
-      const metaTitle = `${name.trim()} — ${siteName}`;
-      const metaDescription = `Join ${name.trim()}. ${type.toUpperCase() === "FREE" ? "Free entry" : `Entry fee: ₹${joiningFee}`}. Prize pool: ₹${prizePool}. ${gameMode.replace(/_/g, " ")} mode. ${teamFormat.toUpperCase()} format. Register now!`;
-
-      const sportsEventSchema = {
-        "@context": "https://schema.org",
-        "@type": "SportsEvent",
-        "name": name.trim(),
-        "description": metaDescription,
-        "url": `${baseUrl}/tournaments/${id}`,
-        "startDate": new Date(startTime).toISOString(),
-        "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
-        "location": {
-          "@type": "VirtualLocation",
-          "url": `${baseUrl}/tournaments/${id}`
-        },
-        "offers": {
-          "@type": "Offer",
-          "price": joiningFee ?? 0,
-          "priceCurrency": "INR",
-          "availability": "https://schema.org/InStock"
-        }
+      const tournamentSeoInput = {
+        id,
+        name: name.trim(),
+        type: type.toUpperCase(),
+        joiningFee: parsedJoiningFee,
+        prizePool: parsedPrizePool,
+        gameMode,
+        teamFormat,
+        totalSlots: slotRecordCount,
+        startTime: new Date(startTime),
+        status: "UPCOMING",
+        availableSlots: slotRecordCount,
+        siteName,
+        baseUrl,
+        logoSrc: configRow.logoSrc,
       };
+      const { metaTitle, metaDescription } = buildTournamentMeta(tournamentSeoInput);
+      const sportsEventSchema = buildTournamentSportsEventSchema(tournamentSeoInput);
 
       await tx.insert(seoConfig).values({
         id: `tournament-${id}`,
@@ -161,7 +160,7 @@ export async function POST(req: NextRequest) {
         ogImage: `/api/og-image?tournament=${id}`,
         ogType: "website",
         canonicalUrl: `${baseUrl}/tournaments/${id}`,
-        robots: "index, follow",
+        robots: "index, follow, max-image-preview:large",
         structuredDataJson: JSON.stringify(sportsEventSchema),
         schemaType: "SportsEvent",
         ogImageDynamic: true,

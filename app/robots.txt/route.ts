@@ -24,6 +24,16 @@ const AI_AGENTS = [
 
 const DISALLOWED_PARAMS = ["?sort=", "?filter=", "?page=", "?ref="];
 
+function appendDiscoveryHints(lines: string[], baseUrl: string) {
+  lines.push("");
+  lines.push("# Sitemap");
+  lines.push(`Sitemap: ${baseUrl}/sitemap.xml`);
+  lines.push("");
+  lines.push("# AI-friendly content locations");
+  lines.push(`See: ${baseUrl}/llms.txt`);
+  lines.push(`See: ${baseUrl}/faq`);
+}
+
 function getDefaultRobots(domain: string, baseUrl: string): string[] {
   const lines: string[] = [
     `# Robots.txt for ${domain}`,
@@ -45,15 +55,7 @@ function getDefaultRobots(domain: string, baseUrl: string): string[] {
     ]),
   ];
 
-  lines.push("# Sitemap");
-  lines.push(`Sitemap: ${baseUrl}/sitemap.xml`);
-  lines.push("");
-  lines.push("# Content Signals");
-  lines.push("Content-Signal: ai-train=yes, search=yes, ai-input=yes");
-  lines.push("");
-  lines.push("# AI-friendly content locations");
-  lines.push(`See: ${baseUrl}/llms.txt`);
-  lines.push(`See: ${baseUrl}/faq`);
+  appendDiscoveryHints(lines, baseUrl);
 
   return lines;
 }
@@ -85,8 +87,7 @@ export async function GET() {
         lines.push("");
       }
 
-      lines.push("# Sitemap");
-      lines.push(`Sitemap: ${baseUrl}/sitemap.xml`);
+      appendDiscoveryHints(lines, baseUrl);
     } else {
       lines = getDefaultRobots(domain, baseUrl);
     }

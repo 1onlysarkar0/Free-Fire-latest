@@ -18,38 +18,38 @@ const onboardingFeatures = [
   {
     step: "Step 1",
     title: "Create Account & Login",
-    content: "Create a free account on 1OnlySarkar today. Play daily Free Fire solo, duo, and squad matches to win real cash prizes. Register now!",
+    content: "Create your player profile, add your Free Fire UID, and keep your tournament details tied to one verified account.",
     image: "/assets/Get-started.webp",
   },
   {
     step: "Step 2",
     title: "Join Tournaments",
-    content: "Explore upcoming Free Fire tournaments on 1OnlySarkar. Join daily Solo, Duo, and Squad matches. Check entry fees, slot availability, and prize pools.",
+    content: "Browse upcoming Free Fire Solo, Duo, and Squad rooms, compare entry fees and prize pools, then reserve an open slot.",
     image: "/assets/Tournament.webp",
   },
   {
     step: "Step 3",
     title: "UPI Withdrawal",
-    content: "Request your withdrawal from the dashboard, and your winnings will be transferred to your UPI account within a few hours after approval",
+    content: "Track credited winnings in your wallet and submit a UPI withdrawal request after the admin verifies results.",
     image: "/assets/Withdraw.webp",
   },
 ];
 
 const onboardingTestimonials = [
   {
-    quote: "Create a free account on 1OnlySarkar today. Play daily Free Fire solo, duo, and squad matches to win real cash prizes. Register now!",
+    quote: "Create your profile once, add your Free Fire UID, and you are ready to book tournament slots.",
     name: "Create Account & Login",
     designation: "Step 1",
     src: "/assets/Get-started.webp",
   },
   {
-    quote: "Explore upcoming Free Fire tournaments on 1OnlySarkar. Join daily Solo, Duo, and Squad matches. Check entry fees, slot availability, and prize pools.",
+    quote: "Filter live and upcoming rooms, review prize pools, and choose the Solo, Duo, or Squad slot that fits you.",
     name: "Join Tournaments",
     designation: "Step 2",
     src: "/assets/Tournament.webp",
   },
   {
-    quote: "Request your withdrawal from the dashboard, and your winnings will be transferred to your UPI account within a few hours after approval",
+    quote: "After results are verified, wallet winnings can be requested for UPI withdrawal from your dashboard.",
     name: "UPI Withdrawal",
     designation: "Step 3",
     src: "/assets/Withdraw.webp",
@@ -77,10 +77,18 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const [config, dbUsers] = await Promise.all([
+  const [config, dbUsers, seoData] = await Promise.all([
     getHeroConfig(),
     getTopPlayersForHomepage(),
+    getSeoData("home").catch(() => null),
   ]);
+
+  let structuredData = null;
+  if (seoData?.structuredDataJson) {
+    try {
+      structuredData = JSON.parse(seoData.structuredDataJson);
+    } catch { }
+  }
 
   let players = dbUsers.map((u) => ({
     src: u.image || null,
@@ -98,6 +106,12 @@ export default async function Home() {
 
   return (
     <>
+      {structuredData && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
+      )}
       <div
         className="relative overflow-x-hidden flex-1 bg-background"
         style={{ minHeight: "100vh" }}
@@ -166,7 +180,7 @@ export default async function Home() {
           <div className="hidden lg:block">
             <FeatureSteps
               features={onboardingFeatures}
-              title="Your Journey Start Here"
+              title="Your Journey Starts Here"
               autoPlayInterval={4000}
               imageHeight="h-[450px]"
             />
@@ -175,7 +189,7 @@ export default async function Home() {
           {/* Tablet & Mobile Carousel Layout */}
           <div className="block lg:hidden px-4 md:px-6">
             <h2 className="text-3xl md:text-4xl font-bold mb-10 text-center font-lora text-foreground">
-              Your Journey Start Here
+              Your Journey Starts Here
             </h2>
             <CircularTestimonials
               testimonials={onboardingTestimonials}
