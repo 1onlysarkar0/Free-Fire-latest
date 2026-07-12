@@ -2065,7 +2065,7 @@ async function seedFaqs() {
     {
       id: "faq-13",
       question: "How do I withdraw my winnings?",
-      answer: "Go to Dashboard → My Wallet and submit a withdrawal request. Enter the amount you want to withdraw along with your UPI ID or bank account details. Requests are processed manually and typically take up to 48 hours.",
+      answer: "Go to Dashboard → My Wallet and submit a withdrawal request. Enter the amount you want to withdraw along with your UPI ID or bank account details. Requests are processed manually and typically take up to 2 to 3 hours.",
       order: 13
     },
     {
