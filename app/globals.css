@@ -959,3 +959,21 @@ iframe[srcdoc] {
   background-size: 200% 100%;
   animation: text-shimmer 4s linear infinite;
 }
+
+/* Custom scrollbar utility for tables and scroll panels */
+@utility scrollbar-thin {
+  &::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 9999px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.5);
+  }
+}

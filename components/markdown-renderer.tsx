@@ -221,6 +221,115 @@ function preprocessMarkdown(content: string): string {
   return processed;
 }
 
+interface InteractiveTableWrapperProps {
+  children: React.ReactNode;
+  isChat: boolean;
+}
+
+function InteractiveTableWrapper({ children, isChat }: InteractiveTableWrapperProps) {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [isOverflowing, setIsOverflowing] = React.useState(false);
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [startX, setStartX] = React.useState(0);
+  const [scrollLeft, setScrollLeft] = React.useState(0);
+  const [showHint, setShowHint] = React.useState(true);
+
+  const checkOverflow = React.useCallback(() => {
+    const el = containerRef.current;
+    if (el) {
+      setIsOverflowing(el.scrollWidth > el.clientWidth + 2);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    checkOverflow();
+    const timer = setTimeout(checkOverflow, 500);
+    window.addEventListener("resize", checkOverflow);
+
+    let observer: ResizeObserver | null = null;
+    if (typeof window !== "undefined" && window.ResizeObserver && containerRef.current) {
+      observer = new window.ResizeObserver(() => {
+        checkOverflow();
+      });
+      observer.observe(containerRef.current);
+    }
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", checkOverflow);
+      if (observer) {
+        observer.disconnect();
+      }
+    };
+  }, [checkOverflow, children]);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    const el = containerRef.current;
+    if (!el || el.scrollWidth <= el.clientWidth) return;
+
+    setIsDragging(true);
+    setStartX(e.pageX - el.offsetLeft);
+    setScrollLeft(el.scrollLeft);
+    setShowHint(false);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const el = containerRef.current;
+    if (!el) return;
+
+    const x = e.pageX - el.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    el.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleScroll = () => {
+    if (showHint) {
+      setShowHint(false);
+    }
+  };
+
+  return (
+    <CopyWrapper className={cn("w-full overflow-hidden min-w-0 relative group/table-wrapper", isChat ? "my-3" : "my-8")}>
+      {isOverflowing && showHint && (
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-primary/95 text-primary-foreground text-[10px] md:text-xs font-semibold px-2.5 py-1 rounded-full shadow-md pointer-events-none select-none z-10 flex items-center gap-1.5 animate-bounce backdrop-blur-xs transition-opacity duration-300">
+          <span>↔</span> Drag or swipe to scroll table
+        </div>
+      )}
+      <div
+        ref={containerRef}
+        onMouseDown={handleMouseDown}
+        onMouseLeave={handleMouseLeave}
+        onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMove}
+        onScroll={handleScroll}
+        className={cn(
+          "w-full overflow-x-auto rounded-xl border border-border shadow-sm bg-card transition-all scrollbar-thin select-none",
+          isDragging ? "cursor-grabbing" : "cursor-grab",
+          isOverflowing && "hover:border-primary/45"
+        )}
+        style={{ 
+          scrollBehavior: isDragging ? "auto" : "smooth",
+          WebkitOverflowScrolling: "touch"
+        }}
+      >
+        <div className="w-full select-text pointer-events-auto">
+          {children}
+        </div>
+      </div>
+    </CopyWrapper>
+  );
+}
+
 export function MarkdownRenderer({ content, className, variant = "default", isStreaming = false }: MarkdownRendererProps) {
   const isChat = variant === "chat";
 
@@ -433,11 +542,9 @@ export function MarkdownRenderer({ content, className, variant = "default", isSt
       hr: ({ node: _, ...props }) => <hr className="my-8 border-t border-border/60" {...props} />,
       del: ({ node: _, ...props }) => <del className="line-through text-muted-foreground/70" {...props} />,
       table: ({ node: _, ...props }) => (
-        <CopyWrapper className={cn("w-full overflow-hidden min-w-0", isChat ? "my-3" : "my-8")}>
-          <div className="w-full overflow-x-auto rounded-xl border border-border shadow-sm bg-card">
-            <Table {...props} className="w-full text-left border-collapse" />
-          </div>
-        </CopyWrapper>
+        <InteractiveTableWrapper isChat={isChat}>
+          <table {...props} className="w-full caption-bottom text-sm text-left border-collapse" />
+        </InteractiveTableWrapper>
       ),
       thead: ({ node: _, ...props }) => <TableHeader className="bg-muted/60 border-b border-border" {...props} />,
       tbody: ({ node: _, ...props }) => <TableBody className="divide-y divide-border" {...props} />,
