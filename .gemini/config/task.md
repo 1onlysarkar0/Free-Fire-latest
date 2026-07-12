@@ -1,0 +1,11 @@
+- [x] Convert user image to WebP format (`public/assets/cta-image.webp`)
+- [x] Clean up original PNG image
+- [x] Create CtaSection component with responsive design and theme styles
+- [x] Integrate CtaSection in `app/(public)/page.tsx`
+- [x] Remove card wrapper (image, text, and button directly on section background)
+- [x] Center the heading "Join the Arena" above the two-column layout
+- [x] Align container width and padding with the features section (`max-w-7xl px-8 md:px-12`)
+- [x] Filter landing page FAQs to load by order `1`, `3`, `7`, and `13`
+- [x] Run typecheck validation
+- [x] Run lint validation
+- [x] Update walkthrough report

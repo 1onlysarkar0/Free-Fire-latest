@@ -13,6 +13,11 @@ import { getAdminSiteConfigCached } from "@/lib/admin-data";
 import { getSiteUrl } from "@/lib/site-url";
 import { FeatureSteps } from "@/components/ui/feature-section";
 import { CircularTestimonials } from "@/components/ui/circular-testimonials";
+import { db } from "@/db/drizzle";
+import { faq } from "@/db/schema";
+import { asc, inArray } from "drizzle-orm";
+import { LandingFaq } from "@/components/homepage/landing-faq";
+import { CtaSection } from "@/components/homepage/cta-section";
 
 const onboardingFeatures = [
   {
@@ -29,8 +34,8 @@ const onboardingFeatures = [
   },
   {
     step: "Step 3",
-    title: "UPI Withdrawal",
-    content: "Track credited winnings in your wallet and submit a UPI withdrawal request after the admin verifies results.",
+    title: "Instant UPI Payouts",
+    content: "Request a withdrawal from your dashboard and get your tournament winnings transferred directly and instantly to your UPI account.",
     image: "/assets/Withdraw.webp",
   },
 ];
@@ -49,7 +54,7 @@ const onboardingTestimonials = [
     src: "/assets/Tournament.webp",
   },
   {
-    quote: "After results are verified, wallet winnings can be requested for UPI withdrawal from your dashboard.",
+    quote: "Submit a payout request to receive your hard-earned winnings directly into your UPI account in seconds.",
     name: "UPI Withdrawal",
     designation: "Step 3",
     src: "/assets/Withdraw.webp",
@@ -77,10 +82,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const [config, dbUsers, seoData] = await Promise.all([
+  const [config, dbUsers, seoData, homeFaqs] = await Promise.all([
     getHeroConfig(),
     getTopPlayersForHomepage(),
     getSeoData("home").catch(() => null),
+    db.select().from(faq).where(inArray(faq.order, [1, 3, 7, 13])).orderBy(asc(faq.order)).catch(() => []),
   ]);
 
   let structuredData = null;
@@ -147,18 +153,20 @@ export default async function Home() {
               {config.heroCtaSecondaryText && config.heroCtaSecondaryUrl && (
                 <Button className="font-ibm font-medium" size="lg" variant="secondary" asChild>
                   <Link href={config.heroCtaSecondaryUrl} prefetch={true}>
-                    <Trophy aria-hidden="true" data-icon="inline-start" className="size-4 mr-2 text-foreground" />
+                    <ArrowRightIcon aria-hidden="true" className="size-4 mr-2 text-foreground" />
                     {config.heroCtaSecondaryText}
                   </Link>
                 </Button>
               )}
               {config.heroCtaPrimaryText && config.heroCtaPrimaryUrl && (
-                <Button className="font-ibm font-medium group" size="lg" variant="default" asChild>
-                  <Link href={config.heroCtaPrimaryUrl} prefetch={true}>
-                    <Gamepad2 aria-hidden="true" data-icon="inline-start" className="size-4 mr-2" />
-                    {config.heroCtaPrimaryText}
-                  </Link>
-                </Button>
+                <Link
+                  href={config.heroCtaPrimaryUrl}
+                  prefetch={true}
+                  className="inline-flex items-center justify-center gap-1.5 text-sm font-semibold transition-colors duration-150 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-5 py-2.5 shadow-xs font-ibm"
+                >
+                  <Trophy aria-hidden="true" className="size-4 shrink-0" />
+                  {config.heroCtaPrimaryText}
+                </Link>
               )}
             </div>
           </div>
@@ -210,6 +218,20 @@ export default async function Home() {
             />
           </div>
         </section>
+
+        <CtaSection
+          imageSrc="/assets/cta-image.webp"
+          imageAlt="Free Fire Tournament Arena CTA"
+          title="Join the Arena"
+          subtitle="Turn Your Free Fire Skills Into Real Cash Winnings"
+          description="Enter daily solo, duo, and squad rooms. Dominate the battleground, build your leaderboard rank, and withdraw your cash prizes instantly via UPI."
+          buttonText="Get Started"
+          buttonUrl="/sign-in"
+        />
+
+        {homeFaqs && homeFaqs.length > 0 && (
+          <LandingFaq items={homeFaqs} />
+        )}
       </div>
     </>
   );

@@ -945,3 +945,17 @@ iframe[srcdoc] {
 .transition-panel {
   transition: width 0.1s ease-out;
 }
+
+@keyframes text-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+.animate-shiny-text {
+  background-size: 200% 100%;
+  animation: text-shimmer 4s linear infinite;
+}
