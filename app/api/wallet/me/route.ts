@@ -19,4 +19,3 @@ export async function GET(req: NextRequest) {
     return apiError("Failed to fetch wallet", 500);
   }
 }
-export const dynamic = 'force-dynamic';
