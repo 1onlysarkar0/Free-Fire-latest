@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { db } from "@/db/drizzle";
 import { tournamentParticipant } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { rethrowIfPrerenderError } from "@/lib/api-response";
 
 export const instant = false;
 
@@ -23,6 +24,7 @@ export async function GET() {
 
     return NextResponse.json({ joinedIds });
   } catch (err) {
+    rethrowIfPrerenderError(err);
     console.error("[API/tournaments/my] GET error:", err);
     return NextResponse.json({ joinedIds: [] });
   }

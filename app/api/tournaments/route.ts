@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTournamentsPaginated } from "@/lib/tournaments";
+import { rethrowIfPrerenderError } from "@/lib/api-response";
 
 export const instant = false;
 
@@ -30,6 +31,7 @@ export async function GET(req: NextRequest) {
       headers: { "Cache-Control": "public, s-maxage=15, stale-while-revalidate=59" },
     });
   } catch (err) {
+    rethrowIfPrerenderError(err);
     console.error("[API/tournaments] GET error:", err);
     return NextResponse.json({ success: false, error: "Failed to fetch tournaments" }, { status: 500 });
   }

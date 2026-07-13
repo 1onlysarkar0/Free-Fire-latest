@@ -10,6 +10,7 @@ import { CustomPageOgTemplate } from "@/lib/og-image/templates/custom-page";
 import { AuthPageOgTemplate } from "@/lib/og-image/templates/auth-page";
 import { FaqOgTemplate } from "@/lib/og-image/templates/faq";
 import { getSiteUrl } from "@/lib/site-url";
+import { rethrowIfPrerenderError } from "@/lib/api-response";
 
 export const instant = false;
 
@@ -170,6 +171,7 @@ export async function GET(req: Request) {
       }
     );
   } catch (error: any) {
+    rethrowIfPrerenderError(error);
     console.error("OG Image generation failed:", error);
     return new Response("Failed to generate image", { status: 500 });
   }

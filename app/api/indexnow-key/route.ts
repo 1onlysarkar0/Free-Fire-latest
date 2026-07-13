@@ -3,6 +3,8 @@ import { db } from "@/db/drizzle";
 import { indexingApiConfig } from "@/db/schema";
 import { getOrGenerateIndexNowKey } from "@/lib/indexing";
 
+import { rethrowIfPrerenderError } from "@/lib/api-response";
+
 export const instant = false;
 
 export async function GET(request: Request) {
@@ -22,6 +24,7 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
+    rethrowIfPrerenderError(error);
     console.error("IndexNow Key Error:", error);
     return new NextResponse("Error fetching key", { status: 500 });
   }

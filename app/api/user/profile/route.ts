@@ -4,12 +4,13 @@ import { db } from "@/db/drizzle";
 import { user, account } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { headers } from "next/headers";
+import { rethrowIfPrerenderError } from "@/lib/api-response";
 
 export const instant = false;
 
 export async function GET() {
   try {
-    const session = await auth.api.getSession({ headers: await headers() });
+    const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -56,6 +57,7 @@ export async function GET() {
       hasPassword,
     });
   } catch (error) {
+    rethrowIfPrerenderError(error);
     console.error("profile GET error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }

@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { db } from "@/db/drizzle";
 import { withdrawRequest } from "@/db/schema";
 import { eq, desc, count } from "drizzle-orm";
+import { rethrowIfPrerenderError } from "@/lib/api-response";
 
 export const instant = false;
 
@@ -39,6 +40,7 @@ export async function GET(req: NextRequest) {
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     });
   } catch (err) {
+    rethrowIfPrerenderError(err);
     console.error("[API/wallet/withdraw/requests] error:", err);
     return NextResponse.json({ success: false, error: "Failed to fetch withdrawal requests" }, { status: 500 });
   }
