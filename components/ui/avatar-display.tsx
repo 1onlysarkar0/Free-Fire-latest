@@ -41,6 +41,7 @@ export function AvatarDisplay({ image, name, className }: AvatarDisplayProps) {
           alt={name || "User avatar"}
           width={96}
           height={96}
+          sizes="96px"
           className="aspect-square h-full w-full rounded-full object-cover"
         />
       ) : (

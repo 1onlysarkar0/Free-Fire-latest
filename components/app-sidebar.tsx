@@ -123,14 +123,14 @@ export default function AppSidebarShell({
           <div className="flex items-center justify-center w-full">
             {logoSrc && (
               <Link href={logoUrl} prefetch={true}>
-                <Image src={logoSrc} alt={logoAlt} width={28} height={28} className="h-7 w-7 object-contain" />
+                <Image src={logoSrc} alt={logoAlt} width={28} height={28} className="h-7 w-7 object-contain" priority unoptimized sizes="28px" suppressHydrationWarning />
               </Link>
             )}
           </div>
         ) : (
           <Link href={logoUrl} prefetch={true} className="flex items-center gap-2.5 min-w-0 w-full">
             {logoSrc && (
-              <Image src={logoSrc} alt={logoAlt} width={28} height={28} className="h-7 w-7 object-contain shrink-0" />
+              <Image src={logoSrc} alt={logoAlt} width={28} height={28} className="h-7 w-7 object-contain shrink-0" priority unoptimized sizes="28px" suppressHydrationWarning />
             )}
             <span className="font-momo text-[18px] font-normal tracking-tight text-sidebar-foreground truncate mt-[3px]">
               {siteName}

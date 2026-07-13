@@ -535,6 +535,7 @@ export function MarkdownRenderer({ content, className, variant = "default", isSt
             src={src}
             alt={alt}
             title={title}
+            loading="lazy"
             className="mx-auto rounded-xl max-w-full h-auto border border-border/40 shadow-sm"
             {...props}
           />

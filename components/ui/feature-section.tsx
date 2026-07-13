@@ -130,7 +130,8 @@ export function FeatureSteps({
                     className="w-full h-full object-cover transition-transform transform hover:scale-105 duration-700"
                     width={1000}
                     height={500}
-                    priority={true}
+                    priority={isActive}
+                    sizes="(max-width: 768px) 100vw, 50vw"
                   />
                 </motion.div>
               );

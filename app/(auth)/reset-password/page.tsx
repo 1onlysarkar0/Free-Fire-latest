@@ -46,6 +46,9 @@ export default async function ResetPasswordPage() {
             height={28}
             className="w-7 h-7 rounded-sm"
             priority
+            unoptimized
+            sizes="28px"
+            suppressHydrationWarning
           />
           <span className="text-lg sm:text-xl font-bold font-momo text-foreground">
             {config.logo.title}

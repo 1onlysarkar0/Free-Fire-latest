@@ -100,6 +100,12 @@ export default async function RootLayout({
       suppressHydrationWarning
       className={`${lora.variable} ${ibmPlex.variable}`}
     >
+      <head>
+        <link rel="preconnect" href="https://jdj14ctwppwprnqu.public.blob.vercel-storage.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://jdj14ctwppwprnqu.public.blob.vercel-storage.com" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
+      </head>
       <body
         className="antialiased min-h-screen bg-background font-sans"
         suppressHydrationWarning

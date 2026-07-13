@@ -42,7 +42,7 @@ const CtaSection = React.forwardRef<HTMLDivElement, CtaSectionProps>(
                 width={600}
                 height={400}
                 className="w-full h-full object-cover"
-                priority
+                sizes="(max-width: 768px) 100vw, 50vw"
               />
             </div>
 
