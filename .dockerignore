@@ -1,15 +1,37 @@
-.next
+# Dependencies and build outputs
 node_modules
+.next
+out
+
+# Git
 .git
 .gitignore
+
+# Environment variables
 .env
-.env.*
-*.log
-README.md
-Dockerfile
+.env*.local
+.env.production
+.env.development
+
+# Docker & Deployment scripts
+Dockerfile*
 .dockerignore
-.local
+deploy.ps1
+deploy.sh
+
+# Documentation & IDE
+.vscode
+.idea
 .agents
-.cache
-.config
-tsconfig.tsbuildinfo
+.gemini
+README.md
+SECURITY.md
+CLAUDE.md
+squirrel.toml
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

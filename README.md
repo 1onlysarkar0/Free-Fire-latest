@@ -582,11 +582,29 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 | `npm run db:studio` | Open Drizzle Studio |
 | `npm run vercel-build` | Full Vercel build pipeline |
 
-### Docker
+### Docker & Production Deployment
+
+The project supports dual deployment on **Vercel** (serverless) and **Docker** (containerized with standalone Node server):
+
 ```bash
-docker build -t 1onlysarkar .
-docker run -p 3000:3000 --env-file .env 1onlysarkar
+# 1. Build Docker image with multi-stage BuildKit caching
+docker build -t 1onlysarkar/freefire:latest .
+
+# 2. Run container locally with production env vars
+docker run -p 3000:3000 --env-file .env 1onlysarkar/freefire:latest
 ```
+
+#### Automated Dockploy / Registry Deployment
+Push image to Docker Hub and trigger automatic Dockploy container rebuild:
+```bash
+# Windows (PowerShell)
+npm run deploy
+
+# Linux / macOS (Bash)
+./deploy.sh
+```
+
+> **Important**: Set `APP_URL=https://yourdomain.com` (or `NEXT_PUBLIC_APP_URL`) in your production server environment variables so Better Auth validates requests and origins dynamically at runtime.
 
 ### Admin Panel Access
 Set `is_admin = true` on your user in the database, then visit the admin route (default slug stored in `site_config.admin_slug`).

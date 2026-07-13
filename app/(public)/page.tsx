@@ -18,9 +18,9 @@ import { faq } from "@/db/schema";
 import { asc, inArray } from "drizzle-orm";
 import { LandingFaq } from "@/components/homepage/landing-faq";
 import { CtaSection } from "@/components/homepage/cta-section";
+import { connection } from "next/server";
 
-// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+// Cache Components route opt-out
 export const instant = false;
 
 const onboardingFeatures = [
@@ -86,6 +86,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
+  await connection();
   const [config, dbUsers, seoData, homeFaqs] = await Promise.all([
     getHeroConfig(),
     getTopPlayersForHomepage(),

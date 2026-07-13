@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  ...(process.env.DOCKER_BUILD === "1" ? { output: "standalone" as const } : {}),
   allowedDevOrigins: [
     "10.109.88.98",
     "localhost",

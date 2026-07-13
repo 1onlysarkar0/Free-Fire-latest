@@ -6,23 +6,25 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { twoFactor as twoFactorPlugin } from "better-auth/plugins";
 
-const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+const appUrl = (process.env.APP_URL || process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "").trim().replace(/\/+$/, "");
 const extraOrigins = process.env.TRUSTED_ORIGINS
-  ? process.env.TRUSTED_ORIGINS.split(",").map((o) => o.trim()).filter(Boolean)
+  ? process.env.TRUSTED_ORIGINS.split(",").map((o) => o.trim().replace(/\/+$/, "")).filter(Boolean)
   : [];
 const devOrigins =
   process.env.NODE_ENV === "development"
-    ? ["http://local" + "host:5000", "http://local" + "host:3000"]
+    ? ["http://localhost:5000", "http://localhost:3000"]
     : [];
 
-const trustedOrigins: string[] = [
-  ...(appUrl ? [appUrl] : []),
-  ...extraOrigins,
-  ...devOrigins,
-].filter(Boolean);
+const trustedOrigins: string[] = Array.from(
+  new Set([
+    ...(appUrl ? [appUrl] : []),
+    ...extraOrigins,
+    ...devOrigins,
+  ])
+).filter(Boolean);
 
 export const auth = betterAuth({
-  baseURL: process.env.NEXT_PUBLIC_APP_URL,
+  baseURL: appUrl || undefined,
   trustedOrigins,
   cookieCache: {
     enabled: false,
