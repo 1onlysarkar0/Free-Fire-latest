@@ -100,6 +100,7 @@ export default function ContentTemplatesClient({ initialData }: { dynamicSlug: s
       if (data.success || data.id) {
         toast.success(editingId ? "Template updated" : "Template created");
         setDialogOpen(false);
+        setEditorOpen(false);
         load();
         router.refresh();
       } else {
@@ -280,6 +281,8 @@ export default function ContentTemplatesClient({ initialData }: { dynamicSlug: s
           title={form.name}
           content={form.contentMarkdown}
           setContent={(val) => setForm(current => ({ ...current, contentMarkdown: val }))}
+          onSave={handleSave}
+          saving={saving}
         />
     </div>
   );
