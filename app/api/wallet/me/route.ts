@@ -2,10 +2,11 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { getOrCreateWallet } from "@/lib/wallet";
 import { apiSuccess, apiError } from "@/lib/api-response";
+import type { NextRequest } from "next/server";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: await headers() });
+    const session = await auth.api.getSession({ headers: req.headers });
     if (!session?.user?.id) {
       return apiError("Authentication required", 401);
     }

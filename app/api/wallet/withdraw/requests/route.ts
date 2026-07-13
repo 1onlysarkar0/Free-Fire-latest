@@ -9,7 +9,7 @@ import { eq, desc, count } from "drizzle-orm";
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: await headers() });
+    const session = await auth.api.getSession({ headers: req.headers });
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, error: "Authentication required" }, { status: 401 });
     }

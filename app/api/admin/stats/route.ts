@@ -36,5 +36,7 @@ export async function GET(request: Request) {
     seoConfigs: seoRow.count,
     roles: rolesRow.count,
     usersWithRoles: Number(withRolesRow.count),
+  }, {
+    headers: { "Cache-Control": "private, max-age=30" }
   });
 }

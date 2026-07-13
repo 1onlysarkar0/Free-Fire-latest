@@ -9,28 +9,45 @@ export async function proxy(request: NextRequest) {
   const authPages = ["/sign-in", "/sign-up", "/forgot-password", "/reset-password"];
 
   if (sessionCookie && authPages.includes(pathname)) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    const res = NextResponse.redirect(new URL("/dashboard", request.url));
+    applySecurityHeaders(res);
+    return res;
   }
 
   if (!sessionCookie && pathname.startsWith("/dashboard")) {
     const returnTo = encodeURIComponent(pathname);
-    return NextResponse.redirect(new URL(`/sign-in?returnTo=${returnTo}`, request.url));
+    const res = NextResponse.redirect(new URL(`/sign-in?returnTo=${returnTo}`, request.url));
+    applySecurityHeaders(res);
+    return res;
   }
 
   if (!sessionCookie && pathname === "/complete-profile") {
-    return NextResponse.redirect(new URL("/sign-in", request.url));
+    const res = NextResponse.redirect(new URL("/sign-in", request.url));
+    applySecurityHeaders(res);
+    return res;
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+  applySecurityHeaders(response);
+  return response;
+}
+
+function applySecurityHeaders(response: NextResponse) {
+  response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set(
+    "Strict-Transport-Security",
+    "max-age=31536000; includeSubDomains; preload"
+  );
+  response.headers.set(
+    "Permissions-Policy",
+    "camera=(), microphone=(), geolocation=()"
+  );
 }
 
 export const config = {
   matcher: [
-    "/dashboard/:path*",
-    "/sign-in",
-    "/sign-up",
-    "/forgot-password",
-    "/reset-password",
-    "/complete-profile",
+    "/((?!api|_next/static|_next/image|favicon.ico|assets).*)",
   ],
 };

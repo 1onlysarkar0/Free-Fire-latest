@@ -52,7 +52,10 @@ export const session = pgTable("session", {
   userId: text("userId")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
-});
+}, (t) => [
+  index("session_user_id_idx").on(t.userId),
+  index("session_token_idx").on(t.token),
+]);
 
 export const account = pgTable("account", {
   id: text("id").primaryKey(),
@@ -70,7 +73,9 @@ export const account = pgTable("account", {
   password: text("password"),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
-});
+}, (t) => [
+  index("account_user_id_idx").on(t.userId),
+]);
 
 export const verification = pgTable("verification", {
   id: text("id").primaryKey(),
@@ -90,7 +95,9 @@ export const twoFactor = pgTable("twoFactor", {
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   failedVerificationCount: integer("failedVerificationCount").default(0),
-});
+}, (t) => [
+  index("two_factor_user_id_idx").on(t.userId),
+]);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SITE CONFIGURATION

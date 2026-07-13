@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
       data,
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     }, {
-      headers: { "Cache-Control": "no-store" },
+      headers: { "Cache-Control": "public, s-maxage=15, stale-while-revalidate=59" },
     });
   } catch (err) {
     console.error("[API/tournaments] GET error:", err);
