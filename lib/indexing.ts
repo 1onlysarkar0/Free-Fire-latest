@@ -76,11 +76,12 @@ async function submitToGoogle(url: string, type: IndexingType, serviceAccountJso
  */
 async function submitToIndexNow(url: string, key: string) {
   try {
-    const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.1onlysarkar.shop";
-    const host = new URL(siteUrl).hostname; // e.g. "www.1onlysarkar.shop"
+    const urlObj = new URL(url);
+    const host = urlObj.hostname;
+    const siteUrl = `${urlObj.protocol}//${urlObj.host}`;
     
-    // IndexNow allows the key to be hosted anywhere as long as we pass keyLocation
-    const keyLocation = `${siteUrl}/api/indexnow-key`;
+    // IndexNow requires the key file name to match the key value, e.g., <key>.txt
+    const keyLocation = `${siteUrl}/${key}.txt`;
 
     const payload = {
       host: host,

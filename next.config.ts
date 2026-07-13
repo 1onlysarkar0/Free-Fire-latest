@@ -112,6 +112,16 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return {
+      beforeFiles: [
+        {
+          source: "/:key([a-zA-Z0-9]{8,128}).txt",
+          destination: "/api/indexnow-key?key=:key",
+        },
+      ],
+    };
+  },
 };
 
 export default nextConfig;

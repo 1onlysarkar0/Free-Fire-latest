@@ -5,11 +5,17 @@ import { getOrGenerateIndexNowKey } from "@/lib/indexing";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const key = await getOrGenerateIndexNowKey();
+    const { searchParams } = new URL(request.url);
+    const requestedKey = searchParams.get("key");
+    const actualKey = await getOrGenerateIndexNowKey();
 
-    return new NextResponse(key, {
+    if (requestedKey && requestedKey !== actualKey) {
+      return new NextResponse("Key not found", { status: 404 });
+    }
+
+    return new NextResponse(actualKey, {
       status: 200,
       headers: {
         "Content-Type": "text/plain",

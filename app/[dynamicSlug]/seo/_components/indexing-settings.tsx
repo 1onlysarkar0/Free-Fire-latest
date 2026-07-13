@@ -89,6 +89,16 @@ export default function IndexingSettings() {
     }
   }
 
+  let serviceAccountEmail = "";
+  if (config.googleServiceAccountJson) {
+    try {
+      const parsed = JSON.parse(config.googleServiceAccountJson);
+      if (parsed && typeof parsed === "object" && typeof parsed.client_email === "string") {
+        serviceAccountEmail = parsed.client_email;
+      }
+    } catch {}
+  }
+
   if (loading) {
     return (
       <div className="p-8 text-center text-muted-foreground flex flex-col items-center gap-2">
@@ -139,6 +149,13 @@ export default function IndexingSettings() {
                 <p className="text-[11px] text-muted-foreground mt-1.5 leading-relaxed">
                   Requires enabling the Indexing API in Google Cloud Console and adding your service account email as an Owner in Google Search Console.
                 </p>
+                {serviceAccountEmail && (
+                  <div className="mt-2.5 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-emerald-600 dark:text-emerald-400 leading-relaxed font-sans">
+                    <p className="font-semibold">Service Account Email detected:</p>
+                    <code className="block mt-1 p-1.5 bg-background border border-emerald-500/20 rounded-lg font-mono select-all break-all text-emerald-600 dark:text-emerald-300">{serviceAccountEmail}</code>
+                    <p className="mt-1 text-[10px] text-emerald-600/90 dark:text-emerald-400/80">Copy this email and add it as an <strong>Owner</strong> (Delegated Owner) in your Google Search Console settings.</p>
+                  </div>
+                )}
               </Field>
             </div>
           </CardContent>
