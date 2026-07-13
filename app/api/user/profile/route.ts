@@ -5,6 +5,8 @@ import { user, account } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { headers } from "next/headers";
 
+export const instant = false;
+
 export async function GET() {
   try {
     const session = await auth.api.getSession({ headers: await headers() });

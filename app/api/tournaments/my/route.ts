@@ -5,7 +5,7 @@ import { db } from "@/db/drizzle";
 import { tournamentParticipant } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
-// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
+export const instant = false;
 
 export async function GET() {
   try {

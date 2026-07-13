@@ -6,6 +6,8 @@ import { notification } from "@/db/schema";
 import { and, count, desc, eq } from "drizzle-orm";
 import { apiSuccess, apiError } from "@/lib/api-response";
 
+export const instant = false;
+
 export async function GET(req: NextRequest) {
   try {
     const session = await auth.api.getSession({ headers: await headers() });

@@ -11,7 +11,7 @@ import { AuthPageOgTemplate } from "@/lib/og-image/templates/auth-page";
 import { FaqOgTemplate } from "@/lib/og-image/templates/faq";
 import { getSiteUrl } from "@/lib/site-url";
 
-// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
+export const instant = false;
 
 export async function GET(req: Request) {
   try {

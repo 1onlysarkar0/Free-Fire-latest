@@ -4,6 +4,8 @@ import { getOrCreateWallet } from "@/lib/wallet";
 import { apiSuccess, apiError } from "@/lib/api-response";
 import type { NextRequest } from "next/server";
 
+export const instant = false;
+
 export async function GET(req: NextRequest) {
   try {
     const session = await auth.api.getSession({ headers: req.headers });

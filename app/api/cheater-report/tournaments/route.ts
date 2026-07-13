@@ -5,6 +5,8 @@ import { db } from "@/db/drizzle";
 import { tournament } from "@/db/schema";
 import { and, gte, lte, ne } from "drizzle-orm";
 
+export const instant = false;
+
 export async function GET(req: NextRequest) {
   // Require authenticated session
   const session = await auth.api

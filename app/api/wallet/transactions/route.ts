@@ -5,6 +5,8 @@ import { db } from "@/db/drizzle";
 import { walletTransaction } from "@/db/schema";
 import { count, desc, eq } from "drizzle-orm";
 
+export const instant = false;
+
 export async function GET(req: NextRequest) {
   try {
     const session = await auth.api.getSession({ headers: req.headers });
