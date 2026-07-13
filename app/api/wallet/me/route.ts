@@ -8,7 +8,7 @@ export const instant = false;
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: await headers() });
+    const session = await auth.api.getSession({ headers: req.headers }).catch(() => null);
     if (!session?.user?.id) {
       return apiError("Authentication required", 401);
     }
