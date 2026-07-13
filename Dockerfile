@@ -15,10 +15,31 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Environment configuration for production build phase
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
-ENV DATABASE_URL="postgresql://mock:mock@localhost:5432/mock"
 ENV NODE_OPTIONS="--max-old-space-size=4096"
+
+# Production Build Arguments (can be passed via --build-arg or read from build environment)
+ARG DATABASE_URL="postgresql://mock:mock@localhost:5432/mock"
+ARG DATABASE_SSL_REJECT_UNAUTHORIZED="false"
+ARG BETTER_AUTH_SECRET="build-placeholder-secret-minimum-32-characters"
+ARG NEXT_PUBLIC_APP_URL="https://1onlysarkar.shop"
+ARG GOOGLE_CLIENT_ID=""
+ARG GOOGLE_CLIENT_SECRET=""
+ARG INDEXNOW_KEY=""
+ARG TRUSTED_ORIGINS=""
+
+# Set Environment Variables available during `npm run build`
+ENV DATABASE_URL=${DATABASE_URL}
+ENV DATABASE_SSL_REJECT_UNAUTHORIZED=${DATABASE_SSL_REJECT_UNAUTHORIZED}
+ENV BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
+ENV GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+ENV GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+ENV INDEXNOW_KEY=${INDEXNOW_KEY}
+ENV TRUSTED_ORIGINS=${TRUSTED_ORIGINS}
+
 RUN npm run build
 
 FROM base AS runner
