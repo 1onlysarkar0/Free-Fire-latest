@@ -10,7 +10,6 @@ const nextConfig: NextConfig = {
       ? process.env.ALLOWED_DEV_ORIGINS.split(",").map((o) => o.trim())
       : []),
   ],
-  output: "standalone",
   reactStrictMode: true,
   compress: true,
   poweredByHeader: false,
