@@ -17,22 +17,16 @@ export default function AuthLeftPanel({ config, quote, subtext }: AuthLeftPanelP
       className="hidden lg:flex lg:w-[45%] relative flex-col justify-between p-12 overflow-hidden"
       style={
         hasImage
-          ? {}
+          ? {
+              backgroundImage: `url(${config.panel.imageUrl})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }
           : { backgroundColor: config.panel.color || "var(--color-primary)" }
       }
     >
       {hasImage && (
-        <Image
-          src={config.panel.imageUrl || ""}
-          alt="Auth panel background"
-          fill
-          priority
-          sizes="45vw"
-          className="object-cover"
-        />
-      )}
-      {hasImage && (
-        <div className="absolute inset-0 bg-black/55 z-0" />
+        <div className="absolute inset-0 bg-black/55" />
       )}
 
       <div className="relative z-10">
@@ -44,9 +38,6 @@ export default function AuthLeftPanel({ config, quote, subtext }: AuthLeftPanelP
             height={36}
             className="w-9 h-9 rounded-sm"
             priority
-            unoptimized
-            sizes="36px"
-            suppressHydrationWarning
           />
           <Large className="text-white text-2xl font-bold font-momo">
             {config.logo.title}

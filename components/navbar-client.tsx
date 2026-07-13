@@ -166,7 +166,7 @@ export const NavbarClient = ({
                 prefetch={true}
                 className="flex items-center gap-2.5 hover:opacity-90 transition-opacity shrink-0"
               >
-                <Image src={logo.src} className="w-8 h-8" alt={logo.alt} width={32} height={32} priority unoptimized sizes="32px" suppressHydrationWarning />
+                <Image src={logo.src} className="w-8 h-8" alt={logo.alt} width={32} height={32} priority suppressHydrationWarning />
               <span className="font-momo text-foreground text-[22px] font-normal tracking-tight">
                 {logo.title}
               </span>
@@ -187,7 +187,7 @@ export const NavbarClient = ({
 
           <div className="flex w-full items-center justify-between lg:hidden">
             <Link href={logo.url} prefetch={true} className="flex items-center gap-2">
-              <Image src={logo.src} className="w-7 h-7" alt={logo.alt} width={28} height={28} priority unoptimized sizes="28px" suppressHydrationWarning />
+              <Image src={logo.src} className="w-7 h-7" alt={logo.alt} width={28} height={28} priority suppressHydrationWarning />
               <span className="font-momo text-foreground text-lg font-normal">
                 {logo.title}
               </span>
@@ -213,7 +213,7 @@ export const NavbarClient = ({
                 <SheetHeader className="text-left pb-4">
                   <SheetTitle>
                     <Link href={logo.url} prefetch={true} className="flex items-center gap-2">
-                      <Image src={logo.src} className="w-7 h-7" alt={logo.alt} width={28} height={28} priority unoptimized sizes="28px" suppressHydrationWarning />
+                      <Image src={logo.src} className="w-7 h-7" alt={logo.alt} width={28} height={28} priority suppressHydrationWarning />
                       <span className="font-momo text-foreground text-lg font-normal">
                         {logo.title}
                       </span>
