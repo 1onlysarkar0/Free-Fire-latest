@@ -25,7 +25,8 @@
     "db:studio": "drizzle-kit studio",
     "db:migrate:prod": "drizzle-kit migrate",
     "db:all": "npm run db:generate && npm run db:migrate:prod",
-    "vercel-build": "next build"
+    "vercel-build": "next build",
+    "deploy": "powershell -ExecutionPolicy Bypass -File ./deploy.ps1"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
