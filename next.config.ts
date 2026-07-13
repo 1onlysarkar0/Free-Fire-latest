@@ -73,7 +73,7 @@ const nextConfig: NextConfig = {
 
     return [
       {
-        source: "/(.*)",
+        source: "/:path*",
         headers: [
           { key: "X-Frame-Options", value: "DENY" },
           { key: "X-Content-Type-Options", value: "nosniff" },
@@ -89,13 +89,13 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: "/fonts/(.*)",
+        source: "/fonts/:path*",
         headers: [
           { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
         ],
       },
       {
-        source: "/assets/(.*)",
+        source: "/assets/:path*",
         headers: [
           { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
         ],
@@ -105,7 +105,7 @@ const nextConfig: NextConfig = {
       // static assets because they are content-hashed (e.g. abc123.css).
       // Overriding it here breaks dev mode by caching unhashed CSS as immutable.
       {
-        source: "/api/(.*)",
+        source: "/api/:path*",
         headers: [
           { key: "Cache-Control", value: "no-store, no-cache, must-revalidate" },
         ],
