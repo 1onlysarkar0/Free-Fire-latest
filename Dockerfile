@@ -1,4 +1,4 @@
-# ── STAGE 1: Install Dependencies ──────────────────────────────────────────
+# ── STAGE 1: Dependency Installation & Layer Caching ───────────────────────
 FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
@@ -6,26 +6,26 @@ WORKDIR /app
 # Copy dependency manifests
 COPY package.json package-lock.json .npmrc ./
 
-# Leverage Docker cache mounts for npm dependencies
+# Leverage Docker BuildKit cache mounts for rapid npm installs
 RUN --mount=type=cache,target=/root/.npm npm ci
 
-# ── STAGE 2: Build Application ─────────────────────────────────────────────
+# ── STAGE 2: Multi-Stage Production Builder ─────────────────────────────────
 FROM node:20-alpine AS builder
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Set build performance & framework signals
+# Set compilation signals and optimization flags
 ENV DOCKER_BUILD=1
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 ENV NODE_OPTIONS="--max-old-space-size=12288"
 
-# Build Next.js app with BuildKit cache mounting for .next/cache
+# Compile Next.js production build with persistent BuildKit cache for .next/cache
 RUN --mount=type=cache,target=/app/.next/cache npm run build
 
-# ── STAGE 3: Production Runner Image ───────────────────────────────────────
+# ── STAGE 3: Production Execution Engine (Runner) ──────────────────────────
 FROM node:20-alpine AS runner
 WORKDIR /app
 
@@ -34,21 +34,25 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Create unprivileged security group and user
+# Security: Unprivileged system group and user
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
-# Copy static assets and standalone server
+# Copy static assets and standalone Next.js server engine
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy and grant permission to entrypoint script
+# Entrypoint script with execution permissions
 COPY --from=builder /app/entrypoint.sh ./entrypoint.sh
 RUN chmod +x ./entrypoint.sh
 
 USER nextjs
 
 EXPOSE 3000
+
+# Automated Container Healthcheck
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/cache-version || exit 1
 
 CMD ["./entrypoint.sh"]
