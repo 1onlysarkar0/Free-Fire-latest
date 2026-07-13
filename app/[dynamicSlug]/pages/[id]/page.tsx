@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 
 import { db } from "@/db/drizzle";
 import { customPage } from "@/db/schema";
@@ -6,6 +6,10 @@ import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import EditPageClient from "./_client";
 import { requirePagePermission } from "@/lib/panel-auth";
+
+// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
 
 async function getCustomPageById(id: string) {
   const [page] = await db

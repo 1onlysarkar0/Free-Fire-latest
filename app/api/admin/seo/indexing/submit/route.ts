@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { submitUrlForIndexing } from "@/lib/indexing";
 import { requireAdminOrRole } from "@/lib/admin-auth";
 
-export const dynamic = "force-dynamic";
+// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   try {

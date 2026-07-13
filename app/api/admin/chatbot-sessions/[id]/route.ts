@@ -7,7 +7,7 @@ import { chatbot_session, chatbot_message } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
 import { requireAdminOrRole } from "@/lib/admin-auth";
 
-export const dynamic = "force-dynamic";
+// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 
 export async function GET(
   request: NextRequest,

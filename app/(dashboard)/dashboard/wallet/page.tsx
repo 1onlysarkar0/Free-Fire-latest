@@ -5,7 +5,11 @@ import { getUserWalletCached, getUserTransactionsCached, getWithdrawConfig } fro
 import { getPublicPaymentConfig } from "@/lib/payment";
 import WalletClient, { Transaction, PaymentInfo } from "./_components/wallet-client";
 
-export const dynamic = "force-dynamic";
+// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
+// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 
 export default async function WalletPage() {
   const session = await auth.api

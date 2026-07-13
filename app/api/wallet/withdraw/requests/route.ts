@@ -5,7 +5,7 @@ import { db } from "@/db/drizzle";
 import { withdrawRequest } from "@/db/schema";
 import { eq, desc, count } from "drizzle-orm";
 
-export const dynamic = "force-dynamic";
+// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {

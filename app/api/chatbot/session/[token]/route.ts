@@ -9,7 +9,7 @@ import { chatbot_message } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
 import { getSessionByToken } from "@/lib/chatbot";
 
-export const dynamic = "force-dynamic";
+// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 
 export async function GET(
   request: NextRequest,

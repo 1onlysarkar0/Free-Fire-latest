@@ -1,10 +1,14 @@
-export const dynamic = "force-dynamic";
+// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 
 import { getUserProfileCached, getUserWalletCached, getUserPermissionsCached } from "@/lib/user-data";
 import { getAdminRolesCached } from "@/lib/admin-data";
 import { notFound } from "next/navigation";
 import UserEditClient from "./_components/user-edit-client";
 import { requirePagePermission } from "@/lib/panel-auth";
+
+// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
 
 export default async function UserEditPage({ params }: { params: Promise<{ dynamicSlug: string; id: string }> }) {
   const { dynamicSlug, id } = await params;

@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { verifyAndCreditPayment } from "@/lib/payment";
 import { z } from "zod";
 
-export const dynamic = "force-dynamic";
+// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 
 const schema = z.object({
   utrNumber: z

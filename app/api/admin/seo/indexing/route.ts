@@ -4,7 +4,7 @@ import { indexingApiConfig, indexingLog } from "@/db/schema";
 import { requireAdminOrRole } from "@/lib/admin-auth";
 import { desc } from "drizzle-orm";
 
-export const dynamic = "force-dynamic";
+// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   try {

@@ -13,8 +13,12 @@ import { redirect } from "next/navigation";
 import { getUserProfileCached, getUserTournamentsForDashboard } from "@/lib/user-data";
 import DashboardClient from "./_components/dashboard-client";
 
+// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 // Dashboard reads live session data — never cache at page level
-export const dynamic = "force-dynamic";
+// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const sessionResult = await auth.api.getSession({ headers: await headers() });

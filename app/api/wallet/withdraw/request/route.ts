@@ -8,7 +8,7 @@ import { eq, and, gte, count } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 
-export const dynamic = "force-dynamic";
+// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 
 // Stricter UPI Regex to prevent NoSQL/SQL injection payloads
 const UPI_REGEX = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;

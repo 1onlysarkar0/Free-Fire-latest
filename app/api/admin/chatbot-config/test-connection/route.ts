@@ -5,7 +5,7 @@ import { z } from "zod";
 import { requireAdminOrRole } from "@/lib/admin-auth";
 import { getChatbotConfig, testAIConnection, type AIProvider } from "@/lib/chatbot";
 
-export const dynamic = "force-dynamic";
+// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 
 const schema = z.object({
   aiProvider: z.enum(["gemini", "custom"]),

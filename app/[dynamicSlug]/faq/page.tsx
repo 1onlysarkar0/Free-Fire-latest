@@ -2,7 +2,11 @@ import { getAdminFaqsCached } from "@/lib/admin-data";
 import FaqListClient from "../_components/faq-client";
 import { requirePagePermission } from "@/lib/panel-auth";
 
-export const dynamic = "force-dynamic";
+// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
+// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 
 export default async function FaqListPage({ params }: { params: Promise<{ dynamicSlug: string }> }) {
   const { dynamicSlug } = await params;

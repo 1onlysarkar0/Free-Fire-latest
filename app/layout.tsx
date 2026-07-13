@@ -13,6 +13,10 @@ import { getSiteUrl } from "@/lib/site-url";
 import ChatbotLoader from "@/components/chatbot-loader";
 import CacheBuster from "@/components/cache-buster";
 
+// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 const lora = Lora({ subsets: ["latin"], variable: "--font-lora", display: "swap" });
 const ibmPlex = IBM_Plex_Sans({
   weight: ["400", "500", "600", "700"],

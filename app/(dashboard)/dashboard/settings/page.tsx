@@ -4,7 +4,11 @@ import { redirect } from "next/navigation";
 import { getUserProfileCached } from "@/lib/user-data";
 import SettingsPageClient from "./_settings-client";
 
-export const dynamic = "force-dynamic";
+// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
+// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
   const sessionResult = await auth.api.getSession({ headers: await headers() });

@@ -3,7 +3,7 @@ import { db } from "@/db/drizzle";
 import { indexingApiConfig } from "@/db/schema";
 import { getOrGenerateIndexNowKey } from "@/lib/indexing";
 
-export const dynamic = "force-dynamic";
+// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   try {

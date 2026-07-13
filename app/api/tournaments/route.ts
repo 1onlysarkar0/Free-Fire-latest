@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTournamentsPaginated } from "@/lib/tournaments";
 
-export const dynamic = "force-dynamic";
+// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {

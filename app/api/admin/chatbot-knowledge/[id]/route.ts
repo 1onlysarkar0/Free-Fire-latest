@@ -9,7 +9,7 @@ import { eq } from "drizzle-orm";
 import { requireAdminOrRole } from "@/lib/admin-auth";
 import { invalidateAdminCache } from "@/lib/cache";
 
-export const dynamic = "force-dynamic";
+// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 
 const updateSchema = z.object({
   title: z.string().min(1).max(200).optional(),

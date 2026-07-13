@@ -10,7 +10,7 @@ import { requireAdminOrRole } from "@/lib/admin-auth";
 import { getChatbotConfig } from "@/lib/chatbot";
 import { invalidateAdminCache } from "@/lib/cache";
 
-export const dynamic = "force-dynamic";
+// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   const admin = await requireAdminOrRole(request, "chatbot:view");

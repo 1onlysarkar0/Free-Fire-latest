@@ -3,7 +3,7 @@
 import { NextResponse } from "next/server";
 import { getPublicChatbotConfig } from "@/lib/chatbot";
 
-export const dynamic = "force-dynamic";
+// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 
 export async function GET() {
   const config = await getPublicChatbotConfig();

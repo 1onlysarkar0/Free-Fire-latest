@@ -49,14 +49,6 @@ export default function UsersPage({ initialData }: { initialData: User[] }) {
     }
   }
 
-  useEffect(() => {
-    if (initialData && initialData.length > 0) {
-      setLoading(false);
-      return;
-    }
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   async function handleBanToggle(u: User) {
     if (!u.isBanned) {

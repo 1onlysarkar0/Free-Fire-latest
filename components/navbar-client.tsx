@@ -90,9 +90,7 @@ export const NavbarClient = ({
 
   const authButtons = isLoggedIn ? (
     <>
-      {mounted && (
-        <NotificationsBell initialNotifications={initialNotifications} initialUnreadCount={initialUnreadCount} />
-      )}
+      <NotificationsBell initialNotifications={initialNotifications} initialUnreadCount={initialUnreadCount} />
       <Link
         href="/dashboard"
         prefetch={true}
@@ -193,7 +191,7 @@ export const NavbarClient = ({
               </span>
             </Link>
             <div className="flex items-center gap-1.5">
-              {mounted && isLoggedIn && (
+              {isLoggedIn && (
                 <NotificationsBell initialNotifications={initialNotifications} initialUnreadCount={initialUnreadCount} />
               )}
               <Sheet>

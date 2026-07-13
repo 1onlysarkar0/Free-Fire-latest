@@ -5,8 +5,8 @@ import { eq, ne, desc } from "drizzle-orm";
 import { getAdminSiteConfigCached } from "@/lib/admin-data";
 import { getSiteUrl } from "@/lib/site-url";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
+// TODO: Cache Components adoption — restore export const revalidate = 0;
 
 export async function GET() {
   const baseUrl = await getSiteUrl();

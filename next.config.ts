@@ -25,6 +25,7 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
+  cacheComponents: true,
   experimental: {
     serverActions: {
       allowedOrigins: [

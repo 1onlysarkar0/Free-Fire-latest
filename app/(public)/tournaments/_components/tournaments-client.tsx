@@ -38,16 +38,7 @@ export default function TournamentsClient({
     setJoinedIds(new Set(initialJoinedIds));
   }, [initialData, initialFilter, initialJoinedIds]);
 
-  useEffect(() => {
-    fetch("/api/tournaments/my", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((data) => {
-        if (data && data.joinedIds) {
-          setJoinedIds(new Set(data.joinedIds));
-        }
-      })
-      .catch((err) => console.error("Failed to load user joined tournaments:", err));
-  }, []);
+
 
   const load = useCallback(() => {
     const params = new URLSearchParams({ limit: "100" });

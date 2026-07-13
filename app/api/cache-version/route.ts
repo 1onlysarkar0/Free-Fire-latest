@@ -2,7 +2,7 @@ import { db } from "@/db/drizzle";
 import { siteConfig } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
-export const dynamic = "force-dynamic";
+// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 
 /**
  * Public endpoint — no auth required.

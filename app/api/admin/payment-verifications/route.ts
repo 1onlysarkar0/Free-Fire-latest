@@ -4,7 +4,7 @@ import { db } from "@/db/drizzle";
 import { paymentVerification, user } from "@/db/schema";
 import { eq, desc, count } from "drizzle-orm";
 
-export const dynamic = "force-dynamic";
+// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   const adminUser = await requireAdminOrRole(request, "payment:view_verifications");

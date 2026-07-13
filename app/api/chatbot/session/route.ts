@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getChatbotConfig, createChatSession } from "@/lib/chatbot";
 
-export const dynamic = "force-dynamic";
+// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   // 1. Get chatbot config

@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 
 import { db } from "@/db/drizzle";
 import { tournament, tournamentSlot, tournamentParticipant, tournamentWinner, user } from "@/db/schema";
@@ -6,6 +6,10 @@ import { eq, count } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import ManageTournamentClient from "./_client";
 import { requirePagePermission } from "@/lib/panel-auth";
+
+// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
 
 async function getAdminTournamentDetailCached(tournamentId: string) {
   const [row] = await db
