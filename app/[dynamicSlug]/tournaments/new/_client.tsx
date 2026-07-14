@@ -219,12 +219,13 @@ export default function NewTournamentClient({ dynamicSlug }: NewTournamentClient
       if (res.ok && (data.success || data.id)) {
         toast.success("Tournament created successfully!");
         router.push(`/${dynamicSlug}/tournaments/${data.id}`);
+        router.refresh();
       } else {
         toast.error(data.error || "Failed to create tournament");
+        setSaving(false);
       }
     } catch {
       toast.error("Failed to create tournament");
-    } finally {
       setSaving(false);
     }
   }
