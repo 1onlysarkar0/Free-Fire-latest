@@ -216,7 +216,7 @@ export default function NewTournamentClient({ dynamicSlug }: NewTournamentClient
       });
       const data = await res.json();
 
-      if (data.success) {
+      if (res.ok && (data.success || data.id)) {
         toast.success("Tournament created successfully!");
         router.push(`/${dynamicSlug}/tournaments/${data.id}`);
       } else {

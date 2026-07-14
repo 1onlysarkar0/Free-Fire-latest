@@ -124,13 +124,15 @@ export async function POST(req: NextRequest) {
       });
       await tx.insert(tournamentSlot).values(slotRows);
 
-       // Auto-create SEO Config
+      // Auto-create SEO Config
       const [configRow] = await tx.select().from(siteConfig).limit(1);
-      const siteName = configRow?.logoTitle;
-      if (!siteName) throw new Error("Site name configuration not found in database");
+      const siteName = configRow?.logoTitle || "1OnlySarkar";
 
-      const baseUrl = await getSiteUrl();
-      if (!baseUrl) throw new Error("Site URL not configured in database");
+      const baseUrl =
+        (await getSiteUrl()) ||
+        process.env.NEXT_PUBLIC_APP_URL ||
+        process.env.APP_URL ||
+        "https://www.1onlysarkar.shop";
 
       const tournamentSeoInput = {
         id,
@@ -146,7 +148,7 @@ export async function POST(req: NextRequest) {
         availableSlots: slotRecordCount,
         siteName,
         baseUrl,
-        logoSrc: configRow.logoSrc,
+        logoSrc: configRow?.logoSrc || "/assets/logo.webp",
       };
       const { metaTitle, metaDescription } = buildTournamentMeta(tournamentSeoInput);
       const sportsEventSchema = buildTournamentSportsEventSchema(tournamentSeoInput);
@@ -171,10 +173,10 @@ export async function POST(req: NextRequest) {
     await invalidateTournamentCache(id);
 
     // Submits the new tournament URL to search engines in the background
-    const siteUrl = await getSiteUrl();
+    const siteUrl = (await getSiteUrl()) || process.env.NEXT_PUBLIC_APP_URL || "https://www.1onlysarkar.shop";
     submitUrlForIndexing(`${siteUrl}/tournaments/${id}`, "URL_UPDATED").catch(console.error);
 
-    return NextResponse.json({ id, message: "Tournament created successfully" });
+    return NextResponse.json({ success: true, id, message: "Tournament created successfully" }, { status: 201 });
   } catch (err) {
     console.error("[API/admin/tournaments] POST:", err);
     return NextResponse.json({ error: "Failed to create tournament" }, { status: 500 });
