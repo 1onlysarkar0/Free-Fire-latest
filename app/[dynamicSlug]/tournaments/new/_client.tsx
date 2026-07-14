@@ -128,6 +128,15 @@ export default function NewTournamentClient({ dynamicSlug }: NewTournamentClient
 
   const applyDescTemplate = useCallback(
     (id: string) => {
+      if (id === "none" || !id) {
+        setForm((f) => ({
+          ...f,
+          descriptionTemplateId: "",
+          descriptionHtml: "",
+          descriptionMarkdown: "",
+        }));
+        return;
+      }
       const t = descTemplates.find((t) => t.id === id);
       if (t) {
         setForm((f) => ({
@@ -143,6 +152,15 @@ export default function NewTournamentClient({ dynamicSlug }: NewTournamentClient
 
   const applyRulesTemplate = useCallback(
     (id: string) => {
+      if (id === "none" || !id) {
+        setForm((f) => ({
+          ...f,
+          rulesTemplateId: "",
+          rulesHtml: "",
+          rulesMarkdown: "",
+        }));
+        return;
+      }
       const t = rulesTemplates.find((t) => t.id === id);
       if (t) {
         setForm((f) => ({
@@ -511,7 +529,7 @@ export default function NewTournamentClient({ dynamicSlug }: NewTournamentClient
                       />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">— None —</SelectItem>
+                      <SelectItem value="none">— None —</SelectItem>
                       {descTemplates.map((t) => (
                         <SelectItem key={t.id} value={t.id}>
                           {t.name}
@@ -539,7 +557,7 @@ export default function NewTournamentClient({ dynamicSlug }: NewTournamentClient
                       />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">— None —</SelectItem>
+                      <SelectItem value="none">— None —</SelectItem>
                       {rulesTemplates.map((t) => (
                         <SelectItem key={t.id} value={t.id}>
                           {t.name}
