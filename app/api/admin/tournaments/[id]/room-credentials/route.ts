@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { requireAdminOrRole } from "@/lib/admin-auth";
 import { db } from "@/db/drizzle";
 import { tournament, tournamentParticipant } from "@/db/schema";
@@ -6,6 +6,9 @@ import { eq } from "drizzle-orm";
 import { invalidateTournamentCache } from "@/lib/cache";
 import { sendRoomRevealedNotifications } from "@/lib/tournament-emails";
 import { getSiteUrl } from "@/lib/site-url";
+
+// Give Vercel serverless functions 30 seconds
+export const maxDuration = 30;
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const adminUser = await requireAdminOrRole(req, "tournaments:manage_room");
@@ -45,18 +48,27 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     const userIds = participants.map((p: { userId: string }) => p.userId);
 
-    // Fire-and-forget — do not await
-    const siteUrl = await getSiteUrl();
-    sendRoomRevealedNotifications({
-      tournamentId: id,
-      tournamentName: t.name,
-      startTime: t.startTime,
-      participantUserIds: userIds,
-      siteUrl: siteUrl || undefined,
-    }).catch((err) => console.error("[room-credentials] Notification error:", err));
+    // Defer notifications and cache invalidation to after() so the response returns immediately
+    after(async () => {
+      try {
+        const siteUrl = await getSiteUrl();
+        await sendRoomRevealedNotifications({
+          tournamentId: id,
+          tournamentName: t.name,
+          startTime: t.startTime,
+          participantUserIds: userIds,
+          siteUrl: siteUrl || undefined,
+        });
+      } catch (err) {
+        console.error("[room-credentials] Notification error:", err);
+      }
+      try {
+        await invalidateTournamentCache(id);
+      } catch (e) {
+        console.error("[after] invalidateTournamentCache failed:", e);
+      }
+    });
 
-
-    await invalidateTournamentCache(id);
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[API/admin/tournaments/room-credentials] PATCH:", err);

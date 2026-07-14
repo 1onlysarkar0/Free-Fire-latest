@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { requireAdminOrRole } from "@/lib/admin-auth";
 import { db } from "@/db/drizzle";
 import { tournament, tournamentParticipant, tournamentCancellation, cancellationRefund } from "@/db/schema";
@@ -8,6 +8,9 @@ import { invalidateTournamentCache } from "@/lib/cache";
 import { creditWallet } from "@/lib/wallet";
 import { sendTournamentCancelledNotifications } from "@/lib/tournament-emails";
 import { getSiteUrl } from "@/lib/site-url";
+
+// Give Vercel serverless functions 30 seconds — cancel with many participants + wallet refunds takes time
+export const maxDuration = 30;
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const adminUser = await requireAdminOrRole(req, "tournaments:cancel");
@@ -96,18 +99,27 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       }
     });
 
-    // Fire-and-forget notifications (AFTER transaction success)
-    const siteUrl = await getSiteUrl();
-    sendTournamentCancelledNotifications({
-      tournamentId,
-      tournamentName: t.name,
-      cancellationReason: reason,
-      participants: refundSummary,
-      siteUrl: siteUrl || undefined,
-    }).catch((err) => console.error("[cancel] Notification error:", err));
+    // Defer notifications and cache invalidation to after() so the response is not blocked
+    after(async () => {
+      try {
+        const siteUrl = await getSiteUrl();
+        await sendTournamentCancelledNotifications({
+          tournamentId,
+          tournamentName: t.name,
+          cancellationReason: reason,
+          participants: refundSummary,
+          siteUrl: siteUrl || undefined,
+        });
+      } catch (err) {
+        console.error("[cancel] Notification error:", err);
+      }
+      try {
+        await invalidateTournamentCache(tournamentId);
+      } catch (e) {
+        console.error("[after] invalidateTournamentCache failed:", e);
+      }
+    });
 
-
-    await invalidateTournamentCache(tournamentId);
     return NextResponse.json({
       success: true,
       cancellationId,

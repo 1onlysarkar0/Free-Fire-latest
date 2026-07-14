@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { requireAdminOrRole } from "@/lib/admin-auth";
 import { db } from "@/db/drizzle";
 import { tournament, tournamentSlot, tournamentParticipant, tournamentWinner, user, siteConfig, seoConfig } from "@/db/schema";
@@ -7,6 +7,9 @@ import { invalidateTournamentCache } from "@/lib/cache";
 import { getSiteUrl } from "@/lib/site-url";
 import { submitUrlForIndexing } from "@/lib/indexing";
 import { buildTournamentMeta, buildTournamentSportsEventSchema } from "@/lib/seo/tournament";
+
+// Give Vercel serverless functions 30 seconds for DB-heavy operations
+export const maxDuration = 30;
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const adminUser = await requireAdminOrRole(req, "tournaments:view");
@@ -160,9 +163,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     await invalidateTournamentCache(id);
 
-    // Notify search engines in the background
-    const siteUrl = await getSiteUrl();
-    submitUrlForIndexing(`${siteUrl}/tournaments/${id}`, "URL_UPDATED").catch(console.error);
+    // Notify search engines in the background — moved inside after() to avoid blocking response
+    after(async () => {
+      try {
+        const siteUrl = await getSiteUrl();
+        await submitUrlForIndexing(`${siteUrl}/tournaments/${id}`, "URL_UPDATED");
+      } catch (e) {
+        console.error("[after] PATCH submitUrlForIndexing failed:", e);
+      }
+    });
 
     return NextResponse.json({ success: true });
   } catch (err) {
@@ -195,10 +204,16 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
         .where(eq(siteConfig.id, "default"));
     });
     await invalidateTournamentCache(id);
-    
-    // Notify search engines of deletion
-    const siteUrl = await getSiteUrl();
-    submitUrlForIndexing(`${siteUrl}/tournaments/${id}`, "URL_DELETED").catch(console.error);
+
+    // Notify search engines of deletion — deferred after response
+    after(async () => {
+      try {
+        const siteUrl = await getSiteUrl();
+        await submitUrlForIndexing(`${siteUrl}/tournaments/${id}`, "URL_DELETED");
+      } catch (e) {
+        console.error("[after] DELETE submitUrlForIndexing failed:", e);
+      }
+    });
 
     return NextResponse.json({ success: true });
   } catch (err) {

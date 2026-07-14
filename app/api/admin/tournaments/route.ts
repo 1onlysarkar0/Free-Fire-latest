@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { requireAdminOrRole } from "@/lib/admin-auth";
 import { db } from "@/db/drizzle";
 import { tournament, tournamentSlot, seoConfig, siteConfig } from "@/db/schema";
@@ -8,6 +8,9 @@ import { invalidateTournamentCache } from "@/lib/cache";
 import { getSiteUrl } from "@/lib/site-url";
 import { submitUrlForIndexing } from "@/lib/indexing";
 import { buildTournamentMeta, buildTournamentSportsEventSchema } from "@/lib/seo/tournament";
+
+// Give Vercel serverless functions 30 seconds to handle large slot inserts + DB transactions
+export const maxDuration = 30;
 
 // Convert slot number to team label (1→A, 2→B, ..., 26→Z, 27→AA, ...)
 function slotLabel(n: number): string {
@@ -82,6 +85,13 @@ export async function POST(req: NextRequest) {
 
     const id = nanoid();
 
+    // Resolve site URL once before the transaction to avoid duplicate DB round-trips
+    const baseUrl =
+      (await getSiteUrl()) ||
+      process.env.NEXT_PUBLIC_APP_URL ||
+      process.env.APP_URL ||
+      "https://www.1onlysarkar.shop";
+
     await db.transaction(async (tx) => {
       await tx.insert(tournament).values({
         id,
@@ -128,12 +138,6 @@ export async function POST(req: NextRequest) {
       const [configRow] = await tx.select().from(siteConfig).limit(1);
       const siteName = configRow?.logoTitle || "1OnlySarkar";
 
-      const baseUrl =
-        (await getSiteUrl()) ||
-        process.env.NEXT_PUBLIC_APP_URL ||
-        process.env.APP_URL ||
-        "https://www.1onlysarkar.shop";
-
       const tournamentSeoInput = {
         id,
         name: name.trim(),
@@ -170,11 +174,21 @@ export async function POST(req: NextRequest) {
       });
     });
 
-    await invalidateTournamentCache(id);
-
-    // Submits the new tournament URL to search engines in the background
-    const siteUrl = (await getSiteUrl()) || process.env.NEXT_PUBLIC_APP_URL || "https://www.1onlysarkar.shop";
-    submitUrlForIndexing(`${siteUrl}/tournaments/${id}`, "URL_UPDATED").catch(console.error);
+    // Defer cache invalidation and search engine indexing to AFTER the response is sent.
+    // This prevents these operations from blocking the client response or causing Vercel
+    // serverless timeouts. `after()` is the correct Next.js pattern for post-response work.
+    after(async () => {
+      try {
+        await invalidateTournamentCache(id);
+      } catch (e) {
+        console.error("[after] invalidateTournamentCache failed:", e);
+      }
+      try {
+        await submitUrlForIndexing(`${baseUrl}/tournaments/${id}`, "URL_UPDATED");
+      } catch (e) {
+        console.error("[after] submitUrlForIndexing failed:", e);
+      }
+    });
 
     return NextResponse.json({ success: true, id, message: "Tournament created successfully" }, { status: 201 });
   } catch (err) {

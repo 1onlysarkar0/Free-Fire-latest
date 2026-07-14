@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { requireAdminOrRole } from "@/lib/admin-auth";
 import { db } from "@/db/drizzle";
 import { tournament, tournamentWinner } from "@/db/schema";
@@ -8,6 +8,9 @@ import { invalidateTournamentCache } from "@/lib/cache";
 import { creditWallet } from "@/lib/wallet";
 import { sendPrizeCreditedNotification } from "@/lib/tournament-emails";
 import { getSiteUrl } from "@/lib/site-url";
+
+// Give Vercel serverless functions 30 seconds — prize distribution + wallet credits take time
+export const maxDuration = 30;
 
 interface WinnerInput {
   userId: string;
@@ -96,23 +99,32 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         .where(eq(tournament.id, tournamentId));
     });
 
-    // Fire-and-forget notifications (AFTER transaction success)
-    const siteUrl = await getSiteUrl();
-    for (const res of results) {
-      if (res.prizeAmount > 0) {
-        sendPrizeCreditedNotification({
-          userId: res.userId,
-          tournamentId,
-          tournamentName: t.name,
-          prizeAmount: res.prizeAmount,
-          placement: res.placement,
-          siteUrl: siteUrl || undefined,
-        }).catch((err) => console.error("[declare-winners] Prize notification error:", err));
+    // Defer notifications and cache invalidation to after() so the response returns immediately
+    after(async () => {
+      try {
+        const siteUrl = await getSiteUrl();
+        for (const res of results) {
+          if (res.prizeAmount > 0) {
+            await sendPrizeCreditedNotification({
+              userId: res.userId,
+              tournamentId,
+              tournamentName: t.name,
+              prizeAmount: res.prizeAmount,
+              placement: res.placement,
+              siteUrl: siteUrl || undefined,
+            }).catch((err) => console.error("[declare-winners] Prize notification error:", err));
+          }
+        }
+      } catch (err) {
+        console.error("[declare-winners] Notification error:", err);
       }
-    }
+      try {
+        await invalidateTournamentCache(tournamentId);
+      } catch (e) {
+        console.error("[after] invalidateTournamentCache failed:", e);
+      }
+    });
 
-
-    await invalidateTournamentCache(tournamentId);
     return NextResponse.json({ success: true, data: results });
   } catch (err) {
     console.error("[API/admin/tournaments/declare-winners] POST:", err);
