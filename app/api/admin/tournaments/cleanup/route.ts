@@ -1,10 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { requireAdminOrRole } from "@/lib/admin-auth";
 import { db } from "@/db/drizzle";
 import { tournament, siteConfig } from "@/db/schema";
 import { and, lt, inArray, eq, sql } from "drizzle-orm";
 import { invalidateTournamentCache } from "@/lib/cache";
 import { revalidateTag } from "next/cache";
+
+// Give Vercel serverless functions 30 seconds for bulk deletions
+export const maxDuration = 30;
 
 // TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 
@@ -70,9 +73,16 @@ export async function POST(req: NextRequest) {
         .where(eq(siteConfig.id, "default"));
     });
 
-    // Invalidate cache
-    await Promise.all(targetIds.map(id => invalidateTournamentCache(id)));
-    revalidateTag("site-config", { expire: 0 });
+    // Defer cache invalidation to after() so the response is not blocked
+    after(async () => {
+      try {
+        await Promise.all(targetIds.map(id => invalidateTournamentCache(id)));
+        // Use "max" (stale-while-revalidate) — not { expire: 0 } which blocks the function
+        revalidateTag("site-config", "max");
+      } catch (e) {
+        console.error("[after] cleanup cache invalidation failed:", e);
+      }
+    });
 
     return NextResponse.json({ success: true, count: targetIds.length });
   } catch (err) {

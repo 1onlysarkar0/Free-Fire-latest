@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { NextRequest, after } from "next/server";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { db } from "@/db/drizzle";
@@ -13,6 +13,8 @@ import { nanoid } from "nanoid";
 import { debitWallet, getOrCreateWallet } from "@/lib/wallet";
 import { apiSuccess, apiError } from "@/lib/api-response";
 import { invalidateTournamentCache } from "@/lib/cache";
+
+export const maxDuration = 30;
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -181,7 +183,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       });
     });
 
-    await invalidateTournamentCache(tournamentId);
+    after(async () => {
+      try {
+        await invalidateTournamentCache(tournamentId);
+      } catch (e) {
+        console.error("[after] join cache invalidation failed:", e);
+      }
+    });
     return apiSuccess({
       participantId,
       slotNumber: chosenSlot.slotNumber,

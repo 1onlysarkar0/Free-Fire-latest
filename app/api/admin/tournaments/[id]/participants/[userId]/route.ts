@@ -1,10 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { requireAdminOrRole } from "@/lib/admin-auth";
 import { db } from "@/db/drizzle";
 import { tournament, tournamentParticipant, tournamentSlot } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { invalidateTournamentCache } from "@/lib/cache";
 import { creditWallet } from "@/lib/wallet";
+
+export const maxDuration = 30;
 
 
 export async function DELETE(
@@ -71,7 +73,13 @@ export async function DELETE(
       } else {
       }
 
-      await invalidateTournamentCache(tournamentId);
+      after(async () => {
+        try {
+          await invalidateTournamentCache(tournamentId);
+        } catch (e) {
+          console.error("[after] participants cache invalidation (refund path) failed:", e);
+        }
+      });
       return NextResponse.json({
         success: true,
         refunded: refundResult.success,
@@ -79,7 +87,13 @@ export async function DELETE(
       });
     }
 
-    await invalidateTournamentCache(tournamentId);
+    after(async () => {
+      try {
+        await invalidateTournamentCache(tournamentId);
+      } catch (e) {
+        console.error("[after] participants cache invalidation failed:", e);
+      }
+    });
     return NextResponse.json({ success: true, refunded: false });
   } catch (err) {
     console.error("[API/admin/tournaments/participants/[userId]] DELETE:", err);

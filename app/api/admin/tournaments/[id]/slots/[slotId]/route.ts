@@ -1,9 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { requireAdminOrRole } from "@/lib/admin-auth";
 import { db } from "@/db/drizzle";
 import { tournamentSlot } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { invalidateTournamentCache } from "@/lib/cache";
+
+export const maxDuration = 30;
 
 export async function PATCH(
   req: NextRequest,
@@ -36,7 +38,13 @@ export async function PATCH(
     }
 
     await db.update(tournamentSlot).set(updates).where(eq(tournamentSlot.id, slotId));
-    await invalidateTournamentCache(id);
+    after(async () => {
+      try {
+        await invalidateTournamentCache(id);
+      } catch (e) {
+        console.error("[after] slots cache invalidation failed:", e);
+      }
+    });
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[API/admin/tournaments/slots/[slotId]] PATCH:", err);

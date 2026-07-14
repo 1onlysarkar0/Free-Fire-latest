@@ -161,10 +161,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       }
     }
 
-    await invalidateTournamentCache(id);
-
-    // Notify search engines in the background — moved inside after() to avoid blocking response
+    // Defer cache invalidation and search indexing to after() so the response is not blocked
     after(async () => {
+      try {
+        await invalidateTournamentCache(id);
+      } catch (e) {
+        console.error("[after] PATCH invalidateTournamentCache failed:", e);
+      }
       try {
         const siteUrl = await getSiteUrl();
         await submitUrlForIndexing(`${siteUrl}/tournaments/${id}`, "URL_UPDATED");
@@ -203,10 +206,13 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
         })
         .where(eq(siteConfig.id, "default"));
     });
-    await invalidateTournamentCache(id);
-
-    // Notify search engines of deletion — deferred after response
+    // Defer cache invalidation and search indexing to after() so the response is not blocked
     after(async () => {
+      try {
+        await invalidateTournamentCache(id);
+      } catch (e) {
+        console.error("[after] DELETE invalidateTournamentCache failed:", e);
+      }
       try {
         const siteUrl = await getSiteUrl();
         await submitUrlForIndexing(`${siteUrl}/tournaments/${id}`, "URL_DELETED");
