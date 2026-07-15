@@ -109,7 +109,7 @@ async function seedSiteConfig() {
       userProfileLogOutText: "Log out",
 
       // Admin access slug (admin changes this via admin panel)
-      contactEmail: "sauravmiami@gmail.com",
+      contactEmail: "reply@1onlysarkar.shop",
       jurisdictionName: "India",
       adminSlug: "xpanel2024",
 
@@ -138,7 +138,7 @@ async function seedSiteConfig() {
         navbarDashboardText: "Dashboard",
         userProfileMyAccountText: "My Account",
         userProfileLogOutText: "Log out",
-        contactEmail: "sauravmiami@gmail.com",
+        contactEmail: "reply@1onlysarkar.shop",
         jurisdictionName: "India",
         adminSlug: "xpanel2024",
       }
@@ -671,7 +671,7 @@ async function seedSeoConfig() {
             ],
             "contactPoint": {
               "@type": "ContactPoint",
-              "email": "sauravmiami@gmail.com",
+              "email": "reply@1onlysarkar.shop",
               "contactType": "customer support",
               "areaServed": "IN",
               "availableLanguage": ["en", "hi"]
@@ -1318,7 +1318,7 @@ Have a question, a payment issue, or something else on your mind? Here's how to 
 |---|---|
 | **Name** | 1OnlySarkar |
 | **Instagram** | [@1onlysarkar](https://instagram.com/1onlysarkar) |
-| **Email** | [sauravmiami@gmail.com](mailto:sauravmiami@gmail.com) |
+| **Email** | [reply@1onlysarkar.shop](mailto:reply@1onlysarkar.shop) |
 | **Website** | [1onlysarkar.shop](https://1onlysarkar.shop) |
 
 ---
@@ -1337,7 +1337,7 @@ We also post tournament schedules, winner announcements, and platform updates th
 
 For anything that needs more detail — a payment dispute, an account issue, a ban appeal, or a formal query — email is the better channel.
 
-**[sauravmiami@gmail.com](mailto:sauravmiami@gmail.com)**
+**[reply@1onlysarkar.shop](mailto:reply@1onlysarkar.shop)**
 
 To help us respond faster, please include:
 
@@ -1615,7 +1615,7 @@ Entry fees are deducted at the moment you book your slot. Once a slot is booked,
 | Cheating, hacking, or teaming | **Permanent ban — no exceptions** |
 | Credential leaking or account fraud | **Permanent ban** |
 
-**Ban appeals** can be sent to [sauravmiami@gmail.com](mailto:sauravmiami@gmail.com) with supporting evidence. Appeals without proof will not be considered. The admin's decision on all appeals is final.
+**Ban appeals** can be sent to [reply@1onlysarkar.shop](mailto:reply@1onlysarkar.shop) with supporting evidence. Appeals without proof will not be considered. The admin's decision on all appeals is final.
 
 ---
 
@@ -1725,7 +1725,7 @@ As a user of this platform, you have the right to:
 - **Deletion** — Request that your account and associated personal data be removed
 - **Portability** — Request your data in a readable, portable format
 
-To exercise any of these rights, contact us at [sauravmiami@gmail.com](mailto:sauravmiami@gmail.com).
+To exercise any of these rights, contact us at [reply@1onlysarkar.shop](mailto:reply@1onlysarkar.shop).
 
 ---
 
@@ -1758,7 +1758,7 @@ We may update this policy from time to time. If changes are significant, registe
 
 For any privacy-related queries, access requests, or data deletion requests:
 
-📧 [sauravmiami@gmail.com](mailto:sauravmiami@gmail.com)
+📧 [reply@1onlysarkar.shop](mailto:reply@1onlysarkar.shop)
 📸 [@1onlysarkar](https://instagram.com/1onlysarkar)`,
       status: "published",
     },
@@ -1802,7 +1802,7 @@ Participation in tournaments involving real money may be subject to the laws of 
 - Each person may hold **one account only**. Creating multiple accounts — whether to bypass a ban, gain wallet bonuses, or any other reason — is a violation that results in a permanent ban of all accounts involved.
 - You are responsible for maintaining the security of your login credentials. Do not share your password with anyone.
 - All activity that takes place under your account is your responsibility, regardless of who performed it.
-- If you suspect your account has been accessed without your permission, contact us immediately at [sauravmiami@gmail.com](mailto:sauravmiami@gmail.com) and change your password right away.
+- If you suspect your account has been accessed without your permission, contact us immediately at [reply@1onlysarkar.shop](mailto:reply@1onlysarkar.shop) and change your password right away.
 
 ---
 
@@ -1913,7 +1913,7 @@ These Terms are governed by the laws of the **Republic of India**. Any disputes 
 
 For questions about these Terms:
 
-📧 [sauravmiami@gmail.com](mailto:sauravmiami@gmail.com)
+📧 [reply@1onlysarkar.shop](mailto:reply@1onlysarkar.shop)
 📸 [@1onlysarkar](https://instagram.com/1onlysarkar)`,
       status: "published",
     }
@@ -2041,7 +2041,7 @@ async function seedFaqs() {
     {
       id: "faq-9",
       question: "I paid but my wallet balance hasn't updated. What should I do?",
-      answer: "First, double-check that you submitted the correct UTR number after paying. If you did and it's still not reflecting after a reasonable wait, contact us at sauravmiami@gmail.com with your UTR number and a screenshot of the payment confirmation.",
+      answer: "First, double-check that you submitted the correct UTR number after paying. If you did and it's still not reflecting after a reasonable wait, contact us at reply@1onlysarkar.shop with your UTR number and a screenshot of the payment confirmation.",
       order: 9
     },
     {
@@ -2089,7 +2089,7 @@ async function seedFaqs() {
     {
       id: "faq-17",
       question: "My withdrawal was submitted but I haven't received the money yet.",
-      answer: "Withdrawals can take up to 48 hours. If it's been longer than that, contact us at sauravmiami@gmail.com with your registered email and the withdrawal details.",
+      answer: "Withdrawals can take up to 48 hours. If it's been longer than that, contact us at reply@1onlysarkar.shop with your registered email and the withdrawal details.",
       order: 17
     },
     {
@@ -2197,7 +2197,7 @@ async function seedFaqs() {
     {
       id: "faq-35",
       question: "Can I appeal a ban?",
-      answer: "Yes, if you believe a ban was made in error. Send an appeal to sauravmiami@gmail.com with your account details and any supporting evidence.",
+      answer: "Yes, if you believe a ban was made in error. Send an appeal to reply@1onlysarkar.shop with your account details and any supporting evidence.",
       order: 35
     },
     {
