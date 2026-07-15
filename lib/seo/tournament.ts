@@ -75,7 +75,7 @@ export function buildTournamentSportsEventSchema(input: TournamentSeoInput) {
   const entryFee = Math.max(0, input.joiningFee ?? 0);
   const logoUrl = input.logoSrc?.startsWith("http")
     ? input.logoSrc
-    : `${input.baseUrl.replace(/\/$/, "")}${input.logoSrc ?? "/assets/logo.webp"}`;
+    : `${input.baseUrl.replace(/\/$/, "")}${input.logoSrc ?? "/assets/logo.svg"}`;
 
   return {
     "@context": "https://schema.org",

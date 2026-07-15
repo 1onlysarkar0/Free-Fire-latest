@@ -26,19 +26,19 @@ const onboardingFeatures = [
     step: "Step 1",
     title: "Create Account & Login",
     content: "Create your player profile, add your Free Fire UID, and keep your tournament details tied to one verified account.",
-    image: "/assets/Get-started.webp",
+    image: "/assets/Get-started.svg",
   },
   {
     step: "Step 2",
     title: "Join Tournaments",
     content: "Browse upcoming Free Fire Solo, Duo, and Squad rooms, compare entry fees and prize pools, then reserve an open slot.",
-    image: "/assets/Tournament.webp",
+    image: "/assets/Tournament.svg",
   },
   {
     step: "Step 3",
     title: "Instant UPI Payouts",
     content: "Request a withdrawal from your dashboard and get your tournament winnings transferred directly and instantly to your UPI account.",
-    image: "/assets/Withdraw.webp",
+    image: "/assets/Withdraw.svg",
   },
 ];
 
@@ -47,19 +47,19 @@ const onboardingTestimonials = [
     quote: "Create your profile once, add your Free Fire UID, and you are ready to book tournament slots.",
     name: "Create Account & Login",
     designation: "Step 1",
-    src: "/assets/Get-started.webp",
+    src: "/assets/Get-started.svg",
   },
   {
     quote: "Filter live and upcoming rooms, review prize pools, and choose the Solo, Duo, or Squad slot that fits you.",
     name: "Join Tournaments",
     designation: "Step 2",
-    src: "/assets/Tournament.webp",
+    src: "/assets/Tournament.svg",
   },
   {
     quote: "Submit a payout request to receive your hard-earned winnings directly into your UPI account in seconds.",
     name: "UPI Withdrawal",
     designation: "Step 3",
-    src: "/assets/Withdraw.webp",
+    src: "/assets/Withdraw.svg",
   },
 ];
 
@@ -223,7 +223,7 @@ export default async function Home() {
         </section>
 
         <CtaSection
-          imageSrc="/assets/cta-image.webp"
+          imageSrc="/assets/cta-image.svg"
           imageAlt="Free Fire Tournament Arena CTA"
           title="Join the Arena"
           subtitle="Turn Your Free Fire Skills Into Real Cash Winnings"

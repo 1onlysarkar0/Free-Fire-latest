@@ -152,7 +152,7 @@ export async function POST(req: NextRequest) {
         availableSlots: slotRecordCount,
         siteName,
         baseUrl,
-        logoSrc: configRow?.logoSrc || "/assets/logo.webp",
+        logoSrc: configRow?.logoSrc || "/assets/logo.svg",
       };
       const { metaTitle, metaDescription } = buildTournamentMeta(tournamentSeoInput);
       const sportsEventSchema = buildTournamentSportsEventSchema(tournamentSeoInput);

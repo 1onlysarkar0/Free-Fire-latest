@@ -111,7 +111,7 @@ export const siteConfig = pgTable("site_config", {
   // ── Brand / Logo ──────────────────────────────────────────────────────────
   siteUrl: text("site_url"),
   logoUrl: text("logo_url").notNull().default("/"),
-  logoSrc: text("logo_src").notNull().default("/assets/logo.webp"),
+  logoSrc: text("logo_src").notNull().default("/assets/logo.svg"),
   logoAlt: text("logo_alt").notNull().default("logo"),
   logoTitle: text("logo_title").notNull().default("1onlysarkar"),
 

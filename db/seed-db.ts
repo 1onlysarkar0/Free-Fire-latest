@@ -79,7 +79,7 @@ async function seedSiteConfig() {
 
       // Brand
       logoUrl: "/",
-      logoSrc: "/assets/logo.webp",
+      logoSrc: "/assets/logo.svg",
       logoAlt: "1OnlySarkar Free Fire tournament logo",
       logoTitle: "1OnlySarkar",
 
@@ -121,7 +121,7 @@ async function seedSiteConfig() {
       set: {
         siteUrl,
         logoUrl: "/",
-        logoSrc: "/assets/logo.webp",
+        logoSrc: "/assets/logo.svg",
         logoAlt: "1OnlySarkar Free Fire tournament logo",
         logoTitle: "1OnlySarkar",
         authLoginText: "Log in",
@@ -664,7 +664,7 @@ async function seedSeoConfig() {
             "url": siteUrl,
             "logo": {
               "@type": "ImageObject",
-              "url": `${siteUrl}/assets/logo.webp`
+              "url": `${siteUrl}/assets/logo.svg`
             },
             "sameAs": [
               "https://www.instagram.com/1onlysarkar"

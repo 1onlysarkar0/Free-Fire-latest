@@ -117,7 +117,7 @@ async function _fetchNavbarConfig(): Promise<NavbarConfig> {
   return {
     logo: {
       url:   configRow.logoUrl,
-      src:   configRow.logoSrc || "/assets/logo.webp",
+      src:   configRow.logoSrc || "/assets/logo.svg",
       alt:   configRow.logoAlt,
       title: configRow.logoTitle,
     },
@@ -155,7 +155,7 @@ async function _fetchFooterConfig(): Promise<FooterConfig> {
   return {
     logo: {
       url:   configRow.logoUrl,
-      src:   configRow.logoSrc || "/assets/logo.webp",
+      src:   configRow.logoSrc || "/assets/logo.svg",
       alt:   configRow.logoAlt,
       title: configRow.logoTitle,
     },

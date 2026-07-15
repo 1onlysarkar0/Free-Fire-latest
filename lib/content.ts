@@ -64,7 +64,7 @@ async function _fetchDashboardConfig(): Promise<DashboardConfigData> {
       subtitle: "Live stats, player activity, and tournament data.",
       welcomeMessage: "Welcome to the tournament platform. Prepare to register, coordinate with your team, and dominate the rankings!",
       siteName: row.logoTitle,
-      logoSrc: row.logoSrc || "/assets/logo.webp",
+      logoSrc: row.logoSrc || "/assets/logo.svg",
       logoUrl: row.logoUrl || "/",
       logoAlt: row.logoAlt || "Logo",
     };

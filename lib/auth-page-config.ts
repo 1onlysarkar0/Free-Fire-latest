@@ -36,7 +36,7 @@ async function _fetchAuthPageConfig(): Promise<AuthPageConfig> {
   return {
     logo: {
       url:   row.logoUrl,
-      src:   row.logoSrc || "/assets/logo.webp",
+      src:   row.logoSrc || "/assets/logo.svg",
       alt:   row.logoAlt,
       title: row.logoTitle,
     },

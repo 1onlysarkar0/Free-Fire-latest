@@ -125,7 +125,7 @@ export async function sendEmail({ to, templateName, variables = {} }: SendEmailO
 
   const mergedVariables = {
     siteName: config?.logoTitle ?? "",
-    siteLogo: config?.logoSrc ?? "/assets/logo.webp",
+    siteLogo: config?.logoSrc ?? "/assets/logo.svg",
     copyrightText: config?.copyrightText ?? "",
     contactEmail: config?.contactEmail ?? "",
     companyAddress: config?.companyAddress ?? "",
