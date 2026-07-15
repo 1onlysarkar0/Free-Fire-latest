@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
       (await getSiteUrl()) ||
       process.env.NEXT_PUBLIC_APP_URL ||
       process.env.APP_URL ||
-      "https://www.1onlysarkar.shop";
+      "https://1onlysarkar.shop";
 
     await db.transaction(async (tx) => {
       await tx.insert(tournament).values({

@@ -18,7 +18,7 @@ export default function IndexingSettings() {
     autoSubmitGoogle: false,
     autoSubmitIndexNow: false,
   });
-  
+
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -69,7 +69,7 @@ export default function IndexingSettings() {
       toast.error("Please enter a URL to submit");
       return;
     }
-    
+
     setManualSubmitting(true);
     try {
       const res = await fetch("/api/admin/seo/indexing/submit", {
@@ -96,7 +96,7 @@ export default function IndexingSettings() {
       if (parsed && typeof parsed === "object" && typeof parsed.client_email === "string") {
         serviceAccountEmail = parsed.client_email;
       }
-    } catch {}
+    } catch { }
   }
 
   if (loading) {
@@ -109,10 +109,10 @@ export default function IndexingSettings() {
 
   return (
     <div className="space-y-6 min-w-0">
-      
+
       {/* Configuration Cards Layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        
+
         {/* Google Indexing API Card */}
         <Card className="card-settings">
           <CardContent className="p-6 space-y-6">
@@ -125,19 +125,19 @@ export default function IndexingSettings() {
                 <p className="text-xs text-muted-foreground mt-0.5">Instantly notify Google of content changes</p>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 rounded-xl bg-background/60 border border-border/10">
                 <div className="space-y-0.5">
                   <p className="text-sm font-semibold text-foreground">Auto-Submit to Google</p>
                   <Muted className="text-xs">Automatically ping Google on new/updated content.</Muted>
                 </div>
-                <Switch 
-                  checked={config.autoSubmitGoogle} 
-                  onCheckedChange={(v) => setVal("autoSubmitGoogle", v)} 
+                <Switch
+                  checked={config.autoSubmitGoogle}
+                  onCheckedChange={(v) => setVal("autoSubmitGoogle", v)}
                 />
               </div>
-              
+
               <Field>
                 <FieldLabel>Service Account JSON <span className="text-muted-foreground font-normal">(Required)</span></FieldLabel>
                 <Textarea
@@ -173,19 +173,19 @@ export default function IndexingSettings() {
                 <p className="text-xs text-muted-foreground mt-0.5">Notify Bing, Yandex, Naver & Seznam</p>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 rounded-xl bg-background/60 border border-border/10">
                 <div className="space-y-0.5">
                   <p className="text-sm font-semibold text-foreground">Auto-Submit to IndexNow</p>
                   <Muted className="text-xs">Automatically ping IndexNow endpoints for updates.</Muted>
                 </div>
-                <Switch 
-                  checked={config.autoSubmitIndexNow} 
-                  onCheckedChange={(v) => setVal("autoSubmitIndexNow", v)} 
+                <Switch
+                  checked={config.autoSubmitIndexNow}
+                  onCheckedChange={(v) => setVal("autoSubmitIndexNow", v)}
                 />
               </div>
-              
+
               <Field>
                 <FieldLabel>Active IndexNow Key</FieldLabel>
                 <div className="bg-white border border-border rounded-xl px-4 py-3 font-mono text-xs break-all text-muted-foreground shadow-3xs">
@@ -220,9 +220,9 @@ export default function IndexingSettings() {
           <CardContent className="p-5 flex flex-col md:flex-row gap-4 items-end">
             <div className="flex-1 space-y-2">
               <label className="text-xs font-semibold text-foreground">Target URL to Index</label>
-              <Input 
-                type="url" 
-                placeholder="https://www.1onlysarkar.shop/tournaments/example-tournament" 
+              <Input
+                type="url"
+                placeholder="https://1onlysarkar.shoptournaments/example-tournament"
                 value={manualUrl}
                 onChange={(e) => setManualUrl(e.target.value)}
               />
@@ -243,7 +243,7 @@ export default function IndexingSettings() {
             <RefreshCw className="w-3.5 h-3.5 mr-1.5" /> Refresh Logs
           </Button>
         </div>
-        
+
         <Card className="card-list overflow-hidden border border-border/40 rounded-2xl shadow-3xs">
           <div className="overflow-x-auto min-w-0">
             <table className="w-full text-sm text-left border-collapse">
