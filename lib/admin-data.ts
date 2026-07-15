@@ -17,6 +17,7 @@ import {
 } from "@/db/schema";
 import { count, eq, desc, sql, asc } from "drizzle-orm";
 import { cache } from "react";
+import { getSharedSiteConfig } from "@/lib/site-config";
 
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -60,8 +61,8 @@ export const getAdminStatsCached = cache(_fetchAdminStats);
 // ─────────────────────────────────────────────────────────────────────────────
 // 2. Users & Roles
 // ─────────────────────────────────────────────────────────────────────────────
-async function _fetchAdminUsers() {
-  const usersData = await db.select().from(user).orderBy(desc(user.createdAt));
+async function _fetchAdminUsers(offset: number = 0) {
+  const usersData = await db.select().from(user).orderBy(desc(user.createdAt)).limit(500).offset(offset);
   const userRolesData = await db
     .select({
       userId: adminUserRole.userId,
@@ -132,12 +133,7 @@ export const getAdminSmtpCached = cache(_fetchAdminSmtp);
 // ─────────────────────────────────────────────────────────────────────────────
 // 5. Site Config
 // ─────────────────────────────────────────────────────────────────────────────
-async function _fetchAdminSiteConfig() {
-  const rows = await db.select().from(siteConfig).where(eq(siteConfig.id, "default")).limit(1);
-  return rows[0] || null;
-}
-
-export const getAdminSiteConfigCached = cache(_fetchAdminSiteConfig);
+export const getAdminSiteConfigCached = getSharedSiteConfig;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 6. SEO Config

@@ -15,7 +15,7 @@ type TournamentSeoInput = {
   logoSrc?: string | null;
 };
 
-const REGISTRATION_OPEN_STATUSES = new Set(["UPCOMING", "ACTIVE", "ROOM_REVEALED"]);
+const REGISTRATION_OPEN_STATUSES = new Set(["UPCOMING", "ACTIVE", "ROOM_REVEALED", "LIVE"]);
 
 function toIsoDate(value: Date | string) {
   return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
@@ -41,7 +41,7 @@ export function getTournamentSchemaStatus(status?: string | null) {
 }
 
 export function getTournamentSchemaAvailability(status?: string | null, availableSlots?: number | null) {
-  if (status === "CANCELLED" || status === "COMPLETED" || status === "FINISHED" || status === "LIVE") {
+  if (status === "CANCELLED" || status === "COMPLETED" || status === "FINISHED") {
     return "https://schema.org/SoldOut";
   }
 

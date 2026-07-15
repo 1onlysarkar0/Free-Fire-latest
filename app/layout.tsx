@@ -8,12 +8,14 @@ import { Toaster } from "@/components/ui/sonner";
 import { Analytics } from "@vercel/analytics/react";
 import { Agentation } from "agentation";
 import { Lora, IBM_Plex_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import { getAdminSiteConfigCached } from "@/lib/admin-data";
 import { getSeoData, buildMetadata, buildGeoMetadata } from "@/lib/seo";
 import { getSiteUrl } from "@/lib/site-url";
 
 import ChatbotLoader from "@/components/chatbot-loader";
 import CacheBuster from "@/components/cache-buster";
+import { CookieBanner } from "@/components/cookie-banner";
 
 // TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
 // See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
@@ -24,6 +26,12 @@ const ibmPlex = IBM_Plex_Sans({
   weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
   variable: "--font-ibm-plex",
+  display: "swap",
+});
+
+const momo = localFont({
+  src: "../public/fonts/MomoTrustDisplay.ttf",
+  variable: "--font-momo",
   display: "swap",
 });
 
@@ -104,12 +112,20 @@ export default async function RootLayout({
     <html
       lang="en-IN"
       suppressHydrationWarning
-      className={`${lora.variable} ${ibmPlex.variable}`}
+      className={`${lora.variable} ${ibmPlex.variable} ${momo.variable}`}
     >
       <body
         className="antialiased min-h-screen bg-background font-sans"
         suppressHydrationWarning
       >
+        <noscript>
+          <div className="bg-destructive text-destructive-foreground p-4 text-center font-bold">
+            JavaScript is required to run this application. Please enable it in your browser settings.
+          </div>
+        </noscript>
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:p-4 focus:bg-background focus:text-foreground focus:border focus:border-border focus:shadow-md rounded-md">
+          Skip to main content
+        </a>
         {structuredData && (
           <script
             type="application/ld+json"
@@ -118,11 +134,12 @@ export default async function RootLayout({
         )}
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
-          enableSystem={false}
+          defaultTheme="system"
+          enableSystem={true}
           disableTransitionOnChange
         >
           {children}
+          <CookieBanner />
           <CacheBuster />
           <ChatbotLoader />
           {process.env.NODE_ENV === "development" && <Agentation />}

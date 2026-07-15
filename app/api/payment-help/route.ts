@@ -6,6 +6,7 @@ import { paymentHelpRequest } from "@/db/schema";
 import { createNotification } from "@/lib/notifications";
 import { nanoid } from "nanoid";
 import { z } from "zod";
+import { rateLimitRoute } from "@/lib/security/rate-limiter";
 
 const submitSchema = z.object({
   amount: z
@@ -25,6 +26,18 @@ const submitSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  // Rate limit — 3 requests per 15 minutes per IP
+  const ip =
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("x-real-ip") ||
+    "unknown";
+  const rateLimitResponse = rateLimitRoute(ip, {
+    keyPrefix: "payment-help",
+    limit: 3,
+    windowMs: 15 * 60 * 1000,
+  });
+  if (rateLimitResponse) return rateLimitResponse;
+
   // Require authenticated session
   const session = await auth.api
     .getSession({ headers: await headers() })

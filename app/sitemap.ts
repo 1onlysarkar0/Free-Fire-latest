@@ -3,6 +3,7 @@ import { db } from "@/db/drizzle";
 import { customPage, tournament } from "@/db/schema";
 import { eq, ne } from "drizzle-orm";
 import { getSiteUrl } from "@/lib/site-url";
+import { getAdminSlugCached } from "@/lib/cache";
 
 // TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 // TODO: Cache Components adoption — restore export const revalidate = 0;
@@ -13,18 +14,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // 1. Static Routes
   const staticRoutes: MetadataRoute.Sitemap = [
-    { url: baseUrl, lastModified: now, changeFrequency: "always", priority: 1.0 },
-    { url: `${baseUrl}/tournaments`, lastModified: now, changeFrequency: "hourly", priority: 0.9 },
-    { url: `${baseUrl}/faq`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
-    { url: `${baseUrl}/how-to-join`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
-    { url: `${baseUrl}/contact`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
-    { url: `${baseUrl}/rules`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
-    { url: `${baseUrl}/privacy`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
-    { url: `${baseUrl}/terms`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
-    { url: `${baseUrl}/cheater-report`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
-    { url: `${baseUrl}/payment-help`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
-    { url: `${baseUrl}/sign-in`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
-    { url: `${baseUrl}/sign-up`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
+    { url: baseUrl, changeFrequency: "always", priority: 1.0 },
+    { url: `${baseUrl}/tournaments`, changeFrequency: "hourly", priority: 0.9 },
+    { url: `${baseUrl}/faq`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${baseUrl}/how-to-join`, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${baseUrl}/contact`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${baseUrl}/rules`, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${baseUrl}/privacy`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${baseUrl}/terms`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${baseUrl}/cheater-report`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${baseUrl}/payment-help`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${baseUrl}/sign-in`, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${baseUrl}/sign-up`, changeFrequency: "monthly", priority: 0.6 },
   ];
 
   try {
@@ -39,8 +40,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .where(ne(tournament.status, "CANCELLED")),
     ]);
 
+    const adminSlug = await getAdminSlugCached();
+    
     // 3. Additional Custom Pages (beyond known static ones above)
-    const knownStatic = new Set(["faq", "how-to-join", "contact", "rules", "privacy", "terms", "sign-in", "sign-up", "forgot-password", "reset-password", "two-factor", "complete-profile", "cheater-report", "payment-help"]);
+    const knownStatic = new Set(["faq", "how-to-join", "contact", "rules", "privacy", "terms", "sign-in", "sign-up", "forgot-password", "reset-password", "two-factor", "complete-profile", "cheater-report", "payment-help", adminSlug]);
     const extraPages = pages.filter(p => !knownStatic.has(p.slug));
 
     const customPageRoutes = extraPages.map((page) => ({

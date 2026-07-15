@@ -27,7 +27,7 @@ export const auth = betterAuth({
   baseURL: appUrl || undefined,
   trustedOrigins,
   cookieCache: {
-    enabled: false,
+    enabled: true,
   },
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days

@@ -19,7 +19,8 @@ export async function verifyCsrf(request: Request): Promise<boolean> {
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
   if (!appUrl) {
-    return true; // If app URL is not configured, skip strict origin checks to avoid breakage
+    console.error("[CSRF] NEXT_PUBLIC_APP_URL not set \u2014 blocking all state-changing requests for security");
+    return false;
   }
 
   const allowedOrigins = new Set<string>();

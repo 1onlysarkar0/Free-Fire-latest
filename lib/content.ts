@@ -1,8 +1,9 @@
 import "server-only";
 import { db } from "@/db/drizzle";
-import { authPageContent, siteConfig } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { authPageContent, siteConfig, faq } from "@/db/schema";
+import { eq, inArray, asc } from "drizzle-orm";
 import { cache } from "react";
+import { getSharedSiteConfig } from "@/lib/site-config";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TYPES
@@ -55,14 +56,9 @@ export const getAuthPageText = cache((pageKey: string) => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function _fetchDashboardConfig(): Promise<DashboardConfigData> {
-  const rows = await db
-    .select()
-    .from(siteConfig)
-    .where(eq(siteConfig.id, "default"))
-    .limit(1);
+  const row = await getSharedSiteConfig();
 
-  if (rows[0]) {
-    const row = rows[0];
+  if (row) {
     return {
       title: "Tournament Overview",
       subtitle: "Live stats, player activity, and tournament data.",
@@ -87,11 +83,7 @@ export const getDashboardConfig = cache(_fetchDashboardConfig);
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function _fetchHeroConfig() {
-  const [row] = await db
-    .select()
-    .from(siteConfig)
-    .where(eq(siteConfig.id, "default"))
-    .limit(1);
+  const row = await getSharedSiteConfig();
   if (!row) {
     throw new Error(
       "Site configuration not found in database. Run 'npm run db:seed' to populate."
@@ -101,3 +93,22 @@ async function _fetchHeroConfig() {
 }
 
 export const getHeroConfig = cache(_fetchHeroConfig);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HOMEPAGE FAQS
+// ─────────────────────────────────────────────────────────────────────────────
+
+import { cacheLife, cacheTag } from "next/cache";
+import { CACHE_TAGS } from "@/lib/cache";
+
+export async function getHomepageFaqs() {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(CACHE_TAGS.faqs, "homepage-faqs");
+  return db
+    .select()
+    .from(faq)
+    .where(inArray(faq.order, [1, 3, 7, 13]))
+    .orderBy(asc(faq.order))
+    .catch(() => []);
+}

@@ -2,7 +2,7 @@ import "server-only";
 import { db } from "@/db/drizzle";
 import { siteConfig, navigationItem } from "@/db/schema";
 import { eq, asc, and } from "drizzle-orm";
-import { cache } from "react";
+import { cacheLife, cacheTag } from "next/cache";
 
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -173,6 +173,16 @@ async function _fetchFooterConfig(): Promise<FooterConfig> {
 // DIRECT PUBLIC EXPORTS (uncached)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const getNavbarConfig = cache(_fetchNavbarConfig);
+export async function getNavbarConfig() {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag("navigation", "navbar-config");
+  return _fetchNavbarConfig();
+}
 
-export const getFooterConfig = cache(_fetchFooterConfig);
+export async function getFooterConfig() {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag("navigation", "footer-config");
+  return _fetchFooterConfig();
+}

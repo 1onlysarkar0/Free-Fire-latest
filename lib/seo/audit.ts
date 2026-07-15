@@ -2,6 +2,7 @@ export interface SeoCheck {
   name: string;
   passed: boolean;
   score: number;
+  maxScore: number;
   message: string;
   severity: "critical" | "warning" | "info";
 }
@@ -41,6 +42,7 @@ export function auditSeo(pageId: string, seo: {
     name: "Meta Title Present",
     passed: titlePresent,
     score: titlePresent ? 15 : 0,
+    maxScore: 15,
     message: titlePresent ? "Meta title is set." : "Meta title is missing.",
     severity: "critical",
   });
@@ -48,6 +50,7 @@ export function auditSeo(pageId: string, seo: {
     name: "Meta Title Length (30-60)",
     passed: titleLengthOk,
     score: titleLengthOk ? 10 : 0,
+    maxScore: 10,
     message: titleLengthOk 
       ? "Title length is optimal." 
       : seo.metaTitle 
@@ -63,6 +66,7 @@ export function auditSeo(pageId: string, seo: {
     name: "Meta Description Present",
     passed: descPresent,
     score: descPresent ? 15 : 0,
+    maxScore: 15,
     message: descPresent ? "Meta description is set." : "Meta description is missing.",
     severity: "critical",
   });
@@ -70,6 +74,7 @@ export function auditSeo(pageId: string, seo: {
     name: "Meta Description Length (120-160)",
     passed: descLengthOk,
     score: descLengthOk ? 10 : 0,
+    maxScore: 10,
     message: descLengthOk 
       ? "Description length is optimal." 
       : seo.metaDescription 
@@ -84,6 +89,7 @@ export function auditSeo(pageId: string, seo: {
     name: "Open Graph Title Present",
     passed: ogTitlePresent,
     score: ogTitlePresent ? 10 : 0,
+    maxScore: 10,
     message: ogTitlePresent ? "OG Title is set." : "OG Title is missing (falls back to meta title).",
     severity: "warning",
   });
@@ -93,6 +99,7 @@ export function auditSeo(pageId: string, seo: {
     name: "Open Graph Description Present",
     passed: ogDescPresent,
     score: ogDescPresent ? 10 : 0,
+    maxScore: 10,
     message: ogDescPresent ? "OG Description is set." : "OG Description is missing (falls back to meta desc).",
     severity: "warning",
   });
@@ -102,6 +109,7 @@ export function auditSeo(pageId: string, seo: {
     name: "Open Graph Image Set",
     passed: ogImagePresent,
     score: ogImagePresent ? 15 : 0,
+    maxScore: 15,
     message: ogImagePresent ? "OG Image is configured." : "OG Image is missing.",
     severity: "critical",
   });
@@ -112,6 +120,7 @@ export function auditSeo(pageId: string, seo: {
     name: "Canonical URL Valid",
     passed: canonicalPresent,
     score: canonicalPresent ? 10 : 0,
+    maxScore: 10,
     message: canonicalPresent ? "Canonical URL is valid." : "Canonical URL is missing or invalid.",
     severity: "critical",
   });
@@ -122,6 +131,7 @@ export function auditSeo(pageId: string, seo: {
     name: "Robots Directive Set",
     passed: robotsPresent,
     score: robotsPresent ? 5 : 0,
+    maxScore: 5,
     message: robotsPresent ? `Robots rule is: ${seo.robots}` : "Robots rule is missing.",
     severity: "warning",
   });
@@ -142,13 +152,14 @@ export function auditSeo(pageId: string, seo: {
     name: "Structured Data Valid",
     passed: schemaValid,
     score: schemaValid ? 10 : 0,
+    maxScore: 10,
     message: schemaMsg,
     severity: "critical",
   });
 
   // Calculate score
   const actualScoreEarned = checks.reduce((acc, c) => acc + c.score, 0);
-  const totalMaxPossible = 110;
+  const totalMaxPossible = checks.reduce((acc, c) => acc + c.maxScore, 0);
   const finalScore = Math.min(100, Math.max(0, Math.round((actualScoreEarned / totalMaxPossible) * 100)));
 
   let grade: "A" | "B" | "C" | "D" | "F" = "F";

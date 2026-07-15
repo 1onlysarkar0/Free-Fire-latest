@@ -2,9 +2,8 @@ import "server-only";
 import { db } from "@/db/drizzle";
 import { tournament, tournamentSlot, tournamentParticipant, tournamentWinner, user } from "@/db/schema";
 import { eq, desc, inArray, and, count, sql } from "drizzle-orm";
-import { unstable_cache } from "next/cache";
+import { cacheLife, cacheTag } from "next/cache";
 import { CACHE_TAGS, tournamentCacheTag } from "@/lib/cache";
-import { cache } from "react";
 
 // Safe JSON parse helper
 function safeJson<T>(s: string | null | undefined, fallback: T): T {
@@ -352,45 +351,33 @@ async function _fetchUpcomingTournamentsForHomepage() {
   }));
 }
 
-export const getUpcomingTournamentsForHomepage = cache(
-  unstable_cache(
-    _fetchUpcomingTournamentsForHomepage,
-    ["homepage-tournaments"],
-    { tags: [CACHE_TAGS.tournaments], revalidate: 300 }
-  )
-);
+export async function getUpcomingTournamentsForHomepage() {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(CACHE_TAGS.tournaments, "homepage-tournaments");
+  return _fetchUpcomingTournamentsForHomepage();
+}
 
-export const getTournamentDetail = cache((id: string) => {
-  return unstable_cache(
-    () => _fetchTournamentDetail(id),
-    ["tournament-detail", id],
-    { tags: [CACHE_TAGS.tournaments, tournamentCacheTag(id)], revalidate: 300 }
-  )();
-});
+export async function getTournamentDetail(id: string) {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(CACHE_TAGS.tournaments, tournamentCacheTag(id), `tournament-detail:${id}`);
+  return _fetchTournamentDetail(id);
+}
 
-export const getCachedTournamentsPaginated = cache((
+export async function getCachedTournamentsPaginated(
   status: string | null,
   gameMode: string | null,
   teamFormat: string | null,
   type: string | null,
   page: number,
   limit: number
-) => {
-  const cacheKey = [
-    "tournaments-paginated",
-    status ?? "all",
-    gameMode ?? "all",
-    teamFormat ?? "all",
-    type ?? "all",
-    page.toString(),
-    limit.toString(),
-  ];
-  return unstable_cache(
-    () => _fetchTournamentsPaginated(status, gameMode, teamFormat, type, page, limit),
-    cacheKey,
-    { tags: [CACHE_TAGS.tournaments], revalidate: 300 }
-  )();
-});
+) {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(CACHE_TAGS.tournaments, `tournaments-paginated:${status}:${gameMode}:${teamFormat}:${type}:${page}:${limit}`);
+  return _fetchTournamentsPaginated(status, gameMode, teamFormat, type, page, limit);
+}
 
 export const getTournamentsPaginated = _fetchTournamentsPaginated;
 
@@ -398,10 +385,9 @@ export const getTournamentPublicData = _fetchTournamentPublicData;
 
 export const getViewerTournamentDetail = _fetchViewerTournamentDetail;
 
-export const getCachedTournamentPublicData = cache((id: string) => {
-  return unstable_cache(
-    () => _fetchTournamentPublicData(id),
-    ["tournament-public-data", id],
-    { tags: [CACHE_TAGS.tournaments, tournamentCacheTag(id)], revalidate: 120 }
-  )();
-});
+export async function getCachedTournamentPublicData(id: string) {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(CACHE_TAGS.tournaments, tournamentCacheTag(id), `tournament-public-data:${id}`);
+  return _fetchTournamentPublicData(id);
+}

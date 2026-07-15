@@ -8,7 +8,7 @@ import {
   timestamp,
   jsonb,
 } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
+import { sql, relations } from "drizzle-orm";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BETTER AUTH CORE TABLES
@@ -920,3 +920,66 @@ export const indexingLog = pgTable("indexing_log", {
   index("indexing_log_status_idx").on(t.status),
   index("indexing_log_created_idx").on(t.createdAt),
 ]);
+
+export const userRelations = relations(user, ({ one, many }) => ({
+  wallet: one(wallet, {
+    fields: [user.id],
+    references: [wallet.userId],
+  }),
+  notifications: many(notification),
+  adminUserRoles: many(adminUserRole),
+}));
+
+export const tournamentRelations = relations(tournament, ({ many }) => ({
+  slots: many(tournamentSlot),
+  participants: many(tournamentParticipant),
+  winners: many(tournamentWinner),
+}));
+
+export const tournamentSlotRelations = relations(tournamentSlot, ({ one }) => ({
+  tournament: one(tournament, {
+    fields: [tournamentSlot.tournamentId],
+    references: [tournament.id],
+  }),
+}));
+
+export const tournamentParticipantRelations = relations(tournamentParticipant, ({ one }) => ({
+  tournament: one(tournament, {
+    fields: [tournamentParticipant.tournamentId],
+    references: [tournament.id],
+  }),
+  user: one(user, {
+    fields: [tournamentParticipant.userId],
+    references: [user.id],
+  }),
+}));
+
+export const tournamentWinnerRelations = relations(tournamentWinner, ({ one }) => ({
+  tournament: one(tournament, {
+    fields: [tournamentWinner.tournamentId],
+    references: [tournament.id],
+  }),
+  user: one(user, {
+    fields: [tournamentWinner.userId],
+    references: [user.id],
+  }),
+}));
+
+export const notificationRelations = relations(notification, ({ one }) => ({
+  user: one(user, {
+    fields: [notification.userId],
+    references: [user.id],
+  }),
+}));
+
+export const adminUserRoleRelations = relations(adminUserRole, ({ one }) => ({
+  user: one(user, {
+    fields: [adminUserRole.userId],
+    references: [user.id],
+  }),
+  role: one(adminRole, {
+    fields: [adminUserRole.roleId],
+    references: [adminRole.id],
+  }),
+}));
+

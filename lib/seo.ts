@@ -4,6 +4,8 @@ import { seoConfig } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import { cache } from "react";
+import { cacheLife, cacheTag } from "next/cache";
+import { CACHE_TAGS } from "@/lib/cache";
 
 export interface SeoData {
   metaTitle: string | null;
@@ -30,15 +32,9 @@ export interface SeoData {
 }
 
 async function _fetchSeo(pageId: string): Promise<SeoData> {
-  const [globalRows, pageRows] = await Promise.all([
-    db.select().from(seoConfig).where(eq(seoConfig.id, "global")).limit(1),
-    db.select().from(seoConfig).where(eq(seoConfig.id, pageId)).limit(1),
-  ]);
-
-  const g = globalRows[0] ?? null;
-  const p = pageRows[0] ?? null;
-
   if (pageId === "global") {
+    const globalRows = await db.select().from(seoConfig).where(eq(seoConfig.id, "global")).limit(1);
+    const g = globalRows[0] ?? null;
     return {
       metaTitle: g?.metaTitle ?? null,
       metaDescription: g?.metaDescription ?? null,
@@ -63,6 +59,14 @@ async function _fetchSeo(pageId: string): Promise<SeoData> {
       lastAudited: g?.lastAudited ? g.lastAudited.toISOString() : null,
     };
   }
+
+  const [globalRows, pageRows] = await Promise.all([
+    db.select().from(seoConfig).where(eq(seoConfig.id, "global")).limit(1),
+    db.select().from(seoConfig).where(eq(seoConfig.id, pageId)).limit(1),
+  ]);
+
+  const g = globalRows[0] ?? null;
+  const p = pageRows[0] ?? null;
 
   return {
     metaTitle: p?.metaTitle ?? g?.metaTitle ?? null,
@@ -89,9 +93,12 @@ async function _fetchSeo(pageId: string): Promise<SeoData> {
   };
 }
 
-export const getSeoData = cache((pageId: string) => {
+export async function getSeoData(pageId: string) {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(CACHE_TAGS.seo, `${CACHE_TAGS.seo}:${pageId}`);
   return _fetchSeo(pageId);
-});
+}
 
 export function buildMetadata(
   seo: SeoData,
@@ -177,7 +184,10 @@ export function buildMetadata(
   if (seo.twitterCard || seo.twitterTitle || seo.twitterDescription || twitterImageFinal || seo.twitterSite) {
     const tw: Record<string, unknown> = {};
     if (seo.twitterCard) tw.card = seo.twitterCard;
-    if (seo.twitterSite) tw.site = seo.twitterSite;
+    if (seo.twitterSite) {
+      tw.site = seo.twitterSite;
+      tw.creator = seo.twitterSite;
+    }
     if (seo.twitterTitle) tw.title = seo.twitterTitle;
     if (seo.twitterDescription) tw.description = seo.twitterDescription;
     if (twitterImageFinal) tw.images = [twitterImageFinal];

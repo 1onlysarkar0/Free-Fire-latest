@@ -15,7 +15,12 @@ import rehypeKatex from "rehype-katex";
 import { H1, H2, H3, H4, P, Blockquote } from "@/components/ui/typography";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
 import { CopyWrapper } from "@/components/copy-button";
-import { MermaidChart } from "@/components/mermaid-chart";
+import dynamic from "next/dynamic";
+
+const MermaidChart = dynamic(
+  () => import("@/components/mermaid-chart").then((mod) => mod.MermaidChart),
+  { ssr: false, loading: () => <div className="animate-pulse bg-muted h-32 w-full rounded-md" /> }
+);
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { CircleArrowOutUpRight, Link2 } from "lucide-react";

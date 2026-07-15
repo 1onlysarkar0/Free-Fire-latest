@@ -13,7 +13,7 @@ import {
   withdrawConfig,
 } from "@/db/schema";
 import { eq, desc, inArray, sql } from "drizzle-orm";
-import { unstable_cache } from "next/cache";
+import { cacheLife, cacheTag } from "next/cache";
 import { CACHE_TAGS } from "@/lib/cache";
 import { cache } from "react";
 
@@ -27,7 +27,7 @@ async function _fetchUserProfile(userId: string) {
   return profile || null;
 }
 
-export const getUserProfileCached = (userId: string) => _fetchUserProfile(userId);
+export const getUserProfileCached = cache((userId: string) => _fetchUserProfile(userId));
 
 async function _fetchUserWallet(userId: string) {
   const [walletRow] = await db
@@ -38,7 +38,7 @@ async function _fetchUserWallet(userId: string) {
   return walletRow || null;
 }
 
-export const getUserWalletCached = (userId: string) => _fetchUserWallet(userId);
+export const getUserWalletCached = cache((userId: string) => _fetchUserWallet(userId));
 
 async function _fetchUserTransactions(userId: string) {
   return db
@@ -49,7 +49,7 @@ async function _fetchUserTransactions(userId: string) {
     .limit(20);
 }
 
-export const getUserTransactionsCached = (userId: string) => _fetchUserTransactions(userId);
+export const getUserTransactionsCached = cache((userId: string) => _fetchUserTransactions(userId));
 
 async function _fetchUserPermissions(userId: string) {
   const [dbUser] = await db.select({ isAdmin: user.isAdmin }).from(user).where(eq(user.id, userId)).limit(1);
@@ -94,7 +94,7 @@ async function _fetchUserPermissions(userId: string) {
   };
 }
 
-export const getUserPermissionsCached = (userId: string) => _fetchUserPermissions(userId);
+export const getUserPermissionsCached = cache((userId: string) => _fetchUserPermissions(userId));
 
 async function _fetchTopPlayersForHomepage() {
   return db
@@ -105,13 +105,12 @@ async function _fetchTopPlayersForHomepage() {
     .limit(12);
 }
 
-export const getTopPlayersForHomepage = cache(
-  unstable_cache(
-    _fetchTopPlayersForHomepage,
-    ["top-players-homepage"],
-    { tags: [CACHE_TAGS.topPlayers], revalidate: 3_600 }
-  )
-);
+export async function getTopPlayersForHomepage() {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(CACHE_TAGS.topPlayers, "top-players-homepage");
+  return _fetchTopPlayersForHomepage();
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // USER TOURNAMENTS (joined by the user)
@@ -201,7 +200,7 @@ async function _fetchUserTournaments(userId: string): Promise<UserTournamentItem
   });
 }
 
-export const getUserTournamentsForDashboard = (userId: string) => _fetchUserTournaments(userId);
+export const getUserTournamentsForDashboard = cache((userId: string) => _fetchUserTournaments(userId));
 
 async function _fetchWithdrawConfig() {
   const [config] = await db
@@ -212,4 +211,4 @@ async function _fetchWithdrawConfig() {
   return config || null;
 }
 
-export const getWithdrawConfig = () => _fetchWithdrawConfig();
+export const getWithdrawConfig = cache(() => _fetchWithdrawConfig());

@@ -77,7 +77,7 @@ export function MermaidChart({ code, isStreaming = false, variant = "default" }:
         mermaid.initialize({
           startOnLoad: false,
           theme: isDark ? "dark" : "default",
-          securityLevel: "loose",
+          securityLevel: "strict",
           fontFamily: "var(--font-geist-sans), system-ui, sans-serif",
           themeVariables: {
             background: "transparent",

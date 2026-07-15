@@ -1,33 +1,25 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Navbar } from "@/components/navbar";
-import FooterSection from "@/components/homepage/footer";
 
-export default function RootNotFound() {
+export default function NotFound() {
   return (
-    <div className="min-h-screen flex flex-col bg-background font-ibm">
-      <Navbar />
-      <div className="flex-1 flex flex-col items-center justify-center text-center px-4 py-20 relative overflow-hidden">
-        {/* Decorative Background Gradients */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/10 rounded-full blur-[100px] pointer-events-none -z-10" />
-
-        <div className="relative z-10 flex flex-col items-center">
-          <h1 className="text-[150px] leading-none font-black text-transparent bg-clip-text bg-gradient-to-br from-primary/60 to-primary/90 font-lora drop-shadow-sm select-none">
-            404
-          </h1>
-          <h2 className="text-3xl font-bold text-foreground mt-6 font-lora tracking-tight">
-            Page Not Found
-          </h2>
-          <p className="text-muted-foreground text-lg max-w-md mx-auto mt-4 mb-8">
-            Oops! The page you&apos;re looking for doesn&apos;t exist, has been moved, or is temporarily unavailable.
-          </p>
-          <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl shadow-md transition-transform hover:-translate-y-0.5 px-8">
-            <Link href="/" prefetch={true}>Return to Homepage</Link>
+    <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 py-20 text-center">
+      <div className="space-y-6 max-w-md">
+        <h1 className="text-9xl font-bold tracking-tighter text-primary/20">404</h1>
+        <h2 className="text-3xl font-semibold tracking-tight">Page not found</h2>
+        <p className="text-muted-foreground text-lg">
+          Sorry, we couldn&apos;t find the page you&apos;re looking for. It might have been moved or doesn&apos;t exist.
+        </p>
+        <div className="pt-6">
+          <Button asChild size="lg" className="w-full sm:w-auto">
+            <Link href="/">
+              Return to Homepage
+            </Link>
           </Button>
         </div>
       </div>
-      <FooterSection />
     </div>
   );
 }
-

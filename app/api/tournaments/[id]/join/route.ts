@@ -13,6 +13,7 @@ import { nanoid } from "nanoid";
 import { debitWallet, getOrCreateWallet } from "@/lib/wallet";
 import { apiSuccess, apiError } from "@/lib/api-response";
 import { invalidateTournamentCache } from "@/lib/cache";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 export const maxDuration = 30;
 
@@ -24,6 +25,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
     const userId = session.user.id;
     const { id: tournamentId } = await params;
+
+    const ip = await getClientIp();
+    if (!rateLimit(`join-${userId}-${ip}`, 3, 60000)) {
+      return apiError("Too many join requests. Please wait a minute.", 429);
+    }
 
     // Check if user is banned
     const [dbUser] = await db

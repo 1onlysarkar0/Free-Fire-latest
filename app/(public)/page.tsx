@@ -13,9 +13,7 @@ import { getAdminSiteConfigCached } from "@/lib/admin-data";
 import { getSiteUrl } from "@/lib/site-url";
 import { FeatureSteps } from "@/components/ui/feature-section";
 import { CircularTestimonials } from "@/components/ui/circular-testimonials";
-import { db } from "@/db/drizzle";
-import { faq } from "@/db/schema";
-import { asc, inArray } from "drizzle-orm";
+import { getHomepageFaqs } from "@/lib/content";
 import { LandingFaq } from "@/components/homepage/landing-faq";
 import { CtaSection } from "@/components/homepage/cta-section";
 import { connection } from "next/server";
@@ -91,7 +89,7 @@ export default async function Home() {
     getHeroConfig(),
     getTopPlayersForHomepage(),
     getSeoData("home").catch(() => null),
-    db.select().from(faq).where(inArray(faq.order, [1, 3, 7, 13])).orderBy(asc(faq.order)).catch(() => []),
+    getHomepageFaqs(),
   ]);
 
   let structuredData = null;

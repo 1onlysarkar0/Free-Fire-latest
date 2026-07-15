@@ -147,9 +147,7 @@ export async function GET() {
     return new NextResponse(md, {
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
-        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
-        "Pragma": "no-cache",
-        "Expires": "0",
+        "Cache-Control": "public, max-age=86400, stale-while-revalidate=43200",
       },
     });
   } catch (err) {

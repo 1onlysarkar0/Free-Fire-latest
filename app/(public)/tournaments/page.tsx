@@ -12,6 +12,8 @@ import { tournamentParticipant } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { getSiteUrl } from "@/lib/site-url";
 
+import { TournamentGridSkeleton } from "@/components/tournaments/tournament-skeleton";
+
 // TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
 // See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
 export const instant = false;
@@ -72,7 +74,7 @@ export default async function TournamentsPage({ searchParams }: { searchParams: 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema).replace(/</g, "\\u003c") }}
         />
       )}
-      <Suspense fallback={null}>
+      <Suspense fallback={<TournamentGridSkeleton />}>
         <TournamentsClient
           initialData={initialData}
           initialFilter={statusFilter}

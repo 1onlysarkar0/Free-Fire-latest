@@ -1,5 +1,5 @@
 import "server-only";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag, updateTag, cacheLife, cacheTag } from "next/cache";
 import { db } from "@/db/drizzle";
 import { siteConfig } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -12,6 +12,7 @@ export const CACHE_TAGS = {
   pages: "pages",
   tournaments: "tournaments",
   topPlayers: "top-players",
+  faqs: "faqs",
 } as const;
 
 export function tournamentCacheTag(id: string) {
@@ -25,18 +26,14 @@ export async function invalidatePublicCache({
   tags: string[];
   paths?: string[];
 }) {
-  for (const tag of new Set(tags)) revalidateTag(tag, "max");
+  for (const tag of new Set(tags)) updateTag(tag);
   for (const path of new Set(paths)) revalidatePath(path);
 
   try {
     revalidatePath("/[dynamicSlug]", "layout");
-    const [config] = await db
-      .select({ adminSlug: siteConfig.adminSlug })
-      .from(siteConfig)
-      .where(eq(siteConfig.id, "default"))
-      .limit(1);
-    if (config?.adminSlug) {
-      revalidatePath(`/${config.adminSlug}`, "layout");
+    const adminSlug = await getAdminSlugCached();
+    if (adminSlug) {
+      revalidatePath(`/${adminSlug}`, "layout");
     }
   } catch (e) {
     console.error("Failed to invalidate admin cache in invalidatePublicCache:", e);
@@ -53,16 +50,24 @@ export async function invalidateTournamentCache(id?: string) {
 export async function invalidateAdminCache() {
   try {
     revalidatePath("/[dynamicSlug]", "layout");
-    const [config] = await db
-      .select({ adminSlug: siteConfig.adminSlug })
-      .from(siteConfig)
-      .where(eq(siteConfig.id, "default"))
-      .limit(1);
-    if (config?.adminSlug) {
-      revalidatePath(`/${config.adminSlug}`, "layout");
+    const adminSlug = await getAdminSlugCached();
+    if (adminSlug) {
+      revalidatePath(`/${adminSlug}`, "layout");
     }
     revalidatePath("/dashboard", "layout");
   } catch (e) {
     console.error("Failed to invalidate admin cache in invalidateAdminCache:", e);
   }
+}
+
+export async function getAdminSlugCached() {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag("admin-slug", CACHE_TAGS.siteConfig);
+  const [config] = await db
+    .select({ adminSlug: siteConfig.adminSlug })
+    .from(siteConfig)
+    .where(eq(siteConfig.id, "default"))
+    .limit(1);
+  return config?.adminSlug || null;
 }

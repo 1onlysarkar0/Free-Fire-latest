@@ -1,4 +1,5 @@
 import "server-only";
+import { z } from "zod";
 import { ImapFlow } from "imapflow";
 import { simpleParser } from "mailparser";
 import { db } from "@/db/drizzle";
@@ -58,7 +59,7 @@ export async function getPaymentConfig(): Promise<PaymentConfig | null> {
   return {
     gmailEmail: row.gmailEmail,
     gmailAppPassword: row.gmailAppPassword,
-    trustedSenders: JSON.parse(row.trustedSenders || "[]"),
+    trustedSenders: z.array(z.string()).catch([]).parse(JSON.parse(row.trustedSenders || "[]")),
     checkDays: row.checkDays,
     upiId: row.upiId,
     upiName: row.upiName,
