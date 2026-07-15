@@ -1,5 +1,5 @@
 # ── STAGE 1: Dependency Installation & Layer Caching ───────────────────────
-FROM node:20-alpine AS deps
+FROM node:22-alpine AS deps
 RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
 
@@ -10,7 +10,7 @@ COPY package.json package-lock.json .npmrc ./
 RUN --mount=type=cache,target=/root/.npm npm ci
 
 # ── STAGE 2: Multi-Stage Production Builder ─────────────────────────────────
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
@@ -39,7 +39,7 @@ ENV NODE_OPTIONS="--max-old-space-size=12288"
 RUN --mount=type=cache,target=/app/.next/cache npm run build
 
 # ── STAGE 3: Production Execution Engine (Runner) ──────────────────────────
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
