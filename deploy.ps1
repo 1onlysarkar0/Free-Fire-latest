@@ -8,7 +8,7 @@ $ErrorActionPreference = "Stop"
 
 # Configuration
 $IMAGE_NAME = "1onlysarkar/freefire:latest"
-$WEBHOOK_URL = "https://host.1onlysarkar.shop/api/deploy/7z6BZRVqUXgyIA9-LDuQh"
+$WEBHOOK_URL = "https://host.1onlysarkar.shop/api/deploy/compose/eM2kL1GFg2LQqB3Yfe0N5"
 
 Write-Host "[1/3] Building Docker image: $IMAGE_NAME..." -ForegroundColor Cyan
 docker build -t $IMAGE_NAME .

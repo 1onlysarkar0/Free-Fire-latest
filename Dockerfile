@@ -16,20 +16,21 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Pass dynamic build arguments during `docker build --build-arg KEY=VAL`
+# Optional Build Arguments (can be passed via docker build --build-arg KEY=VAL if desired)
 ARG NEXT_PUBLIC_APP_URL
 ARG BETTER_AUTH_URL
 ARG TRUSTED_ORIGINS
 ARG DATABASE_URL
 ARG BETTER_AUTH_SECRET
 
-ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
-ENV BETTER_AUTH_URL=$BETTER_AUTH_URL
-ENV TRUSTED_ORIGINS=$TRUSTED_ORIGINS
-ENV DATABASE_URL=$DATABASE_URL
-ENV BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET
+# Build-time environment variable bindings with safe defaults for static bundling
+ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
+ENV BETTER_AUTH_URL=${BETTER_AUTH_URL}
+ENV TRUSTED_ORIGINS=${TRUSTED_ORIGINS}
+ENV DATABASE_URL=${DATABASE_URL}
+ENV BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
 
-# Set compilation signals and optimization flags
+# Compilation signals and optimization flags
 ENV DOCKER_BUILD=1
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
@@ -47,11 +48,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Dynamic build args passed to runtime
-ARG NEXT_PUBLIC_APP_URL
-ARG BETTER_AUTH_URL
-ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
-ENV BETTER_AUTH_URL=$BETTER_AUTH_URL
+# Note: Runner stage intentionally does NOT hardcode empty build ARGs or ENVs
+# so that all deployment environment variables (DATABASE_URL, BETTER_AUTH_SECRET,
+# BETTER_AUTH_URL, NEXT_PUBLIC_APP_URL, etc.) are read dynamically from process.env at runtime.
 
 # Security: Unprivileged system group and user
 RUN addgroup --system --gid 1001 nodejs && \
@@ -72,3 +71,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
 
 # Execute standalone production server directly
 CMD ["node", "server.js"]
+

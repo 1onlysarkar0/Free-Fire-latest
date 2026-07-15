@@ -17,9 +17,9 @@ export async function verifyCsrf(request: Request): Promise<boolean> {
   const referer = reqHeaders.get("referer");
   const host = reqHeaders.get("host");
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || process.env.BETTER_AUTH_URL;
   if (!appUrl) {
-    console.error("[CSRF] NEXT_PUBLIC_APP_URL not set \u2014 blocking all state-changing requests for security");
+    console.error("[CSRF] APP_URL/NEXT_PUBLIC_APP_URL not set — blocking all state-changing requests for security");
     return false;
   }
 
