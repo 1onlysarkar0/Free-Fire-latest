@@ -50,7 +50,7 @@
   --font-sans: var(--font-ibm-plex), sans-serif;
   --font-lora: var(--font-lora), serif;
   --font-ibm: var(--font-ibm-plex), sans-serif;
-  --font-momo: "Momo Trust Display", sans-serif;
+  --font-momo: var(--font-momo), sans-serif;
   --font-mono: "SF Mono", Menlo, Consolas, monospace;
   --shadow-xs: var(--shadow-xs);
   --shadow-sm: var(--shadow-sm);

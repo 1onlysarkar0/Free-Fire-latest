@@ -15,7 +15,6 @@ import { getSiteUrl } from "@/lib/site-url";
 
 import ChatbotLoader from "@/components/chatbot-loader";
 import CacheBuster from "@/components/cache-buster";
-import { CookieBanner } from "@/components/cookie-banner";
 
 // TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
 // See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
@@ -139,7 +138,6 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           {children}
-          <CookieBanner />
           <CacheBuster />
           <ChatbotLoader />
           {process.env.NODE_ENV === "development" && <Agentation />}
