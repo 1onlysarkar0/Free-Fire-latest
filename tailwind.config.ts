@@ -99,6 +99,7 @@ const config = {
         lora: ["var(--font-lora)", "serif"],
         ibm: ["var(--font-ibm-plex)", "sans-serif"],
         mono: ["SF Mono", "Menlo", "Consolas", "monospace"],
+        momo: ["var(--font-momo)", "sans-serif"],
       },
       keyframes: {
         "accordion-down": {

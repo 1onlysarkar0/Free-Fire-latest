@@ -161,7 +161,7 @@
 
   .font-momo,
   .font-momo * {
-    font-family: "Momo Trust Display", sans-serif !important;
+    font-family: var(--font-momo), sans-serif !important;
   }
 
   h1,
