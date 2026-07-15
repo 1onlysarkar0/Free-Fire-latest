@@ -10,10 +10,10 @@ out
 # Environment variables
 .env
 .env*.local
-.env.production
 .env.development
+!.env.production
 
-# Docker & Deployment scripts
+# Docker & deployment
 Dockerfile*
 .dockerignore
 deploy.ps1
@@ -36,7 +36,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# AUDIT FIX: Exclude large dev-only files from production Docker image
+# Dev-only files
 db/seed-db.ts
 db/fix-page-titles.ts
 scripts/

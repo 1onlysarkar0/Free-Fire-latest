@@ -1,74 +1,54 @@
-# ── STAGE 1: Dependency Installation & Layer Caching ───────────────────────
-FROM node:22-alpine AS deps
-RUN apk add --no-cache libc6-compat python3 make g++
+# syntax=docker/dockerfile:1.7
+
+ARG NODE_VERSION=20-alpine
+
+# ── base ──────────────────────────────────────────────────────────────────────
+FROM node:${NODE_VERSION} AS base
+WORKDIR /app
+RUN apk add --no-cache libc6-compat
+
+# ── deps ──────────────────────────────────────────────────────────────────────
+FROM base AS deps
+RUN apk add --no-cache python3 make g++
+COPY package.json package-lock.json* .npmrc* ./
+RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --no-fund
+
+# ── builder ───────────────────────────────────────────────────────────────────
+FROM base AS builder
 WORKDIR /app
 
-# Copy dependency manifests
-COPY package.json package-lock.json .npmrc ./
-
-# Leverage Docker BuildKit cache mounts for rapid npm installs
-RUN --mount=type=cache,target=/root/.npm npm ci
-
-# ── STAGE 2: Multi-Stage Production Builder ─────────────────────────────────
-FROM node:22-alpine AS builder
-WORKDIR /app
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV DOCKER_BUILD=1
+ENV NODE_OPTIONS=--max-old-space-size=4096
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+COPY .env.production ./.env.production
 
-# Optional Build Arguments (can be passed via docker build --build-arg KEY=VAL if desired)
-ARG NEXT_PUBLIC_APP_URL
-ARG BETTER_AUTH_URL
-ARG TRUSTED_ORIGINS
-ARG DATABASE_URL
-ARG BETTER_AUTH_SECRET
+RUN --mount=type=cache,target=/app/.next/cache npm run build && rm -f .env.production
 
-# Build-time environment variable bindings with safe defaults for static bundling
-ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
-ENV BETTER_AUTH_URL=${BETTER_AUTH_URL}
-ENV TRUSTED_ORIGINS=${TRUSTED_ORIGINS}
-ENV DATABASE_URL=${DATABASE_URL}
-ENV BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
-
-# Compilation signals and optimization flags
-ENV DOCKER_BUILD=1
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_ENV=production
-ENV NODE_OPTIONS="--max-old-space-size=12288"
-
-# Compile Next.js production build with persistent BuildKit cache for .next/cache
-RUN --mount=type=cache,target=/app/.next/cache npm run build
-
-# ── STAGE 3: Production Execution Engine (Runner) ──────────────────────────
-FROM node:22-alpine AS runner
+# ── runner ────────────────────────────────────────────────────────────────────
+FROM node:${NODE_VERSION} AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
+ENV HOSTNAME=0.0.0.0
 
-# Note: Runner stage intentionally does NOT hardcode empty build ARGs or ENVs
-# so that all deployment environment variables (DATABASE_URL, BETTER_AUTH_SECRET,
-# BETTER_AUTH_URL, NEXT_PUBLIC_APP_URL, etc.) are read dynamically from process.env at runtime.
+RUN addgroup -S nodejs -g 1001 && adduser -S nextjs -u 1001 -G nodejs
 
-# Security: Unprivileged system group and user
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs
-
-# Copy static assets and standalone Next.js server engine with proper user permissions
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+RUN mkdir -p /app/.next && chown -R nextjs:nodejs /app
 
 USER nextjs
 
 EXPOSE 3000
 
-# Automated Container Healthcheck
-HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/api/health || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
-# Execute standalone production server directly
 CMD ["node", "server.js"]
-
