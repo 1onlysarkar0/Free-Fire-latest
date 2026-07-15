@@ -2,7 +2,6 @@ version: '3.8'
 
 services:
   web:
-    build: .
     image: 1onlysarkar/freefire:latest
     container_name: freefire_web
     restart: always
