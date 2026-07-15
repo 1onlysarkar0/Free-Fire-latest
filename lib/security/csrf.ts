@@ -42,10 +42,11 @@ export async function verifyCsrf(request: Request): Promise<boolean> {
   if (process.env.ONESARKAR_DEV_DOMAIN) {
     allowedOrigins.add(process.env.ONESARKAR_DEV_DOMAIN);
   }
+  // AUDIT FIX [6.8]: Filter out wildcard '*' — never add '*' as an allowed origin
   if (process.env.ALLOWED_DEV_ORIGINS) {
     process.env.ALLOWED_DEV_ORIGINS.split(",")
       .map((o) => o.trim())
-      .filter(Boolean)
+      .filter((o) => Boolean(o) && o !== "*") // never trust a wildcard origin
       .forEach((o) => allowedOrigins.add(o));
   }
 

@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { verifyAndCreditPayment } from "@/lib/payment";
+import { rateLimitRoute } from "@/lib/security/rate-limiter";
 import { z } from "zod";
 
-// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
+// AUDIT FIX [7.5]: Increase serverless timeout to 60s — IMAP search can take up to 30s.
+export const maxDuration = 60;
 
 const schema = z.object({
   utrNumber: z
@@ -20,6 +22,18 @@ const schema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  // AUDIT FIX [7.2]: Route-level rate limit — 5 requests per 15 min per IP (defence-in-depth before DB check)
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown";
+  const rateLimitResponse = rateLimitRoute(ip, {
+    keyPrefix: "payment-verify",
+    limit: 5,
+    windowMs: 15 * 60 * 1000,
+  });
+  if (rateLimitResponse) return rateLimitResponse;
+
   const session = await auth.api
     .getSession({ headers: await headers() })
     .catch(() => null);

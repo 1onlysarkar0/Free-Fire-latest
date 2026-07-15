@@ -7,8 +7,7 @@ import { debitWallet, getOrCreateWallet } from "@/lib/wallet";
 import { eq, and, gte, count } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { z } from "zod";
-
-// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
+import { rateLimitRoute } from "@/lib/security/rate-limiter";
 
 // Stricter UPI Regex to prevent NoSQL/SQL injection payloads
 const UPI_REGEX = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
@@ -29,6 +28,18 @@ const schema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    // AUDIT FIX [7.2]: Rate limit — 3 withdraw requests per 10 minutes per IP
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      request.headers.get("x-real-ip") ||
+      "unknown";
+    const rateLimitResponse = rateLimitRoute(ip, {
+      keyPrefix: "withdraw-request",
+      limit: 3,
+      windowMs: 10 * 60 * 1000,
+    });
+    if (rateLimitResponse) return rateLimitResponse;
+
     const session = await auth.api.getSession({ headers: await headers() });
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

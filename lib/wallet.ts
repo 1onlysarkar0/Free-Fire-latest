@@ -262,7 +262,9 @@ export async function adjustWalletBalance(opts: {
   }
 }
 
-export async function getWalletBalanceCached(userId: string) {
+// AUDIT FIX: Renamed from getWalletBalanceCached — this function does NOT cache;
+// it queries the DB on every call. Use this for real-time balance reads.
+export async function getWalletBalance(userId: string) {
   const [row] = await db
     .select({ balance: wallet.balance })
     .from(wallet)
@@ -270,3 +272,6 @@ export async function getWalletBalanceCached(userId: string) {
     .limit(1);
   return row?.balance ?? 0;
 }
+
+/** @deprecated Use getWalletBalance instead. */
+export const getWalletBalanceCached = getWalletBalance;

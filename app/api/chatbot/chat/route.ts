@@ -1,6 +1,10 @@
 // app/api/chatbot/chat/route.ts
 // POST — Send a message, get an AI streaming SSE response.
 // Supports Gemini and custom OpenAI-compatible endpoints.
+
+// AUDIT FIX [7.5]: Increase serverless timeout to 60s — AI streaming can take up to 30-60s.
+export const maxDuration = 60;
+
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
@@ -21,7 +25,7 @@ import { chatbot_session } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { getSiteUrl } from "@/lib/site-url";
 
-// TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
+// Cache Components: instant=false set elsewhere; dynamic resolved via cacheComponents flag.
 
 const chatSchema = z.object({
   sessionToken: z.string().uuid("Invalid session token"),

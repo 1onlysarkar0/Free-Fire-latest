@@ -35,3 +35,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# AUDIT FIX: Exclude large dev-only files from production Docker image
+db/seed-db.ts
+db/fix-page-titles.ts
+scripts/
+*.tsbuildinfo
+skills-lock.json

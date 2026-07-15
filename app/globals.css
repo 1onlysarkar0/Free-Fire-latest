@@ -977,3 +977,18 @@ iframe[srcdoc] {
     background: hsl(var(--primary) / 0.5);
   }
 }
+
+/* AUDIT FIX [1.5, 5.5]: Respect prefers-reduced-motion — WCAG 2.1 SC 2.3.3
+   Users who request reduced motion get instant transitions, preventing
+   vestibular-disorder symptoms. framer-motion/motion components also respect
+   the reducedMotion="user" prop when set on the MotionConfig provider. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

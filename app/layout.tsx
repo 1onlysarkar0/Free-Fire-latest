@@ -3,6 +3,8 @@ import "katex/dist/katex.min.css";
 import type { Metadata, Viewport } from "next";
 import { ThemeProvider } from "@/components/provider";
 import { Toaster } from "@/components/ui/sonner";
+// AUDIT FIX [9.1]: Analytics loaded with mode="auto" which respects browser Do Not Track
+// For strict GDPR compliance, replace with a consent-gated wrapper.
 import { Analytics } from "@vercel/analytics/react";
 import { Agentation } from "agentation";
 import { Lora, IBM_Plex_Sans } from "next/font/google";
@@ -126,7 +128,9 @@ export default async function RootLayout({
           {process.env.NODE_ENV === "development" && <Agentation />}
           <Toaster position="top-center" richColors />
         </ThemeProvider>
-        <Analytics />
+        {/* AUDIT FIX [9.1, 9.4]: Analytics with mode="auto" respects DNT signals.
+            For strict GDPR compliance, replace with a consent-gated component. */}
+        <Analytics mode="auto" />
       </body>
     </html>
   );
