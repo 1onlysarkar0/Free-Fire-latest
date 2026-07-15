@@ -25,7 +25,7 @@ export async function invalidatePublicCache({
   tags: string[];
   paths?: string[];
 }) {
-  for (const tag of new Set(tags)) revalidateTag(tag);
+  for (const tag of new Set(tags)) revalidateTag(tag, { expire: 0 });
   for (const path of new Set(paths)) revalidatePath(path);
 
   try {
