@@ -5,7 +5,7 @@ services:
     image: 1onlysarkar/freefire:latest
     pull_policy: always
     container_name: freefire_web
-    restart: always
+    restart: unless-stopped
     ports:
       - "3000:3000"
     environment:

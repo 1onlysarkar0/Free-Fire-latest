@@ -12,7 +12,7 @@ IMAGE_NAME="1onlysarkar/freefire:latest"
 WEBHOOK_URL="https://host.1onlysarkar.shop/api/deploy/7z6BZRVqUXgyIA9-LDuQh"
 
 echo -e "\033[0;36m🚀 [1/3] Building Docker image: $IMAGE_NAME...\033[0m"
-docker build -t "$IMAGE_NAME" .
+docker build --build-arg NEXT_PUBLIC_APP_URL="https://1onlysarkar.shop" -t "$IMAGE_NAME" .
 
 echo -e "\n\033[0;36m📤 [2/3] Pushing Docker image to registry...\033[0m"
 docker push "$IMAGE_NAME"

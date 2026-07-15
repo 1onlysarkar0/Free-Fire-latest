@@ -11,7 +11,7 @@ $IMAGE_NAME = "1onlysarkar/freefire:latest"
 $WEBHOOK_URL = "https://host.1onlysarkar.shop/api/deploy/7z6BZRVqUXgyIA9-LDuQh"
 
 Write-Host "[1/3] Building Docker image: $IMAGE_NAME..." -ForegroundColor Cyan
-docker build -t $IMAGE_NAME .
+docker build --build-arg NEXT_PUBLIC_APP_URL="https://1onlysarkar.shop" -t $IMAGE_NAME .
 
 Write-Host "`n[2/3] Pushing Docker image to registry..." -ForegroundColor Cyan
 docker push $IMAGE_NAME
