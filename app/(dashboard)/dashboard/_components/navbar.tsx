@@ -56,7 +56,7 @@ export default function DashboardTopNav({ initialWalletBalance }: { initialWalle
   });
 
   return (
-    <header className="sticky top-0 z-10 flex h-14 items-center justify-between px-3 md:px-6 bg-background shrink-0">
+    <header className="sticky top-0 z-40 flex h-14 items-center justify-between px-3 md:px-6 bg-background/70 backdrop-blur-xl border-b border-border/20 shrink-0 supports-[backdrop-filter]:bg-background/60">
       <div className="flex items-center gap-3">
         <SidebarTrigger className="shrink-0 text-foreground hover:text-foreground hover:bg-muted rounded-lg p-1.5 transition-colors" />
         <div className="hidden md:flex items-center gap-2 text-sm">

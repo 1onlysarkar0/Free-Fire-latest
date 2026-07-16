@@ -10,6 +10,7 @@ import {
 import { eq, and, sum, count } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { getUserProfileCached, getUserTournamentsForDashboard } from "@/lib/user-data";
 import DashboardClient from "./_components/dashboard-client";
 
@@ -21,6 +22,7 @@ export const instant = false;
 // TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
+  await connection();
   const sessionResult = await auth.api.getSession({ headers: await headers() });
 
   if (!sessionResult?.user?.id) {

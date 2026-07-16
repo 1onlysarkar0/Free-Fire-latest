@@ -61,32 +61,43 @@ export async function POST(
       return NextResponse.json({ success: true, message: "Withdrawal request completed." });
     } else {
       // Cancel
-      if (refundOnCancel && existing.transactionId) {
-        const refundResult = await creditWallet({
-          userId: existing.userId,
-          amount: existing.amount,
-          type: "REFUND",
-          referenceId: existing.id,
-          description: `Refund for cancelled withdrawal request (${existing.upiId})`,
-          performedByAdminId: adminUser.user.id,
-          idempotencyKey: `withdraw-cancel-refund-${existing.id}`,
-        });
+      const cancelResult = await db.transaction(async (tx) => {
+        if (refundOnCancel && existing.transactionId) {
+          const refundResult = await creditWallet({
+            userId: existing.userId,
+            amount: existing.amount,
+            type: "REFUND",
+            referenceId: existing.id,
+            description: `Refund for cancelled withdrawal request (${existing.upiId})`,
+            performedByAdminId: adminUser.user.id,
+            idempotencyKey: `withdraw-cancel-refund-${existing.id}`,
+            tx,
+          });
 
-        if (!refundResult.success) {
-          return NextResponse.json({ error: refundResult.error || "Failed to process refund." }, { status: 400 });
+          if (!refundResult.success) {
+            throw new Error(refundResult.error || "Failed to process refund.");
+          }
         }
-      }
 
-      await db
-        .update(withdrawRequest)
-        .set({
-          status: "CANCELLED",
-          adminNote: adminNote ?? null,
-          refundedOnCancel: refundOnCancel,
-          processedAt: new Date(),
-          processedByAdminId: adminUser.user.id,
-        })
-        .where(eq(withdrawRequest.id, id));
+        await tx
+          .update(withdrawRequest)
+          .set({
+            status: "CANCELLED",
+            adminNote: adminNote ?? null,
+            refundedOnCancel: refundOnCancel,
+            processedAt: new Date(),
+            processedByAdminId: adminUser.user.id,
+          })
+          .where(eq(withdrawRequest.id, id));
+          
+        return { success: true };
+      }).catch(err => {
+        return { success: false, error: err instanceof Error ? err.message : "Failed to cancel withdrawal." };
+      });
+
+      if (!cancelResult.success) {
+        return NextResponse.json({ error: cancelResult.error }, { status: 400 });
+      }
 
       await invalidateAdminCache();
       return NextResponse.json({

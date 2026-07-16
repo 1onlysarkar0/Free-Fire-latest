@@ -91,35 +91,44 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `Daily withdrawal limit reached (max ${config.dailyWithdrawLimit} pending requests).` }, { status: 400 });
     }
 
-    await getOrCreateWallet(userId);
-
     const requestId = nanoid();
     const idempotencyKey = `withdraw-request-${userId}-${requestId}`;
 
-    const debitResult = await debitWallet({
-      userId,
-      amount,
-      type: "WITHDRAWAL_REQUEST",
-      referenceId: requestId,
-      description: `Withdrawal request of ₹${amount} to UPI: ${upiId}`,
-      idempotencyKey,
+    const result = await db.transaction(async (tx) => {
+      await getOrCreateWallet(userId, tx);
+
+      const debitResult = await debitWallet({
+        userId,
+        amount,
+        type: "WITHDRAWAL_REQUEST",
+        referenceId: requestId,
+        description: `Withdrawal request of ₹${amount} to UPI: ${upiId}`,
+        idempotencyKey,
+        tx,
+      });
+
+      if (!debitResult.success) {
+        throw new Error(debitResult.error || "Insufficient balance.");
+      }
+
+      await tx.insert(withdrawRequest).values({
+        id: requestId,
+        userId,
+        amount,
+        upiId,
+        status: "PENDING",
+        transactionId: debitResult.transactionId,
+        createdAt: new Date(),
+      });
+      
+      return { success: true };
+    }).catch(err => {
+      return { success: false, error: err instanceof Error ? err.message : "Failed to submit withdrawal request." };
     });
 
-    if (!debitResult.success) {
-      return NextResponse.json({ error: debitResult.error || "Insufficient balance." }, { status: 400 });
+    if (!result.success) {
+      return NextResponse.json({ error: result.error }, { status: 400 });
     }
-
-    await db.insert(withdrawRequest).values({
-      id: requestId,
-      userId,
-      amount,
-      upiId,
-      status: "PENDING",
-      transactionId: debitResult.transactionId,
-      createdAt: new Date(),
-    });
-
-
 
     return NextResponse.json({ success: true, message: "Withdrawal request submitted. Amount deducted from your wallet.", requestId });
   } catch (err) {

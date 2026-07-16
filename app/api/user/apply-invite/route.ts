@@ -11,7 +11,7 @@ import { auth } from "@/lib/auth";
 import { apiSuccess, apiError } from "@/lib/api-response";
 import { creditWallet } from "@/lib/wallet";
 import { createNotification } from "@/lib/notifications";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 
@@ -163,8 +163,8 @@ export async function POST(request: NextRequest) {
       await tx
         .update(invitation)
         .set({
-          totalInvites: inv.totalInvites + 1,
-          totalEarned: inv.totalEarned + config.inviterBonus,
+          totalInvites: sql`${invitation.totalInvites} + 1`,
+          totalEarned: sql`${invitation.totalEarned} + ${config.inviterBonus}`,
           updatedAt: new Date(),
         })
         .where(eq(invitation.id, inv.id));

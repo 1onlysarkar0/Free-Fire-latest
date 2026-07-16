@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 
 export interface PanelAuthResult {
   isPanel: boolean;
@@ -65,6 +66,7 @@ export async function verifyPanelAccess(dynamicSlug: string): Promise<PanelAuthR
   result.isPanel = true;
 
   // 2. Verify Authentication
+  await connection();
   const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
   if (!session?.user?.id) {
     redirect(`/sign-in?returnTo=/${dynamicSlug}`);
