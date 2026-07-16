@@ -11,7 +11,9 @@ export type WalletTransactionType =
   | "ADMIN_CREDIT"
   | "ADMIN_DEBIT"
   | "WITHDRAWAL_REQUEST"
-  | "UPI_DEPOSIT";
+  | "UPI_DEPOSIT"
+  | "INVITE_BONUS"
+  | "SIGNUP_BONUS";
 
 export interface WalletOperationResult {
   success: boolean;

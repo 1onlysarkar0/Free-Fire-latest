@@ -235,7 +235,7 @@ Manage platform users:
 Granular Role-Based Access Control:
 - Pre-seeded "Super Manager" role with all permissions
 - Create custom roles with specific permissions
-- Permissions groups: `site_config`, `navigation`, `auth_content`, `smtp`, `email_templates`, `seo`, `users`, `roles`, `pages`, `tournaments`, `wallet`, `content_templates`, `payment`, `chatbot`, `withdraw`, `cheater_reports`, `payment_help`
+- Permissions groups: `site_config`, `navigation`, `auth_content`, `smtp`, `email_templates`, `seo`, `users`, `roles`, `pages`, `tournaments`, `wallet`, `content_templates`, `payment`, `chatbot`, `withdraw`, `cheater_reports`, `payment_help`, `invitation`
 - Each group has: `view`, `create`, `edit`, `delete` (varies by group)
 - Assign roles to users from the User edit page
 
@@ -253,9 +253,18 @@ Review and manage user-submitted payment dispute/help requests:
 - Update request status and add admin notes.
 - Submitting updates automatically triggers a user-facing notification.
 
+### 18. Invitation System (`/{slug}/invitation`)
+
+Manage platform referral and invitation configuration:
+- Global On/Off toggle: Disable or enable the referral system instantly across the platform.
+- Inviter bonus configuration: Set coin amount rewarded to referrers when a new user registers with their link.
+- Invitee bonus configuration: Set welcome bonus coin amount credited to the new user.
+- Inviters queue table: View all users who activated an invite code, total referrals, and total coins earned.
+- Referral audit trail modal: Drill down into any user's referral log to see the name, email, game name, signup method (Manual Email vs. Google OAuth), and bonus details of every referred account.
+
 ---
 
-## Database Schema (36 Tables)
+## Database Schema (39 Tables)
 
 ### Better Auth Core
 | Table | Purpose |
@@ -281,6 +290,14 @@ Review and manage user-submitted payment dispute/help requests:
 | `faq` | FAQ entries (question, answer, order) for public `/faq` page |
 | `custom_page` | Rich-text pages served at `/[slug]` |
 | `content_templates` | Reusable Description/Rules templates |
+
+### Engagement & Referrals
+| Table | Purpose |
+|-------|---------|
+| `chatbot_config` | AI Chatbot configuration (name, Gemini model, prompts, colors) |
+| `invitation_config` | Single-row referral config (on/off toggle, inviter bonus, invitee bonus) |
+| `invitation` | User invitation record with nanoid code and referral metrics |
+| `invitation_use` | Immutable audit log of each registration via an invite link |
 
 ### Tournament
 | Table | Purpose |

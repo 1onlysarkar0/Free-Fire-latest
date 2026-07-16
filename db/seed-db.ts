@@ -37,6 +37,7 @@ import {
   robotsConfig,
   faq,
   indexingApiConfig,
+  invitationConfig,
 } from "./schema";
 
 // ─── DB Connection ────────────────────────────────────────────────────────────
@@ -2245,6 +2246,21 @@ async function seedFaqs() {
   console.log("✅ FAQs table seeded.");
 }
 
+async function seedInvitationConfig() {
+  console.log("💾 Seeding invitation_config...");
+  await db
+    .insert(invitationConfig)
+    .values({
+      id: "default",
+      enabled: false,
+      inviterBonus: 5,
+      inviteeBonus: 5,
+      updatedAt: new Date(),
+    })
+    .onConflictDoNothing();
+  console.log("✅ invitation_config seeded.");
+}
+
 async function main() {
   console.log("🚀 Starting database seed...\n");
 
@@ -2261,6 +2277,7 @@ async function main() {
   await seedChatbotConfig();
   await seedRobotsConfig();
   await seedFaqs();
+  await seedInvitationConfig();
   try {
     await seedCustomPages();
   } catch (err) {

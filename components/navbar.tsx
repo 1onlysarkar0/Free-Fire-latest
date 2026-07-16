@@ -2,14 +2,17 @@ import { getNavbarConfig } from "@/lib/navigation";
 import { NavbarClient } from "./navbar-client";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { connection } from "next/server";
 import { getUserNotifications } from "@/lib/notifications";
 import type { Notification } from "@/components/notifications-bell";
 
 export async function Navbar() {
+  await connection();
   const [config, session] = await Promise.all([
     getNavbarConfig(),
     auth.api.getSession({ headers: await headers() }).catch(() => null),
   ]);
+
 
   let initialNotifications: Notification[] = [];
   let initialUnreadCount = 0;

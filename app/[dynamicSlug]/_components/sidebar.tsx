@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Settings, Menu, FileText, Mail, MailOpen,
   Search, Users, Shield, FileCode, Trophy, FileStack,
   CreditCard, MessageSquare, ArrowUpFromLine, ArrowLeft, HelpCircle,
-  AlertTriangle, BadgeDollarSign,
+  AlertTriangle, BadgeDollarSign, Share2,
 } from "lucide-react";
 import AppSidebarShell, { type AppSidebarSection } from "@/components/app-sidebar";
 import { canAccessSection } from "@/lib/admin-permissions";
@@ -86,6 +86,7 @@ const getSections = (panelSlug: string): AdminNavSection[] => [
     title: "ENGAGEMENT",
     items: [
       { label: "AI Chatbot", href: `/${panelSlug}/chatbot`, icon: MessageSquare, sectionKey: "chatbot" },
+      { label: "Invitation System", href: `/${panelSlug}/invitation`, icon: Share2, sectionKey: "invitation" },
     ],
   },
   {

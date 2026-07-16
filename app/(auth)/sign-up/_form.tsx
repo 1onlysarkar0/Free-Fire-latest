@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,15 +16,26 @@ import {
   ArrowLeft,
   Eye,
   EyeOff,
+  Gift,
+  Sparkles,
+  ShieldCheck,
 } from "lucide-react";
 import Stepper, { Step as StepperStep } from "@/components/ui/stepper";
 import { H2, Muted } from "@/components/ui/typography";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SocialAuthButton } from "@/components/auth/social-auth-button";
+
 import OnboardingDialog from "@/components/onboarding-dialog";
 
 type Step = "email" | "password" | "onboarding";
+
+interface InviterInfo {
+  valid: boolean;
+  inviterName: string;
+  code: string;
+  inviterImage: string | null;
+}
 
 function PasswordStrength({ password }: { password: string }) {
   const checks = [
@@ -54,6 +65,7 @@ function PasswordStrength({ password }: { password: string }) {
 export function SignUpForm({ siteName }: { siteName: string }) {
   const searchParams = useSearchParams();
   const prefillEmail = searchParams.get("email") || "";
+  const refCode = searchParams.get("ref") || "";
   const router = useRouter();
 
   const [step, setStep] = useState<Step>("email");
@@ -64,6 +76,26 @@ export function SignUpForm({ siteName }: { siteName: string }) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+
+  const [inviterInfo, setInviterInfo] = useState<InviterInfo | null>(null);
+
+  useEffect(() => {
+    if (!refCode) return;
+    fetch(`/api/invite/${encodeURIComponent(refCode)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.valid) {
+          setInviterInfo({
+            valid: true,
+            inviterName: data.inviterName,
+            code: data.code,
+            inviterImage: data.inviterImage,
+          });
+        }
+      })
+      .catch(() => null);
+  }, [refCode]);
+
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,6 +142,20 @@ export function SignUpForm({ siteName }: { siteName: string }) {
         return;
       }
 
+      // Apply referral invite bonus if a ref code is present
+      if (refCode) {
+        try {
+          await fetch("/api/user/apply-invite", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code: refCode }),
+          });
+          // Silently succeed or fail — do not block signup
+        } catch {
+          // Ignore — invite apply is non-blocking
+        }
+      }
+
       setStep("onboarding");
     } catch {
       toast.error("Failed to create account. Please try again.");
@@ -121,9 +167,13 @@ export function SignUpForm({ siteName }: { siteName: string }) {
   const handleGoogleSignUp = async () => {
     setGoogleLoading(true);
     try {
+      // Pass ref code through callbackURL so complete-profile can apply the bonus
+      const callbackUrl = refCode
+        ? `/complete-profile?ref=${encodeURIComponent(refCode)}`
+        : "/complete-profile";
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/complete-profile",
+        callbackURL: callbackUrl,
       });
     } catch {
       toast.error("Google sign-up failed. Please try again.");
@@ -139,8 +189,75 @@ export function SignUpForm({ siteName }: { siteName: string }) {
     );
   }
 
+  if (refCode) {
+    return (
+      <div className="w-full max-w-[400px]">
+        <div className="mb-6 space-y-1">
+          <H2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight border-none pb-0 mt-0 font-lora">
+            Claim Welcome Bonus
+          </H2>
+          <Muted className="text-sm font-ibm">
+            Sign up to claim your referral signup reward.
+          </Muted>
+        </div>
+
+        {inviterInfo?.valid ? (
+          <div className="mb-6 p-4 rounded-2xl bg-gradient-to-br from-primary/15 via-primary/5 to-amber-500/10 border border-primary/30 shadow-sm animate-in fade-in duration-200">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/20 text-primary flex items-center justify-center shrink-0">
+                <Gift className="w-5 h-5 text-primary" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-primary/20 text-primary uppercase tracking-wider">
+                  <Sparkles className="w-3 h-3" /> Special Invitation
+                </span>
+                <p className="text-sm font-bold text-foreground mt-1 truncate">
+                  Invited by {inviterInfo.inviterName}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Invite Code: <code className="font-mono font-bold text-primary">{inviterInfo.code}</code>
+                </p>
+              </div>
+            </div>
+            <div className="mt-3 p-2.5 rounded-xl bg-background/80 border border-border/20 text-[11px] text-muted-foreground flex items-start gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+              <span>
+                To claim your welcome bonus securely, manual email sign-up is disabled for referred accounts. Please sign up using <strong>Google OAuth</strong> below.
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className="mb-6 p-3.5 rounded-2xl bg-accent/30 border border-border/30 text-xs text-muted-foreground">
+            Invited via referral code <code className="font-mono font-bold text-primary">{refCode}</code>. Manual email signup is disabled for referral bonuses.
+          </div>
+        )}
+
+        <div className="space-y-4">
+          <SocialAuthButton
+            provider="google"
+            onClick={handleGoogleSignUp}
+            loading={googleLoading}
+            disabled={loading}
+          />
+
+          <Muted className="text-center text-sm mt-6">
+            Already have an account?{" "}
+            <Link
+              href="/sign-in"
+              prefetch={true}
+              className="font-semibold text-primary hover:underline"
+            >
+              Sign in
+            </Link>
+          </Muted>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-[400px]">
+
       <div className="mb-6">
         {step !== "email" && (
           <button

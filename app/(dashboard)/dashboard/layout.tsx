@@ -3,9 +3,10 @@ import AppSidebar from "./_components/sidebar";
 import DashboardTopNav from "./_components/navbar";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { getUserProfileCached } from "@/lib/user-data";
+import { getUserProfileCached, getInvitationConfig } from "@/lib/user-data";
 import { getWalletBalanceCached } from "@/lib/wallet";
 import { getAdminSiteConfigCached } from "@/lib/admin-data";
 
@@ -22,9 +23,11 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  await connection();
   const session = await auth.api.getSession({
     headers: await headers(),
   });
+
 
   if (!session) {
     redirect("/sign-in");
@@ -62,9 +65,10 @@ export default async function DashboardLayout({
     );
   }
 
-  const [balance, config] = await Promise.all([
+  const [balance, config, invitationCfg] = await Promise.all([
     getWalletBalanceCached(session.user.id),
     getAdminSiteConfigCached(),
+    getInvitationConfig(),
   ]);
 
   return (
@@ -77,7 +81,9 @@ export default async function DashboardLayout({
         logoAlt={config?.logoAlt ?? "logo"}
         myAccountText={config?.userProfileMyAccountText ?? "My Account"}
         logOutText={config?.userProfileLogOutText ?? "Log out"}
+        inviteEnabled={invitationCfg?.enabled ?? false}
       />
+
       <SidebarInset className="flex flex-col min-h-screen bg-background">
         <DashboardTopNav initialWalletBalance={balance} />
         <main className="flex-1 overflow-y-auto">

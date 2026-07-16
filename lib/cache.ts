@@ -12,6 +12,7 @@ export const CACHE_TAGS = {
   tournaments: "tournaments",
   topPlayers: "top-players",
   faqs: "faqs",
+  invitation: "invitation",
 } as const;
 
 export function tournamentCacheTag(id: string) {
@@ -69,4 +70,11 @@ export async function getAdminSlugCached() {
     .where(eq(siteConfig.id, "default"))
     .limit(1);
   return config?.adminSlug || null;
+}
+
+export async function invalidateInvitationCache() {
+  await invalidatePublicCache({
+    tags: [CACHE_TAGS.invitation],
+    paths: ["/dashboard/invite"],
+  });
 }

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2, Eye, EyeOff } from "lucide-react";
 import StepperV2, { Step } from "@/components/ui/stepper-v2";
 import { AvatarPicker, avatars, type Avatar } from "@/components/ui/avatar-picker";
@@ -25,6 +25,8 @@ export default function OnboardingDialog({
   userName: _userName,
 }: OnboardingDialogProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const refCode = searchParams.get("ref") || "";
 
   const [selectedAvatar, setSelectedAvatar] = useState<Avatar>(avatars[0]);
   const [username, setUsername] = useState("");
@@ -80,6 +82,19 @@ export default function OnboardingDialog({
       }
 
       await authClient.updateUser({ name: displayName });
+
+      // Apply referral invite code if present (for Google OAuth or direct onboarding)
+      if (refCode) {
+        try {
+          await fetch("/api/user/apply-invite", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code: refCode }),
+          });
+        } catch {
+          // Non-blocking
+        }
+      }
 
       setDone(true);
       setTimeout(() => {

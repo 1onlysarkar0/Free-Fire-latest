@@ -218,6 +218,16 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
       { key: "payment_help:delete", label: "Delete Payment Help Requests" },
     ],
   },
+  {
+    key: "invitation",
+    label: "Invitation System",
+    icon: "Share2",
+    href: "/admin/invitation",
+    permissions: [
+      { key: "invitation:view", label: "View Invitation System" },
+      { key: "invitation:edit", label: "Configure Invitation Bonuses & Toggle" },
+    ],
+  },
 ];
 
 export function hasPermission(

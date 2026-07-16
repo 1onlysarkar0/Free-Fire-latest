@@ -1,10 +1,10 @@
 "use client";
 
 import UserProfile, { type PermissionData } from "@/components/user-profile";
-import { HomeIcon, Trophy, Wallet, Bell } from "lucide-react";
+import { HomeIcon, Trophy, Wallet, Bell, Share2 } from "lucide-react";
 import AppSidebarShell, { type AppSidebarSection } from "@/components/app-sidebar";
 
-const getDashboardSections = (): AppSidebarSection[] => [
+const getDashboardSections = (inviteEnabled = false): AppSidebarSection[] => [
   {
     title: "",
     items: [
@@ -23,6 +23,16 @@ const getDashboardSections = (): AppSidebarSection[] => [
       { label: "My Wallet", href: "/dashboard/wallet", icon: Wallet },
     ],
   },
+  ...(inviteEnabled
+    ? [
+        {
+          title: "",
+          items: [
+            { label: "Invite & Earn", href: "/dashboard/invite", icon: Share2 },
+          ],
+        },
+      ]
+    : []),
   {
     title: "",
     items: [
@@ -40,6 +50,7 @@ interface DashboardSideBarProps {
   permData?: PermissionData;
   myAccountText?: string;
   logOutText?: string;
+  inviteEnabled?: boolean;
 }
 
 export default function DashboardSideBar({
@@ -51,6 +62,7 @@ export default function DashboardSideBar({
   permData,
   myAccountText,
   logOutText,
+  inviteEnabled = false,
 }: DashboardSideBarProps) {
   return (
     <AppSidebarShell
@@ -58,7 +70,7 @@ export default function DashboardSideBar({
       logoSrc={logoSrc}
       logoUrl={logoUrl}
       logoAlt={logoAlt}
-      sections={getDashboardSections()}
+      sections={getDashboardSections(inviteEnabled)}
       footer={(collapsed) => (
         <UserProfile
           mini={collapsed}
@@ -71,3 +83,4 @@ export default function DashboardSideBar({
     />
   );
 }
+

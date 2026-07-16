@@ -11,11 +11,13 @@ import {
   tournamentSlot,
   tournamentParticipant,
   withdrawConfig,
+  invitationConfig,
 } from "@/db/schema";
 import { eq, desc, inArray, sql } from "drizzle-orm";
 import { cacheLife, cacheTag } from "next/cache";
 import { CACHE_TAGS } from "@/lib/cache";
 import { cache } from "react";
+
 
 
 async function _fetchUserProfile(userId: string) {
@@ -212,3 +214,14 @@ async function _fetchWithdrawConfig() {
 }
 
 export const getWithdrawConfig = cache(() => _fetchWithdrawConfig());
+
+async function _fetchInvitationConfig() {
+  const [config] = await db
+    .select()
+    .from(invitationConfig)
+    .where(eq(invitationConfig.id, "default"))
+    .limit(1);
+  return config || null;
+}
+
+export const getInvitationConfig = cache(() => _fetchInvitationConfig());

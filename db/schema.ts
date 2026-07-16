@@ -921,6 +921,78 @@ export const indexingLog = pgTable("indexing_log", {
   index("indexing_log_created_idx").on(t.createdAt),
 ]);
 
+// ─────────────────────────────────────────────────────────────────────────────
+// INVITATION / REFERRAL SYSTEM
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * invitation_config — Single-row global config (id = "default").
+ * Admin controls whether the feature is enabled and the bonus amounts.
+ */
+export const invitationConfig = pgTable("invitation_config", {
+  id: text("id").primaryKey().default("default"),
+  enabled: boolean("enabled").notNull().default(false),
+  // Coins credited to the person who invited (the referrer)
+  inviterBonus: integer("inviter_bonus").notNull().default(50),
+  // Coins credited to the new user who signed up via invite link
+  inviteeBonus: integer("invitee_bonus").notNull().default(25),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+/**
+ * invitation — One row per user who has activated an invite link.
+ * code is a unique short token (nanoid) used in share URLs.
+ */
+export const invitation = pgTable("invitation", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .unique()
+    .references(() => user.id, { onDelete: "cascade" }),
+  code: text("code").notNull().unique(),
+  isActive: boolean("is_active").notNull().default(true),
+  totalInvites: integer("total_invites").notNull().default(0),
+  totalEarned: integer("total_earned").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => [
+  index("invitation_user_idx").on(t.userId),
+  index("invitation_code_idx").on(t.code),
+  index("invitation_active_idx").on(t.isActive),
+]);
+
+/**
+ * invitation_use — Immutable audit log of each signup via invite link.
+ * inviteeUserId is unique — prevents double-crediting one user.
+ */
+export const invitationUse = pgTable("invitation_use", {
+  id: text("id").primaryKey(),
+  invitationId: text("invitation_id")
+    .notNull()
+    .references(() => invitation.id, { onDelete: "cascade" }),
+  // The user who owns the invite link
+  inviterUserId: text("inviter_user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  // The newly registered user — unique prevents double-crediting
+  inviteeUserId: text("invitee_user_id")
+    .notNull()
+    .unique()
+    .references(() => user.id, { onDelete: "cascade" }),
+  // How the invitee signed up: 'email' | 'google'
+  signupMethod: text("signup_method").notNull().default("email"),
+  inviterBonusAmount: integer("inviter_bonus_amount").notNull().default(0),
+  inviteeBonusAmount: integer("invitee_bonus_amount").notNull().default(0),
+  inviterTransactionId: text("inviter_transaction_id"),
+  inviteeTransactionId: text("invitee_transaction_id"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => [
+  index("inv_use_invitation_idx").on(t.invitationId),
+  index("inv_use_inviter_idx").on(t.inviterUserId),
+  index("inv_use_invitee_idx").on(t.inviteeUserId),
+  index("inv_use_created_idx").on(t.createdAt),
+]);
+
 export const userRelations = relations(user, ({ one, many }) => ({
   wallet: one(wallet, {
     fields: [user.id],
@@ -928,6 +1000,10 @@ export const userRelations = relations(user, ({ one, many }) => ({
   }),
   notifications: many(notification),
   adminUserRoles: many(adminUserRole),
+  invitation: one(invitation, {
+    fields: [user.id],
+    references: [invitation.userId],
+  }),
 }));
 
 export const tournamentRelations = relations(tournament, ({ many }) => ({
@@ -983,3 +1059,25 @@ export const adminUserRoleRelations = relations(adminUserRole, ({ one }) => ({
   }),
 }));
 
+export const invitationRelations = relations(invitation, ({ one, many }) => ({
+  user: one(user, {
+    fields: [invitation.userId],
+    references: [user.id],
+  }),
+  uses: many(invitationUse),
+}));
+
+export const invitationUseRelations = relations(invitationUse, ({ one }) => ({
+  invitation: one(invitation, {
+    fields: [invitationUse.invitationId],
+    references: [invitation.id],
+  }),
+  inviter: one(user, {
+    fields: [invitationUse.inviterUserId],
+    references: [user.id],
+  }),
+  invitee: one(user, {
+    fields: [invitationUse.inviteeUserId],
+    references: [user.id],
+  }),
+}));
