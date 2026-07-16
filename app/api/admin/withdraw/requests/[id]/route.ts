@@ -96,7 +96,7 @@ export async function POST(
       });
 
       if (!cancelResult.success) {
-        return NextResponse.json({ error: cancelResult.error }, { status: 400 });
+        return NextResponse.json({ error: "error" in cancelResult ? cancelResult.error : "Failed to cancel withdrawal." }, { status: 400 });
       }
 
       await invalidateAdminCache();

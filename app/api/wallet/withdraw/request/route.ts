@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!result.success) {
-      return NextResponse.json({ error: result.error }, { status: 400 });
+      return NextResponse.json({ error: "error" in result ? result.error : "Failed to submit withdrawal request." }, { status: 400 });
     }
 
     return NextResponse.json({ success: true, message: "Withdrawal request submitted. Amount deducted from your wallet.", requestId });
