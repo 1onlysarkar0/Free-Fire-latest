@@ -1995,6 +1995,33 @@ async function seedSeoConfig() {
       twitterImage: ogHome,
       canonicalUrl: `${siteUrl}/payment-help`,
     }),
+
+    // ── Invitation Custom Page ──
+    pageMeta("invitation", {
+      metaTitle: "Invite Friends & Earn Rewards - 1OnlySarkar Free Fire",
+      metaDescription: "Invite your squad to 1OnlySarkar Free Fire tournaments using your unique referral link. Both you and your friend get instant bonus rewards on signup.",
+      metaKeywords: "free fire tournament refer and earn, free fire invite friends earn rewards, free fire referral link india, invite and earn free fire tournament, free fire squad invite, refer a friend free fire, free fire tournament sign up bonus, 1onlysarkar referral program",
+      ogTitle: "Invite Friends & Earn Rewards - 1OnlySarkar Free Fire",
+      ogDescription: "Bring your gaming squad to Free Fire tournaments. Share your referral link — you both get rewarded instantly when they sign up.",
+      ogType: "website",
+      ogImage: ogHome,
+      twitterTitle: "Invite Friends & Earn Rewards | 1OnlySarkar Free Fire",
+      twitterDescription: "Share your referral link with your squad and earn rewards together on India's Free Fire tournament platform.",
+      twitterImage: ogHome,
+      canonicalUrl: `${siteUrl}/invitation`,
+      structuredDataJson: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Invite & Earn Rewards - 1OnlySarkar",
+        "description": "Invite your squad to 1OnlySarkar Free Fire tournaments using your unique referral link and earn rewards together.",
+        "url": "https://1onlysarkar.shop/invitation",
+        "isPartOf": {
+          "@type": "WebSite",
+          "name": "1OnlySarkar",
+          "url": "https://1onlysarkar.shop"
+        }
+      }),
+    }),
   ];
 
   for (const p of pages) {
@@ -2907,6 +2934,50 @@ For questions about these Terms:
 
 📧 [reply@1onlysarkar.shop](mailto:reply@1onlysarkar.shop)
 📸 [@1onlysarkar](https://instagram.com/1onlysarkar)`,
+      status: "published",
+    },
+    {
+      id: "invitation",
+      slug: "invitation",
+      title: "Invite & Earn Rewards - 1OnlySarkar",
+      content: `# 🎮 Squad Up, Get Rewarded — Naya Invite & Earn Feature Aa Gaya Hai!
+
+Tumhara favourite Free Fire tournament platform ab tumhe apni squad ke saath aur bhi zyada connect hone ka mauka de raha hai — aur is baar, connect karne ka fayda seedha tumhare wallet mein dikhega. 🔥
+
+## Kya Hai Ye Naya Feature?
+
+Ab tumhe apne dosto ko personally batane ki zarurat nahi ki "yaar is app pe aaja, tournaments khelte hain." Bas ek click mein apna **unique invite link** generate karo, apni squad, apne clan, apne gaming group mein share karo — aur jab bhi koi us link se sign up karega, dono taraf reward milega.
+
+Simple. Fast. Aur ekdam genuine — kyunki isme koi limit nahi hai ki tum kitne logo ko invite kar sakte ho.
+
+## Kaise Kaam Karta Hai?
+
+1. **Dashboard** pe jao aur **Invite** section open karo
+2. Apna **personal referral link** copy karo (ya seedha WhatsApp/Telegram pe share karo — button already diya hua hai)
+3. Apni squad ko bhejo — chahe wo tumhare daily custom room ke players ho ya tournament ke naye competitors
+4. Jaise hi koi us link se sign up karta hai, dono ko turant reward credit ho jata hai
+
+Bas itna hi. Koi complicated process nahi, koi wait nahi.
+
+## Kitna Milega?
+
+Yahi sabse mazedaar part hai — hum yaha nahi bataenge! 👀
+
+Apna khud ka **Invite Page** open karo aur khud dekho ki tumhe aur tumhare invite kiye hue dost ko exactly kitna milta hai. Trust us, ye check karne layak hai.
+
+## Squad Banao, Tournaments Jeeto, Together
+
+Free Fire solo mein bhi maza aata hai, lekin asli maza tab hai jab poori squad saath ho. Ab tumhare paas ek aur reason hai apne gaming dosto ko is platform pe laane ka — aur unhe bhi thank you milega tumhari taraf se sign up karne ka.
+
+Jitna bada squad, utni zyada masti — aur ab utna zyada reward bhi.
+
+---
+
+### 👉 Abhi Try Karo
+
+Apna invite link generate karo, squad ko bhejo, aur dekhna shuru karo apna reward badhte hue.
+
+**[Apna Invite Link Yahan Se Lo →](/dashboard/invite)**`,
       status: "published",
     }
   ];
