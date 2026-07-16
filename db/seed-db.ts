@@ -329,43 +329,210 @@ async function seedEmailTemplates() {
         { key: "startTime", description: "Match start time", sample: "2:00 PM" },
         { key: "tournamentUrl", description: "Link to tournament page", sample: "https://..." }
       ]),
+      previewText: "Match starts at {{startTime}} — grab your Room ID and Password now.",
       bodyHtml: `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Room Open</title>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="light only" />
+<meta name="supported-color-schemes" content="light only" />
+<!--[if mso]>
+<noscript>
+<xml>
+<o:OfficeDocumentSettings>
+<o:PixelsPerInch>96</o:PixelsPerInch>
+</o:OfficeDocumentSettings>
+</xml>
+</noscript>
+<![endif]-->
+<title>Room details for {{tournamentName}}</title>
+<style>
+  html, body { margin:0 !important; padding:0 !important; height:100% !important; width:100% !important; }
+  * { -ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; }
+  table, td { mso-table-lspace:0pt; mso-table-rspace:0pt; border-collapse:collapse !important; }
+  img { -ms-interpolation-mode:bicubic; border:0; outline:none; text-decoration:none; }
+  a { text-decoration:none; }
+
+  /* Force light appearance -- block auto dark-mode inversion in every client that supports overrides */
+  @media (prefers-color-scheme: dark) {
+    .email-bg { background-color:#f7f1e8 !important; }
+    .card { background-color:#fffaf3 !important; border-color:#eadfce !important; }
+    .heading, .brand-name { color:#2f281f !important; }
+    .body-text, .fine-text { color:#4b4338 !important; }
+    .muted-text { color:#7d7468 !important; }
+    .btn-link { background-color:#FF3B00 !important; border-color:#FF3B00 !important; color:#ffffff !important; }
+    .divider-cell { border-color:#ddd2c4 !important; }
+    .info-box { background-color:#f7f1e8 !important; border-color:#eadfce !important; }
+    .info-label { color:#7d7468 !important; }
+    .info-value { color:#2f281f !important; }
+    .prize-box { background-color:#fff4ea !important; border-color:#ffd8bd !important; }
+    .prize-amount { color:#FF3B00 !important; }
+  }
+  [data-ogsc] .email-bg,
+  [data-ogsb] .email-bg { background-color:#f7f1e8 !important; }
+  [data-ogsc] .card,
+  [data-ogsb] .card { background-color:#fffaf3 !important; }
+  [data-ogsc] .heading,
+  [data-ogsc] .brand-name { color:#2f281f !important; }
+  [data-ogsc] .body-text,
+  [data-ogsc] .fine-text { color:#4b4338 !important; }
+  [data-ogsc] .btn-link { background-color:#FF3B00 !important; color:#ffffff !important; }
+  [data-ogsc] .info-box { background-color:#f7f1e8 !important; }
+  [data-ogsc] .prize-box { background-color:#fff4ea !important; }
+  [data-ogsc] .prize-amount { color:#FF3B00 !important; }
+
+  @media screen and (max-width: 600px) {
+    .container { width:100% !important; max-width:100% !important; border-radius:0 !important; }
+    .px-outer { padding-left:0 !important; padding-right:0 !important; }
+    .px-inner { padding-left:22px !important; padding-right:22px !important; }
+    .title { font-size:24px !important; line-height:30px !important; }
+    .brand-name { font-size:20px !important; line-height:24px !important; }
+    .logo-cell { width:40px !important; padding-right:10px !important; }
+    .logo-img { width:40px !important; height:40px !important; }
+    .btn-td { padding:2px 0 22px 0 !important; }
+    .btn-link { display:block !important; width:100% !important; min-width:0 !important; box-sizing:border-box !important; }
+    .full-width-mobile { width:100% !important; }
+    .prize-amount { font-size:30px !important; }
+  }
+</style>
 </head>
-<body style="margin:0;padding:0;background:#f4f4f5;font-family:'Segoe UI',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
-    <tr><td align="center">
-      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-        <tr><td style="background:#FF5A1F;padding:32px 40px;text-align:center;">
-          <span style="color:#ffffff;font-size:24px;font-weight:700;letter-spacing:-0.5px;">{{siteName}}</span>
-        </td></tr>
-        <tr><td style="padding:40px 40px 20px 40px;">
-          <h1 style="margin:0 0 12px 0;font-size:22px;font-weight:700;color:#111827;">🎮 Room is Open!</h1>
-          <p style="margin:0 0 20px 0;font-size:15px;color:#6b7280;line-height:1.6;">
-            Hi {{userName}}, the room for <strong>{{tournamentName}}</strong> is now open. Use the credentials below to join.
-          </p>
-          <table width="100%" cellpadding="0" cellspacing="0" style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:20px;margin-bottom:24px;">
-            <tr><td>
-              <p style="margin:0 0 8px 0;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;font-weight:600;">Room ID</p>
-              <p style="margin:0 0 16px 0;font-size:28px;font-weight:700;color:#ea580c;letter-spacing:2px;font-family:monospace;">{{roomId}}</p>
-              <p style="margin:0 0 8px 0;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;font-weight:600;">Password</p>
-              <p style="margin:0;font-size:28px;font-weight:700;color:#ea580c;letter-spacing:2px;font-family:monospace;">{{roomPassword}}</p>
-            </td></tr>
-          </table>
-          <p style="margin:0 0 24px 0;font-size:14px;color:#6b7280;">Match starts: <strong>{{startTime}}</strong></p>
-          <a href="{{tournamentUrl}}" style="display:inline-block;background:#FF5A1F;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:8px;margin-bottom:24px;">
-            View Tournament
-          </a>
-        </td></tr>
-        <tr><td style="padding:20px 40px 32px 40px;border-top:1px solid #f3f4f6;">
-          <p style="margin:0;font-size:12px;color:#d1d5db;text-align:center;">&copy; {{siteName}} &middot; All rights reserved</p>
-        </td></tr>
-      </table>
-    </td></tr>
+<body class="email-bg" style="margin:0; padding:0; width:100% !important; background-color:#f7f1e8; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
+
+  <!-- Preheader (hidden preview text shown next to subject line in inbox) -->
+  <div style="display:none; font-size:1px; color:#f7f1e8; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden; mso-hide:all;">
+    Match starts at {{startTime}} — grab your Room ID and Password now.
+    &#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;
+  </div>
+
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="email-bg" style="border-collapse:collapse; width:100%; margin:0; padding:0; background-color:#f7f1e8;">
+    <tr>
+      <td align="center" class="px-outer" style="padding:24px 16px;">
+
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" class="container card" style="border-collapse:collapse; width:600px; max-width:600px; background-color:#fffaf3; border:1px solid #eadfce; border-radius:16px;">
+
+          <!-- ===== HEADER (shared across all templates) ===== -->
+          <tr>
+            <td align="center" style="padding:26px 24px 16px 24px;">
+              <a href="{{siteUrl}}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse; margin:0 auto;">
+                  <tr>
+                    <td class="logo-cell" valign="middle" width="46" style="padding-right:11px; width:46px;">
+                      <img class="logo-img" src="{{siteUrl}}/assets/web-app-manifest-192x192.png" width="46" height="46" alt="{{siteName}}" style="display:block; width:46px; height:46px; border:0; border-radius:50%; background-color:#fffaf3;" />
+                    </td>
+                    <td valign="middle" class="brand-name" style="font-family:Arial, Helvetica, sans-serif; font-size:24px; line-height:28px; font-weight:800; color:#2f281f; letter-spacing:0.2px; text-transform:uppercase;">
+                      {{siteName}}
+                    </td>
+                  </tr>
+                </table>
+              </a>
+            </td>
+          </tr>
+
+          <!-- ===== BODY ===== -->
+          <tr>
+            <td class="px-inner" style="padding:14px 32px 28px 32px; font-family:Arial, Helvetica, sans-serif; color:#2f281f;">
+              <h1 class="heading title" style="margin:0 0 14px 0; font-size:26px; line-height:32px; font-weight:700; color:#2f281f;">
+                Your match room is ready
+              </h1>
+
+              <p class="body-text" style="margin:0 0 20px 0; font-size:15px; line-height:24px; color:#4b4338;">
+                Hi {{userName}}, room details for <strong style="color:#2f281f;">{{tournamentName}}</strong> are now live. Match starts at <strong style="color:#2f281f;">{{startTime}}</strong> — join before the room closes.
+              </p>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="info-box" style="border-collapse:collapse; background-color:#f7f1e8; border:1px solid #eadfce; border-radius:12px; margin:0 0 24px 0;">
+                <tr>
+                  <td style="padding:18px 20px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
+                      <tr>
+                        <td style="padding-bottom:12px;">
+                          <div class="info-label" style="font-family:Arial, Helvetica, sans-serif; font-size:11px; line-height:15px; color:#7d7468; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:3px;">Room ID</div>
+                          <div class="info-value" style="font-family:Arial, Helvetica, sans-serif; font-size:18px; line-height:24px; font-weight:700; color:#2f281f;">{{roomId}}</div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div class="info-label" style="font-family:Arial, Helvetica, sans-serif; font-size:11px; line-height:15px; color:#7d7468; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:3px;">Room Password</div>
+                          <div class="info-value" style="font-family:Arial, Helvetica, sans-serif; font-size:18px; line-height:24px; font-weight:700; color:#2f281f;">{{roomPassword}}</div>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
+                <tr>
+                  <td align="center" class="btn-td" style="padding:4px 0 24px 0;">
+                    <!--[if mso]>
+                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="{{tournamentUrl}}" style="height:46px;v-text-anchor:middle;width:220px;" arcsize="12%" strokecolor="#FF3B00" fillcolor="#FF3B00">
+                      <w:anchorlock/>
+                      <center style="color:#ffffff;font-family:Arial, Helvetica, sans-serif;font-size:15px;font-weight:700;">
+                        View tournament
+                      </center>
+                    </v:roundrect>
+                    <![endif]-->
+                    <!--[if !mso]><!-- -->
+                    <a href="{{tournamentUrl}}" target="_blank" rel="noopener noreferrer" class="btn-link" style="background-color:#FF3B00; border:1px solid #FF3B00; border-radius:10px; color:#ffffff; display:inline-block; font-family:Arial, Helvetica, sans-serif; font-size:15px; font-weight:700; line-height:20px; text-align:center; text-decoration:none; padding:13px 26px; min-width:200px; mso-hide:all;">
+                      View tournament
+                    </a>
+                    <!--<![endif]-->
+                  </td>
+                </tr>
+              </table>
+
+              <p class="fine-text" style="margin:0; font-size:12px; line-height:19px; color:#7d7468;">
+                Keep your room details private. Do not share your Room ID or Password with anyone outside your squad.
+              </p>
+
+            </td>
+          </tr>
+
+          <!-- ===== FOOTER (shared across all templates) ===== -->
+          <tr>
+            <td align="center" style="padding:4px 24px 26px 24px; font-family:Arial, Helvetica, sans-serif;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
+                <tr>
+                  <td align="center" style="padding:0 0 18px 0;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="160" style="border-collapse:collapse; width:160px;">
+                      <tr>
+                        <td class="divider-cell" style="border-top:1px solid #ddd2c4; font-size:1px; line-height:1px;">&nbsp;</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+                <tr>
+                  <td align="center" style="padding:0 8px;">
+                    <a href="mailto:{{contactEmail}}" style="text-decoration:none;">
+                      <img src="https://img.icons8.com/ios-filled/50/5f574d/new-post.png" width="18" height="18" alt="Email" style="display:block; border:0; width:18px; height:18px;" />
+                    </a>
+                  </td>
+                  <td align="center" style="padding:0 8px;">
+                    <a href="{{instagramUrl}}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+                      <img src="https://img.icons8.com/ios-filled/50/5f574d/instagram-new.png" width="18" height="18" alt="Instagram" style="display:block; border:0; width:18px; height:18px;" />
+                    </a>
+                  </td>
+                  <td align="center" style="padding:0 8px;">
+                    <a href="{{githubUrl}}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+                      <img src="https://img.icons8.com/ios-filled/50/5f574d/github.png" width="18" height="18" alt="GitHub" style="display:block; border:0; width:18px; height:18px;" />
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <div class="muted-text" style="margin-top:12px; font-size:12px; line-height:18px; color:#7d7468; text-align:center;">
+                {{copyrightText}}
+              </div>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
   </table>
 </body>
 </html>`,
@@ -381,37 +548,202 @@ async function seedEmailTemplates() {
         { key: "reason", description: "Reason for cancellation", sample: "Insufficient players" },
         { key: "refundAmount", description: "Amount refunded", sample: "50" }
       ]),
+      previewText: "Your entry fee of ₹{{refundAmount}} has been refunded.",
       bodyHtml: `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Tournament Cancelled</title>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="light only" />
+<meta name="supported-color-schemes" content="light only" />
+<!--[if mso]>
+<noscript>
+<xml>
+<o:OfficeDocumentSettings>
+<o:PixelsPerInch>96</o:PixelsPerInch>
+</o:OfficeDocumentSettings>
+</xml>
+</noscript>
+<![endif]-->
+<title>{{tournamentName}} has been cancelled</title>
+<style>
+  html, body { margin:0 !important; padding:0 !important; height:100% !important; width:100% !important; }
+  * { -ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; }
+  table, td { mso-table-lspace:0pt; mso-table-rspace:0pt; border-collapse:collapse !important; }
+  img { -ms-interpolation-mode:bicubic; border:0; outline:none; text-decoration:none; }
+  a { text-decoration:none; }
+
+  /* Force light appearance -- block auto dark-mode inversion in every client that supports overrides */
+  @media (prefers-color-scheme: dark) {
+    .email-bg { background-color:#f7f1e8 !important; }
+    .card { background-color:#fffaf3 !important; border-color:#eadfce !important; }
+    .heading, .brand-name { color:#2f281f !important; }
+    .body-text, .fine-text { color:#4b4338 !important; }
+    .muted-text { color:#7d7468 !important; }
+    .btn-link { background-color:#FF3B00 !important; border-color:#FF3B00 !important; color:#ffffff !important; }
+    .divider-cell { border-color:#ddd2c4 !important; }
+    .info-box { background-color:#f7f1e8 !important; border-color:#eadfce !important; }
+    .info-label { color:#7d7468 !important; }
+    .info-value { color:#2f281f !important; }
+    .prize-box { background-color:#fff4ea !important; border-color:#ffd8bd !important; }
+    .prize-amount { color:#FF3B00 !important; }
+  }
+  [data-ogsc] .email-bg,
+  [data-ogsb] .email-bg { background-color:#f7f1e8 !important; }
+  [data-ogsc] .card,
+  [data-ogsb] .card { background-color:#fffaf3 !important; }
+  [data-ogsc] .heading,
+  [data-ogsc] .brand-name { color:#2f281f !important; }
+  [data-ogsc] .body-text,
+  [data-ogsc] .fine-text { color:#4b4338 !important; }
+  [data-ogsc] .btn-link { background-color:#FF3B00 !important; color:#ffffff !important; }
+  [data-ogsc] .info-box { background-color:#f7f1e8 !important; }
+  [data-ogsc] .prize-box { background-color:#fff4ea !important; }
+  [data-ogsc] .prize-amount { color:#FF3B00 !important; }
+
+  @media screen and (max-width: 600px) {
+    .container { width:100% !important; max-width:100% !important; border-radius:0 !important; }
+    .px-outer { padding-left:0 !important; padding-right:0 !important; }
+    .px-inner { padding-left:22px !important; padding-right:22px !important; }
+    .title { font-size:24px !important; line-height:30px !important; }
+    .brand-name { font-size:20px !important; line-height:24px !important; }
+    .logo-cell { width:40px !important; padding-right:10px !important; }
+    .logo-img { width:40px !important; height:40px !important; }
+    .btn-td { padding:2px 0 22px 0 !important; }
+    .btn-link { display:block !important; width:100% !important; min-width:0 !important; box-sizing:border-box !important; }
+    .full-width-mobile { width:100% !important; }
+    .prize-amount { font-size:30px !important; }
+  }
+</style>
 </head>
-<body style="margin:0;padding:0;background:#f4f4f5;font-family:'Segoe UI',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
-    <tr><td align="center">
-      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-        <tr><td style="background:#FF5A1F;padding:32px 40px;text-align:center;">
-          <span style="color:#ffffff;font-size:24px;font-weight:700;letter-spacing:-0.5px;">{{siteName}}</span>
-        </td></tr>
-        <tr><td style="padding:40px 40px 20px 40px;">
-          <h1 style="margin:0 0 12px 0;font-size:22px;font-weight:700;color:#111827;">Tournament Cancelled</h1>
-          <p style="margin:0 0 20px 0;font-size:15px;color:#6b7280;line-height:1.6;">
-            Hi {{userName}}, <strong>{{tournamentName}}</strong> has been cancelled.
-          </p>
-          <p style="margin:0 0 20px 0;font-size:14px;color:#6b7280;line-height:1.6;background:#f9fafb;border-radius:8px;padding:14px;">
-            <strong>Reason:</strong> {{reason}}
-          </p>
-          <p style="margin:0 0 20px 0;font-size:15px;color:#16a34a;font-weight:600;">
-            ✅ {{refundAmount}} coins have been refunded to your wallet.
-          </p>
-        </td></tr>
-        <tr><td style="padding:20px 40px 32px 40px;border-top:1px solid #f3f4f6;">
-          <p style="margin:0;font-size:12px;color:#d1d5db;text-align:center;">&copy; {{siteName}} &middot; All rights reserved</p>
-        </td></tr>
-      </table>
-    </td></tr>
+<body class="email-bg" style="margin:0; padding:0; width:100% !important; background-color:#f7f1e8; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
+
+  <!-- Preheader (hidden preview text shown next to subject line in inbox) -->
+  <div style="display:none; font-size:1px; color:#f7f1e8; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden; mso-hide:all;">
+    Your entry fee of ₹{{refundAmount}} has been refunded.
+    &#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;
+  </div>
+
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="email-bg" style="border-collapse:collapse; width:100%; margin:0; padding:0; background-color:#f7f1e8;">
+    <tr>
+      <td align="center" class="px-outer" style="padding:24px 16px;">
+
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" class="container card" style="border-collapse:collapse; width:600px; max-width:600px; background-color:#fffaf3; border:1px solid #eadfce; border-radius:16px;">
+
+          <!-- ===== HEADER (shared across all templates) ===== -->
+          <tr>
+            <td align="center" style="padding:26px 24px 16px 24px;">
+              <a href="{{siteUrl}}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse; margin:0 auto;">
+                  <tr>
+                    <td class="logo-cell" valign="middle" width="46" style="padding-right:11px; width:46px;">
+                      <img class="logo-img" src="{{siteUrl}}/assets/web-app-manifest-192x192.png" width="46" height="46" alt="{{siteName}}" style="display:block; width:46px; height:46px; border:0; border-radius:50%; background-color:#fffaf3;" />
+                    </td>
+                    <td valign="middle" class="brand-name" style="font-family:Arial, Helvetica, sans-serif; font-size:24px; line-height:28px; font-weight:800; color:#2f281f; letter-spacing:0.2px; text-transform:uppercase;">
+                      {{siteName}}
+                    </td>
+                  </tr>
+                </table>
+              </a>
+            </td>
+          </tr>
+
+          <!-- ===== BODY ===== -->
+          <tr>
+            <td class="px-inner" style="padding:14px 32px 28px 32px; font-family:Arial, Helvetica, sans-serif; color:#2f281f;">
+              <h1 class="heading title" style="margin:0 0 14px 0; font-size:26px; line-height:32px; font-weight:700; color:#2f281f;">
+                Tournament cancelled
+              </h1>
+
+              <p class="body-text" style="margin:0 0 14px 0; font-size:15px; line-height:24px; color:#4b4338;">
+                Hi {{userName}}, <strong style="color:#2f281f;">{{tournamentName}}</strong> has been cancelled.
+              </p>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="info-box" style="border-collapse:collapse; background-color:#f7f1e8; border:1px solid #eadfce; border-radius:12px; margin:0 0 20px 0;">
+                <tr>
+                  <td style="padding:16px 18px;">
+                    <div class="info-label" style="font-family:Arial, Helvetica, sans-serif; font-size:11px; line-height:15px; color:#7d7468; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Reason</div>
+                    <div class="info-value" style="font-family:Arial, Helvetica, sans-serif; font-size:14px; line-height:20px; color:#2f281f;">{{reason}}</div>
+                  </td>
+                </tr>
+              </table>
+
+              <p class="body-text" style="margin:0 0 24px 0; font-size:15px; line-height:24px; color:#4b4338;">
+                Your entry fee of <strong style="color:#2f281f;">&#8377;{{refundAmount}}</strong> has been refunded to your wallet.
+              </p>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
+                <tr>
+                  <td align="center" class="btn-td" style="padding:4px 0 24px 0;">
+                    <!--[if mso]>
+                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="{{siteUrl}}" style="height:46px;v-text-anchor:middle;width:220px;" arcsize="12%" strokecolor="#FF3B00" fillcolor="#FF3B00">
+                      <w:anchorlock/>
+                      <center style="color:#ffffff;font-family:Arial, Helvetica, sans-serif;font-size:15px;font-weight:700;">
+                        Browse tournaments
+                      </center>
+                    </v:roundrect>
+                    <![endif]-->
+                    <!--[if !mso]><!-- -->
+                    <a href="{{siteUrl}}" target="_blank" rel="noopener noreferrer" class="btn-link" style="background-color:#FF3B00; border:1px solid #FF3B00; border-radius:10px; color:#ffffff; display:inline-block; font-family:Arial, Helvetica, sans-serif; font-size:15px; font-weight:700; line-height:20px; text-align:center; text-decoration:none; padding:13px 26px; min-width:200px; mso-hide:all;">
+                      Browse tournaments
+                    </a>
+                    <!--<![endif]-->
+                  </td>
+                </tr>
+              </table>
+
+              <p class="fine-text" style="margin:0; font-size:12px; line-height:19px; color:#7d7468;">
+                Sorry for the inconvenience — we hope to see you in the next one.
+              </p>
+
+            </td>
+          </tr>
+
+          <!-- ===== FOOTER (shared across all templates) ===== -->
+          <tr>
+            <td align="center" style="padding:4px 24px 26px 24px; font-family:Arial, Helvetica, sans-serif;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
+                <tr>
+                  <td align="center" style="padding:0 0 18px 0;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="160" style="border-collapse:collapse; width:160px;">
+                      <tr>
+                        <td class="divider-cell" style="border-top:1px solid #ddd2c4; font-size:1px; line-height:1px;">&nbsp;</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+                <tr>
+                  <td align="center" style="padding:0 8px;">
+                    <a href="mailto:{{contactEmail}}" style="text-decoration:none;">
+                      <img src="https://img.icons8.com/ios-filled/50/5f574d/new-post.png" width="18" height="18" alt="Email" style="display:block; border:0; width:18px; height:18px;" />
+                    </a>
+                  </td>
+                  <td align="center" style="padding:0 8px;">
+                    <a href="{{instagramUrl}}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+                      <img src="https://img.icons8.com/ios-filled/50/5f574d/instagram-new.png" width="18" height="18" alt="Instagram" style="display:block; border:0; width:18px; height:18px;" />
+                    </a>
+                  </td>
+                  <td align="center" style="padding:0 8px;">
+                    <a href="{{githubUrl}}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+                      <img src="https://img.icons8.com/ios-filled/50/5f574d/github.png" width="18" height="18" alt="GitHub" style="display:block; border:0; width:18px; height:18px;" />
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <div class="muted-text" style="margin-top:12px; font-size:12px; line-height:18px; color:#7d7468; text-align:center;">
+                {{copyrightText}}
+              </div>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
   </table>
 </body>
 </html>`,
@@ -427,39 +759,202 @@ async function seedEmailTemplates() {
         { key: "placement", description: "Finishing placement", sample: "1st" },
         { key: "prizeAmount", description: "Prize coins awarded", sample: "1000" }
       ]),
+      previewText: "Congrats {{userName}} — your prize has been credited to your wallet.",
       bodyHtml: `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Prize Credited</title>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="light only" />
+<meta name="supported-color-schemes" content="light only" />
+<!--[if mso]>
+<noscript>
+<xml>
+<o:OfficeDocumentSettings>
+<o:PixelsPerInch>96</o:PixelsPerInch>
+</o:OfficeDocumentSettings>
+</xml>
+</noscript>
+<![endif]-->
+<title>You won a prize in {{tournamentName}}</title>
+<style>
+  html, body { margin:0 !important; padding:0 !important; height:100% !important; width:100% !important; }
+  * { -ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; }
+  table, td { mso-table-lspace:0pt; mso-table-rspace:0pt; border-collapse:collapse !important; }
+  img { -ms-interpolation-mode:bicubic; border:0; outline:none; text-decoration:none; }
+  a { text-decoration:none; }
+
+  /* Force light appearance -- block auto dark-mode inversion in every client that supports overrides */
+  @media (prefers-color-scheme: dark) {
+    .email-bg { background-color:#f7f1e8 !important; }
+    .card { background-color:#fffaf3 !important; border-color:#eadfce !important; }
+    .heading, .brand-name { color:#2f281f !important; }
+    .body-text, .fine-text { color:#4b4338 !important; }
+    .muted-text { color:#7d7468 !important; }
+    .btn-link { background-color:#FF3B00 !important; border-color:#FF3B00 !important; color:#ffffff !important; }
+    .divider-cell { border-color:#ddd2c4 !important; }
+    .info-box { background-color:#f7f1e8 !important; border-color:#eadfce !important; }
+    .info-label { color:#7d7468 !important; }
+    .info-value { color:#2f281f !important; }
+    .prize-box { background-color:#fff4ea !important; border-color:#ffd8bd !important; }
+    .prize-amount { color:#FF3B00 !important; }
+  }
+  [data-ogsc] .email-bg,
+  [data-ogsb] .email-bg { background-color:#f7f1e8 !important; }
+  [data-ogsc] .card,
+  [data-ogsb] .card { background-color:#fffaf3 !important; }
+  [data-ogsc] .heading,
+  [data-ogsc] .brand-name { color:#2f281f !important; }
+  [data-ogsc] .body-text,
+  [data-ogsc] .fine-text { color:#4b4338 !important; }
+  [data-ogsc] .btn-link { background-color:#FF3B00 !important; color:#ffffff !important; }
+  [data-ogsc] .info-box { background-color:#f7f1e8 !important; }
+  [data-ogsc] .prize-box { background-color:#fff4ea !important; }
+  [data-ogsc] .prize-amount { color:#FF3B00 !important; }
+
+  @media screen and (max-width: 600px) {
+    .container { width:100% !important; max-width:100% !important; border-radius:0 !important; }
+    .px-outer { padding-left:0 !important; padding-right:0 !important; }
+    .px-inner { padding-left:22px !important; padding-right:22px !important; }
+    .title { font-size:24px !important; line-height:30px !important; }
+    .brand-name { font-size:20px !important; line-height:24px !important; }
+    .logo-cell { width:40px !important; padding-right:10px !important; }
+    .logo-img { width:40px !important; height:40px !important; }
+    .btn-td { padding:2px 0 22px 0 !important; }
+    .btn-link { display:block !important; width:100% !important; min-width:0 !important; box-sizing:border-box !important; }
+    .full-width-mobile { width:100% !important; }
+    .prize-amount { font-size:30px !important; }
+  }
+</style>
 </head>
-<body style="margin:0;padding:0;background:#f4f4f5;font-family:'Segoe UI',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
-    <tr><td align="center">
-      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-        <tr><td style="background:linear-gradient(135deg,#FF5A1F,#f59e0b);padding:32px 40px;text-align:center;">
-          <span style="color:#ffffff;font-size:24px;font-weight:700;letter-spacing:-0.5px;">{{siteName}}</span>
-        </td></tr>
-        <tr><td style="padding:40px 40px 20px 40px;text-align:center;">
-          <p style="font-size:48px;margin:0 0 8px 0;">🏆</p>
-          <h1 style="margin:0 0 8px 0;font-size:26px;font-weight:800;color:#111827;">You Won!</h1>
-          <p style="margin:0 0 24px 0;font-size:15px;color:#6b7280;line-height:1.6;">
-            Congratulations, {{userName}}! You finished <strong>{{placement}} place</strong> in <strong>{{tournamentName}}</strong>.
-          </p>
-          <table cellpadding="0" cellspacing="0" style="margin:0 auto 24px auto;background:linear-gradient(135deg,#fff7ed,#fef3c7);border:2px solid #fed7aa;border-radius:16px;padding:20px 40px;text-align:center;">
-            <tr><td>
-              <p style="margin:0 0 4px 0;font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#92400e;font-weight:600;">Prize Credited</p>
-              <p style="margin:0;font-size:42px;font-weight:900;color:#ea580c;">\${{prizeAmount}}<span style="font-size:16px;font-weight:600;"> coins</span></p>
-            </td></tr>
-          </table>
-          <p style="margin:0;font-size:14px;color:#9ca3af;">Coins have been added to your wallet. Keep competing!</p>
-        </td></tr>
-        <tr><td style="padding:20px 40px 32px 40px;border-top:1px solid #f3f4f6;">
-          <p style="margin:0;font-size:12px;color:#d1d5db;text-align:center;">&copy; {{siteName}} &middot; All rights reserved</p>
-        </td></tr>
-      </table>
-    </td></tr>
+<body class="email-bg" style="margin:0; padding:0; width:100% !important; background-color:#f7f1e8; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
+
+  <!-- Preheader (hidden preview text shown next to subject line in inbox) -->
+  <div style="display:none; font-size:1px; color:#f7f1e8; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden; mso-hide:all;">
+    Congrats {{userName}} — your prize has been credited to your wallet.
+    &#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;
+  </div>
+
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="email-bg" style="border-collapse:collapse; width:100%; margin:0; padding:0; background-color:#f7f1e8;">
+    <tr>
+      <td align="center" class="px-outer" style="padding:24px 16px;">
+
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" class="container card" style="border-collapse:collapse; width:600px; max-width:600px; background-color:#fffaf3; border:1px solid #eadfce; border-radius:16px;">
+
+          <!-- ===== HEADER (shared across all templates) ===== -->
+          <tr>
+            <td align="center" style="padding:26px 24px 16px 24px;">
+              <a href="{{siteUrl}}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse; margin:0 auto;">
+                  <tr>
+                    <td class="logo-cell" valign="middle" width="46" style="padding-right:11px; width:46px;">
+                      <img class="logo-img" src="{{siteUrl}}/assets/web-app-manifest-192x192.png" width="46" height="46" alt="{{siteName}}" style="display:block; width:46px; height:46px; border:0; border-radius:50%; background-color:#fffaf3;" />
+                    </td>
+                    <td valign="middle" class="brand-name" style="font-family:Arial, Helvetica, sans-serif; font-size:24px; line-height:28px; font-weight:800; color:#2f281f; letter-spacing:0.2px; text-transform:uppercase;">
+                      {{siteName}}
+                    </td>
+                  </tr>
+                </table>
+              </a>
+            </td>
+          </tr>
+
+          <!-- ===== BODY ===== -->
+          <tr>
+            <td class="px-inner" style="padding:14px 32px 28px 32px; font-family:Arial, Helvetica, sans-serif; color:#2f281f;">
+              <h1 class="heading title" style="margin:0 0 14px 0; font-size:26px; line-height:32px; font-weight:700; color:#2f281f;">
+                Congratulations, {{userName}}!
+              </h1>
+
+              <p class="body-text" style="margin:0 0 20px 0; font-size:15px; line-height:24px; color:#4b4338;">
+                You finished <strong style="color:#2f281f;">{{placement}}</strong> in <strong style="color:#2f281f;">{{tournamentName}}</strong>. Your prize has been credited to your wallet.
+              </p>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="prize-box" style="border-collapse:collapse; background-color:#fff4ea; border:1px solid #ffd8bd; border-radius:12px; margin:0 0 24px 0;">
+                <tr>
+                  <td align="center" style="padding:22px 20px;">
+                    <div class="fine-text" style="font-family:Arial, Helvetica, sans-serif; font-size:12px; line-height:16px; color:#7d7468; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">
+                      Prize won
+                    </div>
+                    <div class="prize-amount" style="font-family:Arial, Helvetica, sans-serif; font-size:36px; line-height:42px; font-weight:800; color:#FF3B00;">
+                      &#8377;{{prizeAmount}}
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
+                <tr>
+                  <td align="center" class="btn-td" style="padding:4px 0 24px 0;">
+                    <!--[if mso]>
+                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="{{siteUrl}}" style="height:46px;v-text-anchor:middle;width:220px;" arcsize="12%" strokecolor="#FF3B00" fillcolor="#FF3B00">
+                      <w:anchorlock/>
+                      <center style="color:#ffffff;font-family:Arial, Helvetica, sans-serif;font-size:15px;font-weight:700;">
+                        View your wallet
+                      </center>
+                    </v:roundrect>
+                    <![endif]-->
+                    <!--[if !mso]><!-- -->
+                    <a href="{{siteUrl}}" target="_blank" rel="noopener noreferrer" class="btn-link" style="background-color:#FF3B00; border:1px solid #FF3B00; border-radius:10px; color:#ffffff; display:inline-block; font-family:Arial, Helvetica, sans-serif; font-size:15px; font-weight:700; line-height:20px; text-align:center; text-decoration:none; padding:13px 26px; min-width:200px; mso-hide:all;">
+                      View your wallet
+                    </a>
+                    <!--<![endif]-->
+                  </td>
+                </tr>
+              </table>
+
+              <p class="fine-text" style="margin:0; font-size:12px; line-height:19px; color:#7d7468;">
+                Thanks for playing — see you in the next tournament.
+              </p>
+
+            </td>
+          </tr>
+
+          <!-- ===== FOOTER (shared across all templates) ===== -->
+          <tr>
+            <td align="center" style="padding:4px 24px 26px 24px; font-family:Arial, Helvetica, sans-serif;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
+                <tr>
+                  <td align="center" style="padding:0 0 18px 0;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="160" style="border-collapse:collapse; width:160px;">
+                      <tr>
+                        <td class="divider-cell" style="border-top:1px solid #ddd2c4; font-size:1px; line-height:1px;">&nbsp;</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+                <tr>
+                  <td align="center" style="padding:0 8px;">
+                    <a href="mailto:{{contactEmail}}" style="text-decoration:none;">
+                      <img src="https://img.icons8.com/ios-filled/50/5f574d/new-post.png" width="18" height="18" alt="Email" style="display:block; border:0; width:18px; height:18px;" />
+                    </a>
+                  </td>
+                  <td align="center" style="padding:0 8px;">
+                    <a href="{{instagramUrl}}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+                      <img src="https://img.icons8.com/ios-filled/50/5f574d/instagram-new.png" width="18" height="18" alt="Instagram" style="display:block; border:0; width:18px; height:18px;" />
+                    </a>
+                  </td>
+                  <td align="center" style="padding:0 8px;">
+                    <a href="{{githubUrl}}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+                      <img src="https://img.icons8.com/ios-filled/50/5f574d/github.png" width="18" height="18" alt="GitHub" style="display:block; border:0; width:18px; height:18px;" />
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <div class="muted-text" style="margin-top:12px; font-size:12px; line-height:18px; color:#7d7468; text-align:center;">
+                {{copyrightText}}
+              </div>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
   </table>
 </body>
 </html>`,
@@ -473,37 +968,200 @@ async function seedEmailTemplates() {
         { key: "userName", description: "User's display name", sample: "Player123" },
         { key: "resetUrl", description: "Password reset link", sample: "https://..." }
       ]),
+      previewText: "Use the link inside to set a new password for your account.",
       bodyHtml: `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Reset Password</title>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="light only" />
+<meta name="supported-color-schemes" content="light only" />
+<!--[if mso]>
+<noscript>
+<xml>
+<o:OfficeDocumentSettings>
+<o:PixelsPerInch>96</o:PixelsPerInch>
+</o:OfficeDocumentSettings>
+</xml>
+</noscript>
+<![endif]-->
+<title>Reset your password</title>
+<style>
+  html, body { margin:0 !important; padding:0 !important; height:100% !important; width:100% !important; }
+  * { -ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; }
+  table, td { mso-table-lspace:0pt; mso-table-rspace:0pt; border-collapse:collapse !important; }
+  img { -ms-interpolation-mode:bicubic; border:0; outline:none; text-decoration:none; }
+  a { text-decoration:none; }
+
+  /* Force light appearance -- block auto dark-mode inversion in every client that supports overrides */
+  @media (prefers-color-scheme: dark) {
+    .email-bg { background-color:#f7f1e8 !important; }
+    .card { background-color:#fffaf3 !important; border-color:#eadfce !important; }
+    .heading, .brand-name { color:#2f281f !important; }
+    .body-text, .fine-text { color:#4b4338 !important; }
+    .muted-text { color:#7d7468 !important; }
+    .btn-link { background-color:#FF3B00 !important; border-color:#FF3B00 !important; color:#ffffff !important; }
+    .divider-cell { border-color:#ddd2c4 !important; }
+    .info-box { background-color:#f7f1e8 !important; border-color:#eadfce !important; }
+    .info-label { color:#7d7468 !important; }
+    .info-value { color:#2f281f !important; }
+    .prize-box { background-color:#fff4ea !important; border-color:#ffd8bd !important; }
+    .prize-amount { color:#FF3B00 !important; }
+  }
+  [data-ogsc] .email-bg,
+  [data-ogsb] .email-bg { background-color:#f7f1e8 !important; }
+  [data-ogsc] .card,
+  [data-ogsb] .card { background-color:#fffaf3 !important; }
+  [data-ogsc] .heading,
+  [data-ogsc] .brand-name { color:#2f281f !important; }
+  [data-ogsc] .body-text,
+  [data-ogsc] .fine-text { color:#4b4338 !important; }
+  [data-ogsc] .btn-link { background-color:#FF3B00 !important; color:#ffffff !important; }
+  [data-ogsc] .info-box { background-color:#f7f1e8 !important; }
+  [data-ogsc] .prize-box { background-color:#fff4ea !important; }
+  [data-ogsc] .prize-amount { color:#FF3B00 !important; }
+
+  @media screen and (max-width: 600px) {
+    .container { width:100% !important; max-width:100% !important; border-radius:0 !important; }
+    .px-outer { padding-left:0 !important; padding-right:0 !important; }
+    .px-inner { padding-left:22px !important; padding-right:22px !important; }
+    .title { font-size:24px !important; line-height:30px !important; }
+    .brand-name { font-size:20px !important; line-height:24px !important; }
+    .logo-cell { width:40px !important; padding-right:10px !important; }
+    .logo-img { width:40px !important; height:40px !important; }
+    .btn-td { padding:2px 0 22px 0 !important; }
+    .btn-link { display:block !important; width:100% !important; min-width:0 !important; box-sizing:border-box !important; }
+    .full-width-mobile { width:100% !important; }
+    .prize-amount { font-size:30px !important; }
+  }
+</style>
 </head>
-<body style="margin:0;padding:0;background:#f4f4f5;font-family:'Segoe UI',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
-    <tr><td align="center">
-      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-        <tr><td style="background:#FF5A1F;padding:32px 40px;text-align:center;">
-          <span style="color:#ffffff;font-size:24px;font-weight:700;letter-spacing:-0.5px;">{{siteName}}</span>
-        </td></tr>
-        <tr><td style="padding:40px 40px 20px 40px;">
-          <h1 style="margin:0 0 12px 0;font-size:22px;font-weight:700;color:#111827;">Reset your password</h1>
-          <p style="margin:0 0 20px 0;font-size:15px;color:#6b7280;line-height:1.6;">
-            Hi {{userName}}, we received a request to reset your password. Click the button below to choose a new password.
-          </p>
-          <a href="{{resetUrl}}" style="display:inline-block;background:#FF5A1F;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:8px;margin-bottom:24px;">
-            Reset Password
-          </a>
-          <p style="margin:0;font-size:13px;color:#9ca3af;line-height:1.6;">
-            This link expires in 1 hour. If you didn&apos;t request a password reset, you can safely ignore this email.
-          </p>
-        </td></tr>
-        <tr><td style="padding:20px 40px 32px 40px;border-top:1px solid #f3f4f6;">
-          <p style="margin:0;font-size:12px;color:#d1d5db;text-align:center;">&copy; {{siteName}} &middot; All rights reserved</p>
-        </td></tr>
-      </table>
-    </td></tr>
+<body class="email-bg" style="margin:0; padding:0; width:100% !important; background-color:#f7f1e8; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
+
+  <!-- Preheader (hidden preview text shown next to subject line in inbox) -->
+  <div style="display:none; font-size:1px; color:#f7f1e8; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden; mso-hide:all;">
+    Use the link inside to set a new password for your account.
+    &#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;
+  </div>
+
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="email-bg" style="border-collapse:collapse; width:100%; margin:0; padding:0; background-color:#f7f1e8;">
+    <tr>
+      <td align="center" class="px-outer" style="padding:24px 16px;">
+
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" class="container card" style="border-collapse:collapse; width:600px; max-width:600px; background-color:#fffaf3; border:1px solid #eadfce; border-radius:16px;">
+
+          <!-- ===== HEADER (shared across all templates) ===== -->
+          <tr>
+            <td align="center" style="padding:26px 24px 16px 24px;">
+              <a href="{{siteUrl}}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse; margin:0 auto;">
+                  <tr>
+                    <td class="logo-cell" valign="middle" width="46" style="padding-right:11px; width:46px;">
+                      <img class="logo-img" src="{{siteUrl}}/assets/web-app-manifest-192x192.png" width="46" height="46" alt="{{siteName}}" style="display:block; width:46px; height:46px; border:0; border-radius:50%; background-color:#fffaf3;" />
+                    </td>
+                    <td valign="middle" class="brand-name" style="font-family:Arial, Helvetica, sans-serif; font-size:24px; line-height:28px; font-weight:800; color:#2f281f; letter-spacing:0.2px; text-transform:uppercase;">
+                      {{siteName}}
+                    </td>
+                  </tr>
+                </table>
+              </a>
+            </td>
+          </tr>
+
+          <!-- ===== BODY ===== -->
+          <tr>
+            <td class="px-inner" style="padding:14px 32px 28px 32px; font-family:Arial, Helvetica, sans-serif; color:#2f281f;">
+              <h1 class="heading title" style="margin:0 0 14px 0; font-size:26px; line-height:32px; font-weight:700; color:#2f281f;">
+                Reset your password
+              </h1>
+
+              <p class="body-text" style="margin:0 0 14px 0; font-size:15px; line-height:24px; color:#4b4338;">
+                Hi {{userName}},
+              </p>
+
+              <p class="body-text" style="margin:0 0 24px 0; font-size:15px; line-height:24px; color:#4b4338;">
+                We received a request to reset your password. Click the button below to choose a new one.
+              </p>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
+                <tr>
+                  <td align="center" class="btn-td" style="padding:4px 0 24px 0;">
+                    <!--[if mso]>
+                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="{{resetUrl}}" style="height:46px;v-text-anchor:middle;width:220px;" arcsize="12%" strokecolor="#FF3B00" fillcolor="#FF3B00">
+                      <w:anchorlock/>
+                      <center style="color:#ffffff;font-family:Arial, Helvetica, sans-serif;font-size:15px;font-weight:700;">
+                        Reset password
+                      </center>
+                    </v:roundrect>
+                    <![endif]-->
+                    <!--[if !mso]><!-- -->
+                    <a href="{{resetUrl}}" target="_blank" rel="noopener noreferrer" class="btn-link" style="background-color:#FF3B00; border:1px solid #FF3B00; border-radius:10px; color:#ffffff; display:inline-block; font-family:Arial, Helvetica, sans-serif; font-size:15px; font-weight:700; line-height:20px; text-align:center; text-decoration:none; padding:13px 26px; min-width:200px; mso-hide:all;">
+                      Reset password
+                    </a>
+                    <!--<![endif]-->
+                  </td>
+                </tr>
+              </table>
+
+              <p class="fine-text" style="margin:0 0 6px 0; font-size:12px; line-height:19px; color:#7d7468;">
+                Button not working? Paste this link into your browser:
+              </p>
+              <p class="fine-text" style="margin:0 0 20px 0; word-break:break-all; font-size:12px; line-height:19px;">
+                <a href="{{resetUrl}}" target="_blank" rel="noopener noreferrer" style="color:#FF3B00; text-decoration:underline;">{{resetUrl}}</a>
+              </p>
+
+              <p class="fine-text" style="margin:0; font-size:12px; line-height:19px; color:#7d7468;">
+                For your security, this link will expire shortly. Didn't request this? Your password is safe — you can ignore this email.
+              </p>
+
+            </td>
+          </tr>
+
+          <!-- ===== FOOTER (shared across all templates) ===== -->
+          <tr>
+            <td align="center" style="padding:4px 24px 26px 24px; font-family:Arial, Helvetica, sans-serif;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
+                <tr>
+                  <td align="center" style="padding:0 0 18px 0;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="160" style="border-collapse:collapse; width:160px;">
+                      <tr>
+                        <td class="divider-cell" style="border-top:1px solid #ddd2c4; font-size:1px; line-height:1px;">&nbsp;</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+                <tr>
+                  <td align="center" style="padding:0 8px;">
+                    <a href="mailto:{{contactEmail}}" style="text-decoration:none;">
+                      <img src="https://img.icons8.com/ios-filled/50/5f574d/new-post.png" width="18" height="18" alt="Email" style="display:block; border:0; width:18px; height:18px;" />
+                    </a>
+                  </td>
+                  <td align="center" style="padding:0 8px;">
+                    <a href="{{instagramUrl}}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+                      <img src="https://img.icons8.com/ios-filled/50/5f574d/instagram-new.png" width="18" height="18" alt="Instagram" style="display:block; border:0; width:18px; height:18px;" />
+                    </a>
+                  </td>
+                  <td align="center" style="padding:0 8px;">
+                    <a href="{{githubUrl}}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+                      <img src="https://img.icons8.com/ios-filled/50/5f574d/github.png" width="18" height="18" alt="GitHub" style="display:block; border:0; width:18px; height:18px;" />
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <div class="muted-text" style="margin-top:12px; font-size:12px; line-height:18px; color:#7d7468; text-align:center;">
+                {{copyrightText}}
+              </div>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
   </table>
 </body>
 </html>`,
@@ -518,37 +1176,189 @@ async function seedEmailTemplates() {
         { key: "dashboardUrl", description: "Link to user dashboard", sample: "https://..." },
         { key: "gameName", description: "In-game name", sample: "ProGamer" }
       ]),
+      previewText: "Your account is ready. Head to your dashboard to explore {{gameName}} tournaments.",
       bodyHtml: `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Welcome</title>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="light only" />
+<meta name="supported-color-schemes" content="light only" />
+<!--[if mso]>
+<noscript>
+<xml>
+<o:OfficeDocumentSettings>
+<o:PixelsPerInch>96</o:PixelsPerInch>
+</o:OfficeDocumentSettings>
+</xml>
+</noscript>
+<![endif]-->
+<title>Welcome to {{siteName}}</title>
+<style>
+  html, body { margin:0 !important; padding:0 !important; height:100% !important; width:100% !important; }
+  * { -ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; }
+  table, td { mso-table-lspace:0pt; mso-table-rspace:0pt; border-collapse:collapse !important; }
+  img { -ms-interpolation-mode:bicubic; border:0; outline:none; text-decoration:none; }
+  a { text-decoration:none; }
+
+  /* Force light appearance -- block auto dark-mode inversion in every client that supports overrides */
+  @media (prefers-color-scheme: dark) {
+    .email-bg { background-color:#f7f1e8 !important; }
+    .card { background-color:#fffaf3 !important; border-color:#eadfce !important; }
+    .heading, .brand-name { color:#2f281f !important; }
+    .body-text, .fine-text { color:#4b4338 !important; }
+    .muted-text { color:#7d7468 !important; }
+    .btn-link { background-color:#FF3B00 !important; border-color:#FF3B00 !important; color:#ffffff !important; }
+    .divider-cell { border-color:#ddd2c4 !important; }
+    .info-box { background-color:#f7f1e8 !important; border-color:#eadfce !important; }
+    .info-label { color:#7d7468 !important; }
+    .info-value { color:#2f281f !important; }
+    .prize-box { background-color:#fff4ea !important; border-color:#ffd8bd !important; }
+    .prize-amount { color:#FF3B00 !important; }
+  }
+  [data-ogsc] .email-bg,
+  [data-ogsb] .email-bg { background-color:#f7f1e8 !important; }
+  [data-ogsc] .card,
+  [data-ogsb] .card { background-color:#fffaf3 !important; }
+  [data-ogsc] .heading,
+  [data-ogsc] .brand-name { color:#2f281f !important; }
+  [data-ogsc] .body-text,
+  [data-ogsc] .fine-text { color:#4b4338 !important; }
+  [data-ogsc] .btn-link { background-color:#FF3B00 !important; color:#ffffff !important; }
+  [data-ogsc] .info-box { background-color:#f7f1e8 !important; }
+  [data-ogsc] .prize-box { background-color:#fff4ea !important; }
+  [data-ogsc] .prize-amount { color:#FF3B00 !important; }
+
+  @media screen and (max-width: 600px) {
+    .container { width:100% !important; max-width:100% !important; border-radius:0 !important; }
+    .px-outer { padding-left:0 !important; padding-right:0 !important; }
+    .px-inner { padding-left:22px !important; padding-right:22px !important; }
+    .title { font-size:24px !important; line-height:30px !important; }
+    .brand-name { font-size:20px !important; line-height:24px !important; }
+    .logo-cell { width:40px !important; padding-right:10px !important; }
+    .logo-img { width:40px !important; height:40px !important; }
+    .btn-td { padding:2px 0 22px 0 !important; }
+    .btn-link { display:block !important; width:100% !important; min-width:0 !important; box-sizing:border-box !important; }
+    .full-width-mobile { width:100% !important; }
+    .prize-amount { font-size:30px !important; }
+  }
+</style>
 </head>
-<body style="margin:0;padding:0;background:#f4f4f5;font-family:'Segoe UI',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
-    <tr><td align="center">
-      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-        <tr><td style="background:#FF5A1F;padding:32px 40px;text-align:center;">
-          <span style="color:#ffffff;font-size:24px;font-weight:700;letter-spacing:-0.5px;">{{siteName}}</span>
-        </td></tr>
-        <tr><td style="padding:40px 40px 20px 40px;">
-          <h1 style="margin:0 0 12px 0;font-size:22px;font-weight:700;color:#111827;">Welcome, {{userName}}! 🎮</h1>
-          <p style="margin:0 0 20px 0;font-size:15px;color:#6b7280;line-height:1.6;">
-            Your profile is all set as <strong>{{gameName}}</strong>. Jump into the dashboard to explore tournaments, check rankings, and start competing!
-          </p>
-          <a href="{{dashboardUrl}}" style="display:inline-block;background:#FF5A1F;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:8px;margin-bottom:24px;">
-            Go to Dashboard
-          </a>
-          <p style="margin:0;font-size:13px;color:#9ca3af;line-height:1.6;">
-            If you have any questions, reply to this email — we&apos;re here to help.
-          </p>
-        </td></tr>
-        <tr><td style="padding:20px 40px 32px 40px;border-top:1px solid #f3f4f6;">
-          <p style="margin:0;font-size:12px;color:#d1d5db;text-align:center;">&copy; {{siteName}} &middot; All rights reserved</p>
-        </td></tr>
-      </table>
-    </td></tr>
+<body class="email-bg" style="margin:0; padding:0; width:100% !important; background-color:#f7f1e8; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
+
+  <!-- Preheader (hidden preview text shown next to subject line in inbox) -->
+  <div style="display:none; font-size:1px; color:#f7f1e8; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden; mso-hide:all;">
+    Your account is ready. Head to your dashboard to explore {{gameName}} tournaments.
+    &#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;
+  </div>
+
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="email-bg" style="border-collapse:collapse; width:100%; margin:0; padding:0; background-color:#f7f1e8;">
+    <tr>
+      <td align="center" class="px-outer" style="padding:24px 16px;">
+
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" class="container card" style="border-collapse:collapse; width:600px; max-width:600px; background-color:#fffaf3; border:1px solid #eadfce; border-radius:16px;">
+
+          <!-- ===== HEADER (shared across all templates) ===== -->
+          <tr>
+            <td align="center" style="padding:26px 24px 16px 24px;">
+              <a href="{{siteUrl}}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse; margin:0 auto;">
+                  <tr>
+                    <td class="logo-cell" valign="middle" width="46" style="padding-right:11px; width:46px;">
+                      <img class="logo-img" src="{{siteUrl}}/assets/web-app-manifest-192x192.png" width="46" height="46" alt="{{siteName}}" style="display:block; width:46px; height:46px; border:0; border-radius:50%; background-color:#fffaf3;" />
+                    </td>
+                    <td valign="middle" class="brand-name" style="font-family:Arial, Helvetica, sans-serif; font-size:24px; line-height:28px; font-weight:800; color:#2f281f; letter-spacing:0.2px; text-transform:uppercase;">
+                      {{siteName}}
+                    </td>
+                  </tr>
+                </table>
+              </a>
+            </td>
+          </tr>
+
+          <!-- ===== BODY ===== -->
+          <tr>
+            <td class="px-inner" style="padding:14px 32px 28px 32px; font-family:Arial, Helvetica, sans-serif; color:#2f281f;">
+              <h1 class="heading title" style="margin:0 0 14px 0; font-size:26px; line-height:32px; font-weight:700; color:#2f281f;">
+                Welcome, {{userName}}
+              </h1>
+
+              <p class="body-text" style="margin:0 0 14px 0; font-size:15px; line-height:24px; color:#4b4338;">
+                Your account is ready. You can now join {{gameName}} tournaments, track your matches, and manage your winnings from your dashboard.
+              </p>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
+                <tr>
+                  <td align="center" class="btn-td" style="padding:4px 0 24px 0;">
+                    <!--[if mso]>
+                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="{{dashboardUrl}}" style="height:46px;v-text-anchor:middle;width:220px;" arcsize="12%" strokecolor="#FF3B00" fillcolor="#FF3B00">
+                      <w:anchorlock/>
+                      <center style="color:#ffffff;font-family:Arial, Helvetica, sans-serif;font-size:15px;font-weight:700;">
+                        Go to dashboard
+                      </center>
+                    </v:roundrect>
+                    <![endif]-->
+                    <!--[if !mso]><!-- -->
+                    <a href="{{dashboardUrl}}" target="_blank" rel="noopener noreferrer" class="btn-link" style="background-color:#FF3B00; border:1px solid #FF3B00; border-radius:10px; color:#ffffff; display:inline-block; font-family:Arial, Helvetica, sans-serif; font-size:15px; font-weight:700; line-height:20px; text-align:center; text-decoration:none; padding:13px 26px; min-width:200px; mso-hide:all;">
+                      Go to dashboard
+                    </a>
+                    <!--<![endif]-->
+                  </td>
+                </tr>
+              </table>
+
+              <p class="fine-text" style="margin:0; font-size:12px; line-height:19px; color:#7d7468;">
+                Need help getting started? Just reply to this email — we're happy to help.
+              </p>
+
+            </td>
+          </tr>
+
+          <!-- ===== FOOTER (shared across all templates) ===== -->
+          <tr>
+            <td align="center" style="padding:4px 24px 26px 24px; font-family:Arial, Helvetica, sans-serif;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
+                <tr>
+                  <td align="center" style="padding:0 0 18px 0;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="160" style="border-collapse:collapse; width:160px;">
+                      <tr>
+                        <td class="divider-cell" style="border-top:1px solid #ddd2c4; font-size:1px; line-height:1px;">&nbsp;</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+                <tr>
+                  <td align="center" style="padding:0 8px;">
+                    <a href="mailto:{{contactEmail}}" style="text-decoration:none;">
+                      <img src="https://img.icons8.com/ios-filled/50/5f574d/new-post.png" width="18" height="18" alt="Email" style="display:block; border:0; width:18px; height:18px;" />
+                    </a>
+                  </td>
+                  <td align="center" style="padding:0 8px;">
+                    <a href="{{instagramUrl}}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+                      <img src="https://img.icons8.com/ios-filled/50/5f574d/instagram-new.png" width="18" height="18" alt="Instagram" style="display:block; border:0; width:18px; height:18px;" />
+                    </a>
+                  </td>
+                  <td align="center" style="padding:0 8px;">
+                    <a href="{{githubUrl}}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+                      <img src="https://img.icons8.com/ios-filled/50/5f574d/github.png" width="18" height="18" alt="GitHub" style="display:block; border:0; width:18px; height:18px;" />
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <div class="muted-text" style="margin-top:12px; font-size:12px; line-height:18px; color:#7d7468; text-align:center;">
+                {{copyrightText}}
+              </div>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
   </table>
 </body>
 </html>`,
@@ -562,37 +1372,190 @@ async function seedEmailTemplates() {
         { key: "userName", description: "User's display name", sample: "Player123" },
         { key: "verificationUrl", description: "Email verification link", sample: "https://..." }
       ]),
+      previewText: "Confirm your email address to finish setting up your account.",
       bodyHtml: `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Verify Email</title>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="light only" />
+<meta name="supported-color-schemes" content="light only" />
+<!--[if mso]>
+<noscript>
+<xml>
+<o:OfficeDocumentSettings>
+<o:PixelsPerInch>96</o:PixelsPerInch>
+</o:OfficeDocumentSettings>
+</xml>
+</noscript>
+<![endif]-->
+<title>Verify your email address</title>
+<style>
+  html, body { margin:0 !important; padding:0 !important; height:100% !important; width:100% !important; }
+  * { -ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; }
+  table, td { mso-table-lspace:0pt; mso-table-rspace:0pt; border-collapse:collapse !important; }
+  img { -ms-interpolation-mode:bicubic; border:0; outline:none; text-decoration:none; }
+  a { text-decoration:none; }
+
+  /* Force light appearance — block auto dark-mode inversion in every client that supports overrides */
+  @media (prefers-color-scheme: dark) {
+    .email-bg { background-color:#f7f1e8 !important; }
+    .card { background-color:#fffaf3 !important; border-color:#eadfce !important; }
+    .heading, .brand-name { color:#2f281f !important; }
+    .body-text, .fine-text { color:#4b4338 !important; }
+    .muted-text { color:#7d7468 !important; }
+    .btn-link { background-color:#FF3B00 !important; border-color:#FF3B00 !important; color:#ffffff !important; }
+    .divider-cell { border-color:#ddd2c4 !important; }
+  }
+  [data-ogsc] .email-bg,
+  [data-ogsb] .email-bg { background-color:#f7f1e8 !important; }
+  [data-ogsc] .card,
+  [data-ogsb] .card { background-color:#fffaf3 !important; }
+  [data-ogsc] .heading,
+  [data-ogsc] .brand-name { color:#2f281f !important; }
+  [data-ogsc] .body-text,
+  [data-ogsc] .fine-text { color:#4b4338 !important; }
+  [data-ogsc] .btn-link { background-color:#FF3B00 !important; color:#ffffff !important; }
+
+  @media screen and (max-width: 600px) {
+    .container { width:100% !important; max-width:100% !important; border-radius:0 !important; }
+    .px-outer { padding-left:0 !important; padding-right:0 !important; }
+    .px-inner { padding-left:22px !important; padding-right:22px !important; }
+    .title { font-size:24px !important; line-height:30px !important; }
+    .brand-name { font-size:20px !important; line-height:24px !important; }
+    .logo-cell { width:40px !important; padding-right:10px !important; }
+    .logo-img { width:40px !important; height:40px !important; }
+    .btn-td { padding:2px 0 22px 0 !important; }
+    .btn-link { display:block !important; width:100% !important; min-width:0 !important; box-sizing:border-box !important; }
+    .full-width-mobile { width:100% !important; }
+  }
+</style>
 </head>
-<body style="margin:0;padding:0;background:#f4f4f5;font-family:'Segoe UI',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
-    <tr><td align="center">
-      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-        <tr><td style="background:#FF5A1F;padding:32px 40px;text-align:center;">
-          <span style="color:#ffffff;font-size:24px;font-weight:700;letter-spacing:-0.5px;">{{siteName}}</span>
-        </td></tr>
-        <tr><td style="padding:40px 40px 20px 40px;">
-          <h1 style="margin:0 0 12px 0;font-size:22px;font-weight:700;color:#111827;">Verify your email</h1>
-          <p style="margin:0 0 20px 0;font-size:15px;color:#6b7280;line-height:1.6;">
-            Hi {{userName}}, please verify your email address to activate your account.
-          </p>
-          <a href="{{verificationUrl}}" style="display:inline-block;background:#FF5A1F;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:8px;margin-bottom:24px;">
-            Verify Email
-          </a>
-          <p style="margin:0;font-size:13px;color:#9ca3af;line-height:1.6;">
-            This link expires in 24 hours. If you didn&apos;t create an account, you can safely ignore this email.
-          </p>
-        </td></tr>
-        <tr><td style="padding:20px 40px 32px 40px;border-top:1px solid #f3f4f6;">
-          <p style="margin:0;font-size:12px;color:#d1d5db;text-align:center;">&copy; {{siteName}} &middot; All rights reserved</p>
-        </td></tr>
-      </table>
-    </td></tr>
+<body class="email-bg" style="margin:0; padding:0; width:100% !important; background-color:#f7f1e8; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
+
+  <!-- Preheader (hidden preview text shown next to subject line in inbox) -->
+  <div style="display:none; font-size:1px; color:#f7f1e8; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden; mso-hide:all;">
+    Confirm your email address to finish setting up your 1OnlySarkar account.
+    &#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;&#8203;&zwnj;
+  </div>
+
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="email-bg" style="border-collapse:collapse; width:100%; margin:0; padding:0; background-color:#f7f1e8;">
+    <tr>
+      <td align="center" class="px-outer" style="padding:24px 16px;">
+
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" class="container card" style="border-collapse:collapse; width:600px; max-width:600px; background-color:#fffaf3; border:1px solid #eadfce; border-radius:16px;">
+
+          <!-- ===== HEADER (shared across all templates) ===== -->
+          <tr>
+            <td align="center" style="padding:26px 24px 16px 24px;">
+              <a href="{{siteUrl}}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse; margin:0 auto;">
+                  <tr>
+                    <td class="logo-cell" valign="middle" width="46" style="padding-right:11px; width:46px;">
+                      <img class="logo-img" src="{{siteUrl}}/assets/web-app-manifest-192x192.png" width="46" height="46" alt="{{siteName}}" style="display:block; width:46px; height:46px; border:0; border-radius:50%; background-color:#fffaf3;" />
+                    </td>
+                    <td valign="middle" class="brand-name" style="font-family:Arial, Helvetica, sans-serif; font-size:24px; line-height:28px; font-weight:800; color:#2f281f; letter-spacing:0.2px; text-transform:uppercase;">
+                      {{siteName}}
+                    </td>
+                  </tr>
+                </table>
+              </a>
+            </td>
+          </tr>
+
+          <!-- ===== BODY ===== -->
+          <tr>
+            <td class="px-inner" style="padding:14px 32px 28px 32px; font-family:Arial, Helvetica, sans-serif; color:#2f281f;">
+              <h1 class="heading title" style="margin:0 0 14px 0; font-size:26px; line-height:32px; font-weight:700; color:#2f281f;">
+                Verify your email address
+              </h1>
+
+              <p class="body-text" style="margin:0 0 14px 0; font-size:15px; line-height:24px; color:#4b4338;">
+                Hi {{userName}},
+              </p>
+
+              <p class="body-text" style="margin:0 0 24px 0; font-size:15px; line-height:24px; color:#4b4338;">
+                Thanks for signing up. Click the button below to confirm your email address and activate your account.
+              </p>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
+                <tr>
+                  <td align="center" class="btn-td" style="padding:4px 0 24px 0;">
+                    <!--[if mso]>
+                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="{{verificationUrl}}" style="height:46px;v-text-anchor:middle;width:220px;" arcsize="12%" strokecolor="#FF3B00" fillcolor="#FF3B00">
+                      <w:anchorlock/>
+                      <center style="color:#ffffff;font-family:Arial, Helvetica, sans-serif;font-size:15px;font-weight:700;">
+                        Verify email
+                      </center>
+                    </v:roundrect>
+                    <![endif]-->
+                    <!--[if !mso]><!-- -->
+                    <a href="{{verificationUrl}}" target="_blank" rel="noopener noreferrer" class="btn-link" style="background-color:#FF3B00; border:1px solid #FF3B00; border-radius:10px; color:#ffffff; display:inline-block; font-family:Arial, Helvetica, sans-serif; font-size:15px; font-weight:700; line-height:20px; text-align:center; text-decoration:none; padding:13px 26px; min-width:200px; mso-hide:all;">
+                      Verify email
+                    </a>
+                    <!--<![endif]-->
+                  </td>
+                </tr>
+              </table>
+
+              <p class="fine-text" style="margin:0 0 6px 0; font-size:12px; line-height:19px; color:#7d7468;">
+                Button not working? Paste this link into your browser:
+              </p>
+              <p class="fine-text" style="margin:0 0 20px 0; word-break:break-all; font-size:12px; line-height:19px;">
+                <a href="{{verificationUrl}}" target="_blank" rel="noopener noreferrer" style="color:#FF3B00; text-decoration:underline;">{{verificationUrl}}</a>
+              </p>
+
+              <p class="fine-text" style="margin:0; font-size:12px; line-height:19px; color:#7d7468;">
+                Didn't create this account? You can safely ignore this email.
+              </p>
+            </td>
+          </tr>
+
+          <!-- ===== FOOTER (shared across all templates) ===== -->
+          <tr>
+            <td align="center" style="padding:4px 24px 26px 24px; font-family:Arial, Helvetica, sans-serif;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
+                <tr>
+                  <td align="center" style="padding:0 0 18px 0;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="160" style="border-collapse:collapse; width:160px;">
+                      <tr>
+                        <td class="divider-cell" style="border-top:1px solid #ddd2c4; font-size:1px; line-height:1px;">&nbsp;</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+                <tr>
+                  <td align="center" style="padding:0 8px;">
+                    <a href="mailto:{{contactEmail}}" style="text-decoration:none;">
+                      <img src="https://img.icons8.com/ios-filled/50/5f574d/new-post.png" width="18" height="18" alt="Email" style="display:block; border:0; width:18px; height:18px;" />
+                    </a>
+                  </td>
+                  <td align="center" style="padding:0 8px;">
+                    <a href="{{instagramUrl}}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+                      <img src="https://img.icons8.com/ios-filled/50/5f574d/instagram-new.png" width="18" height="18" alt="Instagram" style="display:block; border:0; width:18px; height:18px;" />
+                    </a>
+                  </td>
+                  <td align="center" style="padding:0 8px;">
+                    <a href="{{githubUrl}}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+                      <img src="https://img.icons8.com/ios-filled/50/5f574d/github.png" width="18" height="18" alt="GitHub" style="display:block; border:0; width:18px; height:18px;" />
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <div class="muted-text" style="margin-top:12px; font-size:12px; line-height:18px; color:#7d7468; text-align:center;">
+                {{copyrightText}}
+              </div>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
   </table>
 </body>
 </html>`,
