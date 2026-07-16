@@ -321,7 +321,14 @@ async function seedEmailTemplates() {
       name: "room_revealed",
       subject: "Your room is open! — {{tournamentName}}",
       description: "Sent when admin reveals room credentials for a tournament.",
-      variables: JSON.stringify(["userName", "tournamentName", "roomId", "roomPassword", "startTime", "tournamentUrl", "siteName"]),
+      variablesSchema: JSON.stringify([
+        { key: "userName", description: "User's display name", sample: "Player123" },
+        { key: "tournamentName", description: "Tournament name", sample: "Weekend Clash" },
+        { key: "roomId", description: "Free Fire Room ID", sample: "1234567" },
+        { key: "roomPassword", description: "Free Fire Room Password", sample: "secret" },
+        { key: "startTime", description: "Match start time", sample: "2:00 PM" },
+        { key: "tournamentUrl", description: "Link to tournament page", sample: "https://..." }
+      ]),
       bodyHtml: `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -368,7 +375,12 @@ async function seedEmailTemplates() {
       name: "tournament_cancelled",
       subject: "Tournament Cancelled — {{tournamentName}}",
       description: "Sent when a tournament is cancelled. Includes refund info if applicable.",
-      variables: JSON.stringify(["userName", "tournamentName", "reason", "refundAmount", "siteName"]),
+      variablesSchema: JSON.stringify([
+        { key: "userName", description: "User's display name", sample: "Player123" },
+        { key: "tournamentName", description: "Tournament name", sample: "Weekend Clash" },
+        { key: "reason", description: "Reason for cancellation", sample: "Insufficient players" },
+        { key: "refundAmount", description: "Amount refunded", sample: "50" }
+      ]),
       bodyHtml: `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -409,7 +421,12 @@ async function seedEmailTemplates() {
       name: "prize_credited",
       subject: "You won! 🏆 Prize credited — {{tournamentName}}",
       description: "Sent when prize coins are credited to a winner's wallet.",
-      variables: JSON.stringify(["userName", "tournamentName", "placement", "prizeAmount", "siteName"]),
+      variablesSchema: JSON.stringify([
+        { key: "userName", description: "User's display name", sample: "Player123" },
+        { key: "tournamentName", description: "Tournament name", sample: "Weekend Clash" },
+        { key: "placement", description: "Finishing placement", sample: "1st" },
+        { key: "prizeAmount", description: "Prize coins awarded", sample: "1000" }
+      ]),
       bodyHtml: `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -452,7 +469,10 @@ async function seedEmailTemplates() {
       name: "password_reset",
       subject: "Reset your password — {{siteName}}",
       description: "Sent when a user requests a password reset.",
-      variables: JSON.stringify(["userName", "resetUrl", "siteName"]),
+      variablesSchema: JSON.stringify([
+        { key: "userName", description: "User's display name", sample: "Player123" },
+        { key: "resetUrl", description: "Password reset link", sample: "https://..." }
+      ]),
       bodyHtml: `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -493,7 +513,11 @@ async function seedEmailTemplates() {
       name: "welcome",
       subject: "Welcome to {{siteName}}! 🎮",
       description: "Sent when a user completes their profile registration.",
-      variables: JSON.stringify(["userName", "dashboardUrl", "siteName", "gameName"]),
+      variablesSchema: JSON.stringify([
+        { key: "userName", description: "User's display name", sample: "Player123" },
+        { key: "dashboardUrl", description: "Link to user dashboard", sample: "https://..." },
+        { key: "gameName", description: "In-game name", sample: "ProGamer" }
+      ]),
       bodyHtml: `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -534,7 +558,10 @@ async function seedEmailTemplates() {
       name: "email_verification",
       subject: "Verify your email — {{siteName}}",
       description: "Sent when a user registers and needs to verify their email address.",
-      variables: JSON.stringify(["userName", "verificationUrl", "siteName"]),
+      variablesSchema: JSON.stringify([
+        { key: "userName", description: "User's display name", sample: "Player123" },
+        { key: "verificationUrl", description: "Email verification link", sample: "https://..." }
+      ]),
       bodyHtml: `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -596,6 +623,7 @@ async function seedEmailTemplates() {
       category,
       editorType: "html",
       designJson: null,
+      variablesSchema: template.variablesSchema,
       isActive: true,
     }).where(eq(emailTemplate.id, template.id));
   }

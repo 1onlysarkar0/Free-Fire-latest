@@ -1,6 +1,6 @@
 import "server-only";
 import { db } from "@/db/drizzle";
-import { smtpProviders, smtpConfig, emailTemplate, siteConfig } from "@/db/schema";
+import { smtpProviders, smtpConfig, emailTemplate, siteConfig, navigationItem } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import nodemailer from "nodemailer";
 
@@ -123,12 +123,23 @@ export async function sendEmail({ to, templateName, variables = {} }: SendEmailO
     .limit(1);
   const config = configs[0];
 
+  const socialItems = await db
+    .select()
+    .from(navigationItem)
+    .where(eq(navigationItem.isSocial, true));
+  
+  const instagram = socialItems.find(item => item.title.toLowerCase().includes("instagram"));
+  const github = socialItems.find(item => item.title.toLowerCase().includes("github"));
+
   const mergedVariables = {
     siteName: config?.logoTitle ?? "",
     siteLogo: config?.logoSrc ?? "/assets/logo.svg",
+    siteUrl: config?.siteUrl ?? "",
     copyrightText: config?.copyrightText ?? "",
     contactEmail: config?.contactEmail ?? "",
     companyAddress: config?.companyAddress ?? "",
+    instagramUrl: instagram?.url ?? "",
+    githubUrl: github?.url ?? "",
     ...variables,
   };
 

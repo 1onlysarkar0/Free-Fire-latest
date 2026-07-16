@@ -1,5 +1,5 @@
 import { db } from "@/db/drizzle";
-import { emailTemplate, siteConfig } from "@/db/schema";
+import { emailTemplate, siteConfig, navigationItem } from "@/db/schema";
 import { requirePagePermission } from "@/lib/panel-auth";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
@@ -103,14 +103,27 @@ export default async function EmailDesignerPage({ params }: PageProps) {
     notFound();
   }
 
+
+
+  const socialItems = await db
+    .select()
+    .from(navigationItem)
+    .where(eq(navigationItem.isSocial, true));
+  
+  const instagram = socialItems.find(item => item.title.toLowerCase().includes("instagram"));
+  const github = socialItems.find(item => item.title.toLowerCase().includes("github"));
+
   /* Build site config object — every field from DB */
   const siteConfigData = {
     siteName: siteConf?.logoTitle ?? "",
+    siteUrl: siteConf?.siteUrl ?? "",
     logoUrl: siteConf?.logoSrc ?? "",
     logoAlt: siteConf?.logoAlt ?? "",
     contactEmail: siteConf?.contactEmail ?? "",
     companyAddress: siteConf?.companyAddress ?? "",
     copyrightText: siteConf?.copyrightText ?? "",
+    instagramUrl: instagram?.url ?? "",
+    githubUrl: github?.url ?? "",
   };
 
   return (

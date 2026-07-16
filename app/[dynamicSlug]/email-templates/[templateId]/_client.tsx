@@ -99,6 +99,9 @@ export interface SiteConfig {
   contactEmail?: string | null;
   companyAddress?: string | null;
   copyrightText?: string | null;
+  siteUrl?: string | null;
+  instagramUrl?: string | null;
+  githubUrl?: string | null;
 }
 
 const CATEGORIES = [
@@ -260,9 +263,12 @@ export default function EmailDesignerClient({
       const sample: Record<string, string> = {
         siteName: siteConfig.siteName ?? "",
         siteLogo: siteConfig.logoUrl ?? "",
+        siteUrl: siteConfig.siteUrl || "",
         copyrightText: siteConfig.copyrightText ?? `© ${new Date().getFullYear()}`,
         contactEmail: siteConfig.contactEmail ?? "",
         companyAddress: siteConfig.companyAddress ?? "",
+        instagramUrl: siteConfig.instagramUrl || "",
+        githubUrl: siteConfig.githubUrl || "",
       };
 
       if (variablesSchema) {
@@ -368,8 +374,37 @@ export default function EmailDesignerClient({
   }, [isDragging]);
 
   /* ================================================================ */
-  /*  API Handlers                                                     */
+  /*  API Handlers & Utilities                                         */
   /* ================================================================ */
+  const extractVariables = useCallback(() => {
+    const regex = /\{\{\s*([\w]+)\s*\}\}/g;
+    let match;
+    const found = new Set<string>();
+    while ((match = regex.exec(htmlContent)) !== null) {
+      const v = match[1];
+      if (!["siteName", "siteLogo", "siteUrl", "copyrightText", "contactEmail", "companyAddress", "instagramUrl", "githubUrl"].includes(v)) {
+        found.add(v);
+      }
+    }
+    
+    let currentSchema = [];
+    try {
+      currentSchema = JSON.parse(variablesSchema);
+      if (!Array.isArray(currentSchema)) currentSchema = [];
+    } catch {
+      currentSchema = [];
+    }
+
+    const newSchema = Array.from(found).map(key => {
+      const existing = currentSchema.find((item: any) => item.key === key);
+      return existing || { key, description: "", sample: `{{${key}}}` };
+    });
+
+    setVariablesSchema(JSON.stringify(newSchema, null, 2));
+    markDirty();
+    toast.success(`Extracted ${newSchema.length} custom variables from HTML.`);
+  }, [htmlContent, variablesSchema, markDirty]);
+
   async function handleSave() {
     setSaving(true);
     try {
@@ -1138,18 +1173,33 @@ export default function EmailDesignerClient({
             <Card className="card-responsive mx-auto max-w-3xl space-y-4 p-4 sm:space-y-5 sm:p-6 lg:p-8">
               <div className="space-y-2">
                 <p className="text-sm font-semibold text-foreground">
-                  Variables schema
+                  Global Variables (Auto-Injected)
                 </p>
                 <p className="text-[11px] leading-5 text-muted-foreground sm:text-xs">
-                  JSON array defining variables used in this template.
+                  These variables are automatically available in all templates. You don't need to define them.
                 </p>
-                <code className="block overflow-x-auto rounded-lg bg-muted p-2.5 text-[11px] text-foreground sm:text-xs">
-                  [
-                  {
-                    '{"key":"user_name","description":"User display name","sample":"John"}'
-                  }
-                  ]
-                </code>
+                <div className="flex flex-wrap gap-2 pt-1 pb-4">
+                  {["siteName", "siteLogo", "siteUrl", "copyrightText", "contactEmail", "companyAddress", "instagramUrl", "githubUrl"].map(g => (
+                    <code key={g} className="rounded bg-primary/10 px-2 py-1 text-[11px] text-primary sm:text-xs">
+                      {"{{"}{g}{"}}"}
+                    </code>
+                  ))}
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">
+                      Template Variables
+                    </p>
+                    <p className="text-[11px] leading-5 text-muted-foreground sm:text-xs">
+                      JSON array defining custom variables used exclusively in this template.
+                    </p>
+                  </div>
+                  <Button variant="secondary" size="sm" onClick={extractVariables} className="h-8 text-xs">
+                    <Code2 className="mr-2 h-3.5 w-3.5" />
+                    Auto-Extract from HTML
+                  </Button>
+                </div>
               </div>
               <div className="overflow-hidden rounded-2xl border border-border bg-background shadow-sm">
                 <div className="border-b border-border bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground sm:text-xs">

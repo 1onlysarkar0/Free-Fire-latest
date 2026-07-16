@@ -1,6 +1,6 @@
 import { requireAdminOrRole } from "@/lib/admin-auth";
 import { db } from "@/db/drizzle";
-import { emailTemplate } from "@/db/schema";
+import { emailTemplate, siteConfig, navigationItem } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { sendRawEmail } from "@/lib/mailer";
 import { z } from "zod";
@@ -48,8 +48,29 @@ export async function POST(request: Request, { params }: Params) {
 
   const payload: Record<string, string> = parsed.data.payload ?? {};
 
+  // Fetch site config for globals
+  const [config] = await db.select().from(siteConfig).where(eq(siteConfig.id, "default")).limit(1);
+
+  const socialItems = await db
+    .select()
+    .from(navigationItem)
+    .where(eq(navigationItem.isSocial, true));
+  
+  const instagram = socialItems.find(item => item.title.toLowerCase().includes("instagram"));
+  const github = socialItems.find(item => item.title.toLowerCase().includes("github"));
+
   // Merge sample values from variablesSchema
-  const samplePayload: Record<string, string> = {};
+  const samplePayload: Record<string, string> = {
+    siteName: config?.logoTitle ?? "",
+    siteLogo: config?.logoSrc ?? "/assets/logo.svg",
+    siteUrl: config?.siteUrl ?? "",
+    copyrightText: config?.copyrightText ?? "",
+    contactEmail: config?.contactEmail ?? "",
+    companyAddress: config?.companyAddress ?? "",
+    instagramUrl: instagram?.url ?? "",
+    githubUrl: github?.url ?? "",
+  };
+
   if (template.variablesSchema) {
     try {
       const schema = JSON.parse(template.variablesSchema) as Array<{ key: string; sample?: string }>;
