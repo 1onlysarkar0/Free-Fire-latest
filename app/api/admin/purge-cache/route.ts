@@ -11,6 +11,11 @@ export async function POST(request: Request) {
   const admin = await requireAdminOrRole(request);
   if (admin instanceof Response) return admin;
 
+  const hasConfigEdit = admin.isAdmin || admin.permissions.some(p => p.startsWith("site_config:edit"));
+  if (!hasConfigEdit) {
+    return Response.json({ error: "Forbidden: missing permission to purge cache" }, { status: 403 });
+  }
+
   try {
     // ── 1. Bump the global cache version token in the DB ─────────────────────
     // This is the KEY mechanism: every client browser checks this value on
