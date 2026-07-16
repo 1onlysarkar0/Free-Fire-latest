@@ -3,7 +3,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { RocketIcon, ArrowRightIcon, Trophy, Gamepad2 } from "lucide-react";
+import { RocketIcon, ArrowRightIcon, Trophy, Gamepad2, Sparkles } from "lucide-react";
 import { LogoCloud } from "@/components/ui/logo-cloud-3";
 import { H1, H2, P } from "@/components/ui/typography";
 import { getHeroConfig } from "@/lib/content";
@@ -154,12 +154,14 @@ export default async function Home() {
 
             <div className="flex flex-row flex-wrap items-center justify-center gap-3 mt-8 md:mt-10">
               {config.heroCtaSecondaryText && config.heroCtaSecondaryUrl && (
-                <Button className="font-ibm font-medium" size="lg" variant="secondary" asChild>
-                  <Link href={config.heroCtaSecondaryUrl} prefetch={true}>
-                    <ArrowRightIcon aria-hidden="true" className="size-4 mr-2 text-foreground" />
-                    {config.heroCtaSecondaryText}
-                  </Link>
-                </Button>
+                <Link
+                  href={config.heroCtaSecondaryUrl}
+                  prefetch={true}
+                  className="inline-flex items-center justify-center gap-1.5 text-sm font-semibold transition-colors duration-150 bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-md px-5 py-2.5 shadow-xs font-ibm"
+                >
+                  <Sparkles aria-hidden="true" className="size-4 shrink-0" />
+                  {config.heroCtaSecondaryText}
+                </Link>
               )}
               {config.heroCtaPrimaryText && config.heroCtaPrimaryUrl && (
                 <Link
