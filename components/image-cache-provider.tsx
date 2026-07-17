@@ -1,17 +1,12 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext } from "react";
 import { getImageUrl } from "@/lib/image-url";
 
 const CacheVersionContext = createContext<string>("");
 
-export function ImageCacheProvider({ children }: { children: React.ReactNode }) {
-  const [cacheVersion, setCacheVersion] = useState("");
-
-  useEffect(() => {
-    const cv = (window as any).__CACHE_VERSION;
-    if (cv) setCacheVersion(cv);
-  }, []);
+export function ImageCacheProvider({ children, cacheVersion: serverVersion }: { children: React.ReactNode; cacheVersion?: string }) {
+  const cacheVersion = serverVersion || (typeof window !== "undefined" ? (window as any).__CACHE_VERSION : "");
 
   return (
     <CacheVersionContext.Provider value={cacheVersion}>

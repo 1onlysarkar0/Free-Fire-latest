@@ -145,7 +145,7 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <ChatbotProvider>
-            <ImageCacheProvider>
+            <ImageCacheProvider cacheVersion={cacheVersion}>
               {children}
               <CacheBuster />
               <ChatbotLoader />
