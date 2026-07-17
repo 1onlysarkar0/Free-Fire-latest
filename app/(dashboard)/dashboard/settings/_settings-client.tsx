@@ -751,7 +751,7 @@ function SettingsContent({ initialProfile }: { initialProfile?: InitialProfile }
                         
                         return (
                           <div className="rounded-xl border border-border bg-accent/30 p-3 text-center">
-                            <p className="text-xs text-muted-foreground mb-2">Can't scan the QR code? Use this setup key:</p>
+                            <p className="text-xs text-muted-foreground mb-2">Can&apos;t scan the QR code? Use this setup key:</p>
                             <div className="flex items-center justify-center gap-2">
                               <code className="text-sm font-mono bg-background px-2 py-1 rounded border border-border tracking-wider text-foreground">
                                 {secret}

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { ArrowRight, Trophy } from "lucide-react";
@@ -41,9 +42,11 @@ const CtaSection = React.forwardRef<HTMLDivElement, CtaSectionProps>(
               {/* Bracket bottom-right */}
               <div className="absolute -bottom-2 -right-1 sm:-bottom-3 sm:-right-2 w-8 h-8 sm:w-10 sm:h-10 border-b-2 border-r-2 border-[#FF3300] rounded-br z-20 opacity-60 pointer-events-none" />
               
-              <img
+              <Image
                 src={imgUrl(imageSrc)}
                 alt={imageAlt}
+                width={420}
+                height={420}
                 style={{
                   position: 'relative', zIndex: 1,
                   width: '100%', aspectRatio: '1 / 1',

@@ -1176,7 +1176,7 @@ export default function EmailDesignerClient({
                   Global Variables (Auto-Injected)
                 </p>
                 <p className="text-[11px] leading-5 text-muted-foreground sm:text-xs">
-                  These variables are automatically available in all templates. You don't need to define them.
+                  These variables are automatically available in all templates. You don&apos;t need to define them.
                 </p>
                 <div className="flex flex-wrap gap-2 pt-1 pb-4">
                   {["siteName", "siteLogo", "siteUrl", "copyrightText", "contactEmail", "companyAddress", "instagramUrl", "githubUrl"].map(g => (
