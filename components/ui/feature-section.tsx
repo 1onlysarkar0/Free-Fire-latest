@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { useImageUrl } from "@/components/image-cache-provider";
 
 interface Feature {
   step: string;
@@ -27,6 +28,7 @@ export function FeatureSteps({
   autoPlayInterval = 3000,
   imageHeight = "h-[400px]",
 }: FeatureStepsProps) {
+  const imgUrl = useImageUrl();
   const [currentFeature, setCurrentFeature] = useState(0);
   const [progress, setProgress] = useState(0);
   const [mounted, setMounted] = useState(false);
@@ -125,7 +127,7 @@ export function FeatureSteps({
                 >
                   <div className="relative w-full h-full aspect-square flex items-center justify-center p-3">
                     <Image
-                      src={feature.image}
+                      src={imgUrl(feature.image)}
                       alt={feature.step}
                       className="w-full h-full aspect-square object-contain transition-transform transform hover:scale-105 duration-700"
                       width={500}

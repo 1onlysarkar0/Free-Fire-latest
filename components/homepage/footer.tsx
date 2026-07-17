@@ -4,6 +4,8 @@ import * as LucideIcons from "lucide-react";
 import { getFooterConfig } from "@/lib/navigation";
 import { Separator } from "@/components/ui/separator";
 import { Large, Muted } from "@/components/ui/typography";
+import { getImageUrl } from "@/lib/image-url";
+import { getCacheVersion } from "@/lib/get-cache-version";
 
 const getSocialIcon = (name: string) => {
   const IconComponent = (LucideIcons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[name];
@@ -16,6 +18,7 @@ const getSocialIcon = (name: string) => {
 
 export default async function FooterSection() {
   const config = await getFooterConfig();
+  const cacheVersion = await getCacheVersion();
   const { logo, menu, socials, copyright } = config;
 
   return (
@@ -33,7 +36,7 @@ export default async function FooterSection() {
           prefetch={true}
           className="mx-auto flex items-center justify-center gap-2.5 hover:opacity-90 transition-opacity size-fit"
         >
-          <Image src={logo.src} className="w-8 h-8 object-contain" alt={logo.alt} width={32} height={32} suppressHydrationWarning />
+          <Image src={getImageUrl(logo.src, cacheVersion)} className="w-8 h-8 object-contain" alt={logo.alt} width={32} height={32} suppressHydrationWarning />
           <Large className="text-2xl font-normal tracking-tight font-momo text-foreground">
             {logo.title}
           </Large>

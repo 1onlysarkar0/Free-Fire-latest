@@ -2,6 +2,8 @@ import type { AuthPageConfig } from "@/lib/auth-page-config";
 import Image from "next/image";
 import Link from "next/link";
 import { Large, P, Muted, Blockquote } from "@/components/ui/typography";
+import { getImageUrl } from "@/lib/image-url";
+import { getCacheVersion } from "@/lib/get-cache-version";
 
 interface AuthLeftPanelProps {
   config: AuthPageConfig;
@@ -9,7 +11,8 @@ interface AuthLeftPanelProps {
   subtext: string;
 }
 
-export default function AuthLeftPanel({ config, quote, subtext }: AuthLeftPanelProps) {
+export default async function AuthLeftPanel({ config, quote, subtext }: AuthLeftPanelProps) {
+  const cacheVersion = await getCacheVersion();
   const hasImage = !!config.panel.imageUrl;
 
   return (
@@ -18,7 +21,7 @@ export default function AuthLeftPanel({ config, quote, subtext }: AuthLeftPanelP
       style={
         hasImage
           ? {
-              backgroundImage: `url(${config.panel.imageUrl})`,
+              backgroundImage: `url(${getImageUrl(config.panel.imageUrl, cacheVersion)})`,
               backgroundSize: "cover",
               backgroundPosition: "center",
             }
@@ -32,7 +35,7 @@ export default function AuthLeftPanel({ config, quote, subtext }: AuthLeftPanelP
       <div className="relative z-10">
         <Link href={config.logo.url} prefetch={true} className="flex items-center gap-2.5">
           <Image
-            src={config.logo.src}
+            src={getImageUrl(config.logo.src, cacheVersion)}
             alt={config.logo.alt}
             width={36}
             height={36}

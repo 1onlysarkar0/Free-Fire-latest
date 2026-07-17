@@ -8,6 +8,8 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 
 import Image from "next/image";
+import { useImageUrl } from "@/components/image-cache-provider";
+import { ChatbotHeaderTrigger } from "./chatbot-header-trigger";
 
 function WalletBalance({ initialBalance }: { initialBalance: number }) {
   const [balance, setBalance] = useState<number>(initialBalance);
@@ -53,6 +55,7 @@ export default function DashboardTopNav({
   logoUrl = "/dashboard",
   logoAlt = "logo",
 }: DashboardTopNavProps) {
+  const imgUrl = useImageUrl();
   const pathname = usePathname();
 
   const pathSegments = pathname.split("/").filter(Boolean);
@@ -77,7 +80,7 @@ export default function DashboardTopNav({
         {/* Mobile: Site Logo & Name */}
         <Link href={logoUrl} prefetch={true} className="flex md:hidden items-center gap-2 min-w-0">
           {logoSrc && (
-            <Image src={logoSrc} alt={logoAlt} width={28} height={28} className="h-7 w-7 object-contain shrink-0" />
+            <Image src={imgUrl(logoSrc)} alt={logoAlt} width={28} height={28} className="h-7 w-7 object-contain shrink-0" />
           )}
           {siteName && (
             <span className="font-momo text-base font-normal tracking-tight text-foreground truncate mt-[2px]">
@@ -93,6 +96,7 @@ export default function DashboardTopNav({
       </div>
 
       <div className="flex items-center gap-3 shrink-0">
+        <ChatbotHeaderTrigger />
         <WalletBalance initialBalance={initialWalletBalance ?? 0} />
       </div>
     </header>

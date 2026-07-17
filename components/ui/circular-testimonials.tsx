@@ -10,6 +10,7 @@ import React, {
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
+import { useImageUrl } from "@/components/image-cache-provider";
 
 interface Testimonial {
   quote: string;
@@ -67,6 +68,8 @@ export const CircularTestimonials = ({
   const fontSizeName = fontSizes.name ?? "1.5rem";
   const fontSizeDesignation = fontSizes.designation ?? "0.925rem";
   const fontSizeQuote = fontSizes.quote ?? "1.125rem";
+
+  const imgUrl = useImageUrl();
 
   // State
   const [mounted, setMounted] = useState(false);
@@ -205,7 +208,7 @@ export const CircularTestimonials = ({
               style={getImageStyle(index)}
             >
               <Image
-                src={testimonial.src}
+                src={imgUrl(testimonial.src)}
                 alt={testimonial.name}
                 className="w-full h-full aspect-square object-contain p-2"
                 fill

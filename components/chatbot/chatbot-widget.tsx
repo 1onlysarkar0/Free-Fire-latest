@@ -4,18 +4,19 @@ import { useEffect, useRef, useState } from "react";
 import { X, SendHorizontal, RotateCcw, Maximize2, Minimize2 } from "lucide-react";
 import Link from "next/link";
 import { useChatbot } from "@/hooks/use-chatbot";
+import { useChatbotControl } from "./chatbot-context";
 import { ChatbotMessage } from "./chatbot-message";
 import { AvatarDisplay } from "@/components/ui/avatar-display";
 
 const BOT_AVATAR = "avatar:4";
+
+const noop = (_v: boolean | ((prev: boolean) => boolean)) => {};
 
 export function ChatbotWidget() {
   const {
     config,
     configLoading,
     messages,
-    isOpen,
-    setIsOpen,
     isSending,
     error,
     remaining,
@@ -25,10 +26,21 @@ export function ChatbotWidget() {
     resetConversation,
   } = useChatbot();
 
+  const control = useChatbotControl();
+  const isOpen = control?.isOpen ?? false;
+  const setIsOpen = control?.setIsOpen ?? noop;
+
   const [input, setInput] = useState("");
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      const isMdOrLarger = window.matchMedia("(min-width: 768px)").matches;
+      setIsFullscreen(!isMdOrLarger);
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -80,12 +92,12 @@ export function ChatbotWidget() {
 
   return (
     <>
-      {/* Floating button */}
+      {/* Floating button (desktop only — mobile/tablet use the header trigger) */}
       <button
         data-chatbot-widget="true"
         onClick={() => setIsOpen((v) => !v)}
         aria-label={isOpen ? "Close chat" : "Open chat"}
-        className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-40 flex items-center justify-center hover:scale-105 transition-all duration-200"
+        className="hidden md:flex fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-40 items-center justify-center hover:scale-105 transition-all duration-200"
       >
         {isOpen ? (
           <div className="w-10 h-10 rounded-full bg-destructive text-destructive-foreground shadow-lg flex items-center justify-center border border-border/20">

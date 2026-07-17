@@ -38,16 +38,23 @@ export async function POST(request: Request) {
     // ── 3. Revalidate the entire App Router path layout cache ─────────────────
     revalidatePath("/", "layout");
 
-    // ── 4. Physically delete Next.js incremental cache folder ────────────────
+    // ── 4. Physically delete Next.js incremental cache & image cache ────────
     try {
       const cacheDir = path.join(process.cwd(), ".next", "cache");
       if (fs.existsSync(cacheDir)) {
         fs.rmSync(cacheDir, { recursive: true, force: true });
         console.log("✓ Deleted .next/cache directory");
       }
+      // Explicitly nuke the Next.js image optimization cache
+      const imgCacheDir = path.join(process.cwd(), ".next", "cache", "images");
+      if (fs.existsSync(imgCacheDir)) {
+        fs.rmSync(imgCacheDir, { recursive: true, force: true });
+        console.log("✓ Deleted .next/cache/images directory");
+      }
     } catch (e) {
       console.error("Failed to delete .next/cache folder:", e);
     }
+
 
     console.log(`✓ Cache version bumped to: ${newVersion}`);
 

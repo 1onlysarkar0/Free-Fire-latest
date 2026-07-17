@@ -1,10 +1,10 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { ArrowRight, Trophy } from "lucide-react";
+import { useImageUrl } from "@/components/image-cache-provider";
 
 interface CtaSectionProps extends React.HTMLAttributes<HTMLDivElement> {
   imageSrc?: string;
@@ -18,6 +18,7 @@ interface CtaSectionProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const CtaSection = React.forwardRef<HTMLDivElement, CtaSectionProps>(
   ({ className, imageSrc = "/assets/cta-image.svg", imageAlt = "Free Fire Tournament Arena", title = "Join the Arena", subtitle = "Turn Your Free Fire Skills Into Real Cash.", description = "Enter daily solo, duo, and squad rooms. Dominate the battleground, build your leaderboard rank, and withdraw your cash prizes instantly via UPI.", buttonText = "Get Started", buttonUrl = "/sign-in", ...props }, ref) => {
+    const imgUrl = useImageUrl();
     return (
       <section className="w-full overflow-x-hidden my-4 sm:my-8 lg:my-12" style={{ background: 'transparent', padding: 'clamp(64px, 10vw, 136px) 0' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 clamp(20px, 5vw, 48px)' }}>
@@ -41,7 +42,7 @@ const CtaSection = React.forwardRef<HTMLDivElement, CtaSectionProps>(
               <div className="absolute -bottom-2 -right-1 sm:-bottom-3 sm:-right-2 w-8 h-8 sm:w-10 sm:h-10 border-b-2 border-r-2 border-[#FF3300] rounded-br z-20 opacity-60 pointer-events-none" />
               
               <img
-                src={imageSrc}
+                src={imgUrl(imageSrc)}
                 alt={imageAlt}
                 style={{
                   position: 'relative', zIndex: 1,

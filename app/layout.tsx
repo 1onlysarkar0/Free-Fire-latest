@@ -14,6 +14,8 @@ import { getSeoData, buildMetadata, buildGeoMetadata } from "@/lib/seo";
 import { getSiteUrl } from "@/lib/site-url";
 
 import ChatbotLoader from "@/components/chatbot-loader";
+import { ChatbotProvider } from "@/components/chatbot/chatbot-context";
+import { ImageCacheProvider } from "@/components/image-cache-provider";
 import CacheBuster from "@/components/cache-buster";
 
 // TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
@@ -94,6 +96,7 @@ export default async function RootLayout({
   let structuredData: string | null = null;
   let siteUrl = "";
   let siteName = "";
+  let cacheVersion = "";
   try {
     const [seo, config] = await Promise.all([
       getSeoData("global"),
@@ -104,6 +107,7 @@ export default async function RootLayout({
       structuredData = seo.structuredDataJson;
     }
     siteName = config?.logoTitle || "";
+    cacheVersion = config?.cacheVersion || "";
     siteUrl = await getSiteUrl();
   } catch {}
 
@@ -131,17 +135,24 @@ export default async function RootLayout({
             dangerouslySetInnerHTML={{ __html: structuredData.replace(/</g, "\\u003c") }}
           />
         )}
+        {cacheVersion && (
+          <script dangerouslySetInnerHTML={{ __html: `window.__CACHE_VERSION="${cacheVersion}"` }} />
+        )}
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem={true}
           disableTransitionOnChange
         >
-          {children}
-          <CacheBuster />
-          <ChatbotLoader />
-          {process.env.NODE_ENV === "development" && <Agentation />}
-          <Toaster position="top-center" richColors />
+          <ChatbotProvider>
+            <ImageCacheProvider>
+              {children}
+              <CacheBuster />
+              <ChatbotLoader />
+              {process.env.NODE_ENV === "development" && <Agentation />}
+              <Toaster position="top-center" richColors />
+            </ImageCacheProvider>
+          </ChatbotProvider>
         </ThemeProvider>
         {/* AUDIT FIX [9.1, 9.4]: Analytics with mode="auto" respects DNT signals.
             For strict GDPR compliance, replace with a consent-gated component. */}
