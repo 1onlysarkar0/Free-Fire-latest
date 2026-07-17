@@ -1708,7 +1708,7 @@ async function seedSeoConfig() {
       twitterDescription: "Sign in to manage your Free Fire tournament profile and joined slots.",
       twitterImage: ogSignin,
       canonicalUrl: `${siteUrl}/sign-in`,
-      robots: "noindex, follow",
+      robots: "index, follow",
     }),
 
     // ── Sign Up ──
@@ -1723,7 +1723,7 @@ async function seedSeoConfig() {
       twitterDescription: "Create an account, add your Free Fire UID, and register for custom-room tournaments.",
       twitterImage: ogSignup,
       canonicalUrl: `${siteUrl}/sign-up`,
-      robots: "noindex, follow",
+      robots: "index, follow",
     }),
 
     // ── Forgot Password ──
@@ -1738,7 +1738,7 @@ async function seedSeoConfig() {
       twitterDescription: "Forgot your 1OnlySarkar password? Request a secure password reset link.",
       twitterImage: ogSignin,
       canonicalUrl: `${siteUrl}/forgot-password`,
-      robots: "noindex, follow",
+      robots: "index, follow",
     }),
 
     // ── Reset Password ──
