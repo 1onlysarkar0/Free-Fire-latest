@@ -1684,10 +1684,10 @@ async function seedSeoConfig() {
 
     // ── Home ──
     pageMeta("home", {
-      metaTitle: "1OnlySarkar - Free Fire Custom Room Tournaments",
+      metaTitle: "1OnlySarkar - Free Fire Tournaments",
       metaDescription: "Browse Free Fire Solo, Duo, and Squad tournaments on 1OnlySarkar. Check entry fees, prize pools, available slots, room details, and result updates.",
       metaKeywords: "Free Fire tournaments India, 1OnlySarkar, Free Fire custom room, Solo Duo Squad tournament, Free Fire UID tournament",
-      ogTitle: "1OnlySarkar - Free Fire Custom Room Tournaments",
+      ogTitle: "1OnlySarkar - Free Fire Tournaments",
       ogDescription: "Browse Free Fire Solo, Duo, and Squad tournaments with entry fees, prize pools, available slots, room details, and result updates.",
       ogImage: ogHome,
       twitterTitle: "1OnlySarkar - Free Fire Tournaments",
