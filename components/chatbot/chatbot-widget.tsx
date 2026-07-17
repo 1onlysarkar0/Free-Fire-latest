@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { X, SendHorizontal, RotateCcw, Maximize2, Minimize2 } from "lucide-react";
 import Link from "next/link";
 import { useChatbot } from "@/hooks/use-chatbot";
@@ -34,6 +35,9 @@ export function ChatbotWidget() {
   const [isFullscreen, setIsFullscreen] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const pathname = usePathname();
+
+  const isDashboardPath = pathname.startsWith("/dashboard");
 
   useEffect(() => {
     if (isOpen) {
@@ -64,8 +68,6 @@ export function ChatbotWidget() {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [isOpen, setIsOpen]);
-
-  const isDashboardPath = typeof window !== "undefined" && window.location.pathname.startsWith("/dashboard");
 
   if (configLoading || !config || !config.enabled) return null;
 
