@@ -85,9 +85,15 @@ export default async function DashboardLayout({
       />
 
       <SidebarInset className="flex flex-col min-h-screen bg-background">
-        <DashboardTopNav initialWalletBalance={balance} />
+        <DashboardTopNav 
+          initialWalletBalance={balance} 
+          siteName={config?.logoTitle ?? ""}
+          logoSrc={config?.logoSrc ?? "/assets/logo.svg"}
+          logoUrl={config?.logoUrl ?? "/dashboard"}
+          logoAlt={config?.logoAlt ?? "logo"}
+        />
         <main className="flex-1 overflow-y-auto">
-          <div className="p-4 md:p-6 max-w-7xl mx-auto">
+          <div className="p-4 pb-20 md:p-6 max-w-7xl mx-auto">
             {children}
           </div>
         </main>

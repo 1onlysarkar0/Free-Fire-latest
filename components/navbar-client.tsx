@@ -184,21 +184,34 @@ export const NavbarClient = ({
           </div>
 
           <div className="flex w-full items-center justify-between lg:hidden">
-            <Link href={logo.url} prefetch={true} className="flex items-center gap-2">
+            <Link href={logo.url} prefetch={true} className="flex items-center gap-2 shrink-0">
               <Image src={logo.src} className="w-7 h-7" alt={logo.alt} width={28} height={28} priority suppressHydrationWarning />
-              <span className="font-momo text-foreground text-lg font-normal">
-                {logo.title}
-              </span>
+              {!isLoggedIn && (
+                <span className="font-momo text-foreground text-base sm:text-lg font-normal truncate max-w-[120px] sm:max-w-none">
+                  {logo.title}
+                </span>
+              )}
             </Link>
-            <div className="flex items-center gap-1.5">
+
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               {isLoggedIn && (
                 <NotificationsBell initialNotifications={initialNotifications} initialUnreadCount={initialUnreadCount} />
+              )}
+              {isLoggedIn && (
+                <Link
+                  href="/dashboard"
+                  prefetch={true}
+                  className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold transition-colors duration-150 text-secondary-foreground bg-secondary hover:bg-secondary/80 rounded-md px-2.5 sm:px-3 py-1.5 shadow-xs shrink-0"
+                >
+                  <LayoutDashboard className="size-3.5 sm:size-4 shrink-0 text-foreground" />
+                  <span>Dashboard</span>
+                </Link>
               )}
               <Sheet>
                 <SheetTrigger asChild>
                   <button
                     type="button"
-                    className="h-11 w-11 flex items-center justify-center rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors cursor-pointer"
+                    className="h-10 w-10 flex items-center justify-center rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors cursor-pointer"
                     aria-label="Open menu"
                   >
                     <Menu className="size-5 text-foreground" />

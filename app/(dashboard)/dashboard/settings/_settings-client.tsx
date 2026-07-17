@@ -40,6 +40,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { H4, Muted } from "@/components/ui/typography";
 import { authClient } from "@/lib/auth-client";
+import { CopyButton } from "@/components/copy-button";
 
 interface UserProfile {
   id: string;
@@ -743,6 +744,23 @@ function SettingsContent({ initialProfile }: { initialProfile?: InitialProfile }
                           <TotpQrCode uri={totpUri} />
                         </div>
                       </div>
+
+                      {(() => {
+                        const secret = totpUri ? new URL(totpUri).searchParams.get("secret") : null;
+                        if (!secret) return null;
+                        
+                        return (
+                          <div className="rounded-xl border border-border bg-accent/30 p-3 text-center">
+                            <p className="text-xs text-muted-foreground mb-2">Can't scan the QR code? Use this setup key:</p>
+                            <div className="flex items-center justify-center gap-2">
+                              <code className="text-sm font-mono bg-background px-2 py-1 rounded border border-border tracking-wider text-foreground">
+                                {secret}
+                              </code>
+                              <CopyButton value={secret} variant="icon" className="static p-1.5 opacity-100 md:opacity-100 hover:bg-background h-auto w-auto" />
+                            </div>
+                          </div>
+                        );
+                      })()}
 
                       <Field>
                         <FieldLabel htmlFor="two-factor-code">

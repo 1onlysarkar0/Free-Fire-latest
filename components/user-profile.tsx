@@ -28,12 +28,18 @@ export interface PermissionData {
 
 export default function UserProfile({ 
   mini, 
+  customTrigger,
+  side,
+  align,
   initialUser, 
   initialPermData,
   myAccountText = "My Account",
   logOutText = "Log out"
 }: { 
   mini?: boolean; 
+  customTrigger?: React.ReactNode;
+  side?: "top" | "right" | "bottom" | "left";
+  align?: "start" | "center" | "end";
   initialUser?: { name?: string | null; email?: string | null; image?: string | null; [key: string]: unknown };
   initialPermData?: PermissionData;
   myAccountText?: string;
@@ -100,28 +106,32 @@ export default function UserProfile({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          className={`flex gap-2 justify-start items-center w-full rounded cursor-pointer text-left border-0 bg-transparent focus:outline-none ${mini ? "" : "px-4 pt-2 pb-3"}`}
-        >
-          <AvatarDisplay
-            image={userInfo?.image}
-            name={userInfo?.name}
-            className="h-8 w-8 shrink-0"
-          />
-          {mini ? null : (
-            <div className="flex flex-col min-w-0">
-              <P className="font-medium text-md mt-0 truncate">
-                {!userInfo && loading ? "Loading..." : userInfo?.name || "User"}
-              </P>
-              {roleLabel && (
-                <span className="text-xs text-primary font-semibold truncate">{roleLabel}</span>
-              )}
-            </div>
-          )}
-        </button>
+        {customTrigger ? (
+          customTrigger
+        ) : (
+          <button
+            type="button"
+            className={`flex gap-2 justify-start items-center w-full rounded cursor-pointer text-left border-0 bg-transparent focus:outline-none ${mini ? "" : "px-4 pt-2 pb-3"}`}
+          >
+            <AvatarDisplay
+              image={userInfo?.image}
+              name={userInfo?.name}
+              className="h-8 w-8 shrink-0"
+            />
+            {mini ? null : (
+              <div className="flex flex-col min-w-0">
+                <P className="font-medium text-md mt-0 truncate">
+                  {!userInfo && loading ? "Loading..." : userInfo?.name || "User"}
+                </P>
+                {roleLabel && (
+                  <span className="text-xs text-primary font-semibold truncate">{roleLabel}</span>
+                )}
+              </div>
+            )}
+          </button>
+        )}
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-60">
+      <DropdownMenuContent side={side} align={align} className="w-60 mb-2 shadow-xl border border-border/40 backdrop-blur-xl bg-card/95">
         <DropdownMenuLabel className="flex flex-col gap-0.5">
           <span>{userInfo?.name || myAccountText}</span>
           {roleLabel && (

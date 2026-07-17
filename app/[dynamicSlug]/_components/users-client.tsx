@@ -24,6 +24,8 @@ interface User {
   createdAt: string; roles: { id: string; name: string }[];
 }
 
+type FilterType = "all" | "top" | "banned" | "verified" | "hasRole";
+
 export default function UsersPage({ initialData }: { initialData: User[] }) {
   const router = useRouter();
   const params = useParams();
@@ -32,6 +34,7 @@ export default function UsersPage({ initialData }: { initialData: User[] }) {
   const [users, setUsers] = useState<User[]>(initialData);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const [filterType, setFilterType] = useState<FilterType>("all");
   const [banDialogOpen, setBanDialogOpen] = useState(false);
   const [banTargetUser, setBanTargetUser] = useState<User | null>(null);
   const [banReason, setBanReason] = useState("");
@@ -83,28 +86,83 @@ export default function UsersPage({ initialData }: { initialData: User[] }) {
     } else toast.error("Failed to ban user.");
   }
 
-  const filtered = users.filter(u =>
-    u.name.toLowerCase().includes(search.toLowerCase()) ||
-    u.email.toLowerCase().includes(search.toLowerCase()) ||
-    (u.gameName || "").toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = users.filter(u => {
+    const searchMatch = u.name.toLowerCase().includes(search.toLowerCase()) ||
+                        u.email.toLowerCase().includes(search.toLowerCase()) ||
+                        (u.gameName || "").toLowerCase().includes(search.toLowerCase());
+    
+    if (!searchMatch) return false;
+
+    if (filterType === "top") return u.topPlayer;
+    if (filterType === "banned") return u.isBanned;
+    if (filterType === "verified") return u.emailVerified;
+    if (filterType === "hasRole") return u.roles && u.roles.length > 0;
+
+    return true;
+  });
+
+  const stats = {
+    all: users.length,
+    top: users.filter(u => u.topPlayer).length,
+    verified: users.filter(u => u.emailVerified).length,
+    hasRole: users.filter(u => u.roles && u.roles.length > 0).length,
+    banned: users.filter(u => u.isBanned).length,
+  };
 
   return (
-    <div className="w-full min-w-0 space-y-6">
-      {/* Header */}
-      <div className="header-admin">
-        <div className="flex items-center gap-4">
-          <div className="rounded-xl bg-primary/10 p-2.5">
-            <Users className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-foreground">Users</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">Manage platform users, roles, and access.</p>
+    <div className="w-full max-w-full space-y-6 overflow-hidden">
+      {/* Header & Toolbox */}
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="rounded-xl bg-primary/10 p-2.5">
+              <Users className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight text-foreground">Users</h1>
+              <p className="text-sm text-muted-foreground mt-0.5">Manage platform users, roles, and access.</p>
+            </div>
           </div>
         </div>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search users..." className="pl-9 w-full sm:w-64 bg-background/50 border border-border/20 rounded-xl" />
+        
+        {/* Toolbox */}
+        <div className="flex flex-col md:flex-row items-center gap-3">
+          <div className="relative w-full md:w-80 shrink-0">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input 
+              value={search} 
+              onChange={e => setSearch(e.target.value)} 
+              placeholder="Search by name, email or game ID..." 
+              className="pl-9 w-full bg-background border-border shadow-sm rounded-xl h-10 text-sm" 
+            />
+          </div>
+          
+          <div className="flex items-center gap-2 overflow-x-auto w-full pb-2 md:pb-0 scrollbar-none snap-x">
+            {[
+              { id: "all", label: "All Users" },
+              { id: "top", label: "Top Players" },
+              { id: "verified", label: "Verified" },
+              { id: "hasRole", label: "With Roles" },
+              { id: "banned", label: "Banned" }
+            ].map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setFilterType(f.id as FilterType)}
+                className={`snap-start flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap transition-all duration-200 ${
+                  filterType === f.id
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-accent/50 text-muted-foreground hover:bg-accent hover:text-foreground"
+                }`}
+              >
+                {f.label}
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                  filterType === f.id ? "bg-primary-foreground/20 text-primary-foreground" : "bg-background text-muted-foreground"
+                }`}>
+                  {stats[f.id as keyof typeof stats]}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -136,17 +194,17 @@ export default function UsersPage({ initialData }: { initialData: User[] }) {
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[600px]">
               <thead>
-                <tr>
-                  <th>User</th>
-                  <th>Game Info</th>
-                  <th>Role / Status</th>
-                  <th className="w-28 text-right">Actions</th>
+                <tr className="text-muted-foreground border-b border-border/10">
+                  <th className="py-3 px-4 font-medium text-left">User</th>
+                  <th className="py-3 px-4 font-medium text-left">Game Info</th>
+                  <th className="py-3 px-4 font-medium text-left">Role / Status</th>
+                  <th className="w-28 text-right py-3 px-4 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/10">
                 {filtered.map(u => (
-                  <tr key={u.id} className={u.isBanned ? "bg-destructive/5" : ""}>
-                    <td>
+                  <tr key={u.id} className={`transition-colors hover:bg-accent/30 ${u.isBanned ? "bg-destructive/5" : ""}`}>
+                    <td className="py-2.5 px-4">
                       <div className="flex items-center gap-3">
                         <div className="relative shrink-0">
                           <AvatarDisplay image={u.image} name={u.name} className="h-8 w-8" />
@@ -162,7 +220,7 @@ export default function UsersPage({ initialData }: { initialData: User[] }) {
                         </div>
                       </div>
                     </td>
-                    <td>
+                    <td className="py-2.5 px-4">
                       {u.gameName ? (
                         <div>
                           <div className="font-medium text-muted-foreground text-xs">{u.gameName}</div>
@@ -170,7 +228,7 @@ export default function UsersPage({ initialData }: { initialData: User[] }) {
                         </div>
                       ) : <span className="text-muted-foreground/60 text-xs">Not set</span>}
                     </td>
-                    <td>
+                    <td className="py-2.5 px-4">
                       <div className="flex flex-col gap-1">
                         <div className="flex flex-wrap gap-1">
                           {u.roles.map(r => <Badge key={r.id} variant="secondary" className="text-[10px]">{r.name}</Badge>)}
@@ -183,7 +241,7 @@ export default function UsersPage({ initialData }: { initialData: User[] }) {
                         </div>
                       </div>
                     </td>
-                    <td className="text-right">
+                    <td className="text-right py-2.5 px-4">
                       <div className="flex justify-end gap-1">
                         <Button size="sm" variant="outline" asChild className="h-7 px-2.5 text-xs gap-1">
                           <Link href={`/${panelSlug}/users/${u.id}`} prefetch={true}>

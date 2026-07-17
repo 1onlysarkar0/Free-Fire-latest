@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { getUserProfileCached } from "@/lib/user-data";
 import SettingsPageClient from "./_settings-client";
@@ -11,6 +12,7 @@ export const instant = false;
 // TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
+  await connection();
   const sessionResult = await auth.api.getSession({ headers: await headers() });
 
   if (!sessionResult) {

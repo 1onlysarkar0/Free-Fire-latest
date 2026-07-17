@@ -3,7 +3,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { RocketIcon, ArrowRightIcon, Trophy, Gamepad2, Sparkles } from "lucide-react";
+import { ArrowRight, Trophy, Gamepad2, Sparkles, Compass, Ghost, Lightbulb, Swords } from "lucide-react";
 import { LogoCloud } from "@/components/ui/logo-cloud-3";
 import { H1, H2, P } from "@/components/ui/typography";
 import { getHeroConfig } from "@/lib/content";
@@ -130,12 +130,14 @@ export default async function Home() {
 
             {config.heroBadgeText && config.heroBadgeUrl && (
               <div className="mb-6 md:mb-8">
-                <Link href={config.heroBadgeUrl} prefetch={true} className="group">
-                  <Badge variant="secondary" className="rounded-full px-4 py-1.5 flex items-center gap-2 hover:bg-secondary/80 border border-border/60 font-ibm font-semibold">
-                    <RocketIcon className="size-3 text-foreground" aria-hidden="true" />
-                    <span>{config.heroBadgeText}</span>
-                    <ArrowRightIcon className="size-3 text-foreground" aria-hidden="true" />
-                  </Badge>
+                <Link href={config.heroBadgeUrl} prefetch={true} className="group inline-flex items-center">
+                  <div className="relative inline-flex items-center gap-2.5 rounded-full px-4 py-1.5 text-xs sm:text-sm font-semibold font-ibm text-foreground bg-accent/60 hover:bg-accent border border-border/50 hover:border-primary/40 shadow-xs transition-all duration-300 ease-out hover:shadow-md">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+                      <Lightbulb className="h-3 w-3 transition-transform duration-300 group-hover:scale-110" aria-hidden="true" />
+                    </span>
+                    <span className="tracking-tight">{config.heroBadgeText}</span>
+                    <ArrowRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-all duration-300 transform group-hover:translate-x-1" aria-hidden="true" />
+                  </div>
                 </Link>
               </div>
             )}
@@ -157,20 +159,21 @@ export default async function Home() {
                 <Link
                   href={config.heroCtaSecondaryUrl}
                   prefetch={true}
-                  className="inline-flex items-center justify-center gap-1.5 text-sm font-semibold transition-colors duration-150 bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-md px-5 py-2.5 shadow-xs font-ibm"
+                  className="group inline-flex items-center justify-center gap-2 text-sm font-semibold transition-colors duration-150 bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-foreground/20 rounded-md px-5 py-2.5 shadow-xs font-ibm"
                 >
-                  <Sparkles aria-hidden="true" className="size-4 shrink-0" />
-                  {config.heroCtaSecondaryText}
+                  <Ghost className="size-4 shrink-0 text-foreground" aria-hidden="true" />
+                  <span>{config.heroCtaSecondaryText}</span>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-transform duration-200 transform group-hover:translate-x-1" aria-hidden="true" />
                 </Link>
               )}
               {config.heroCtaPrimaryText && config.heroCtaPrimaryUrl && (
                 <Link
                   href={config.heroCtaPrimaryUrl}
                   prefetch={true}
-                  className="inline-flex items-center justify-center gap-1.5 text-sm font-semibold transition-colors duration-150 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-5 py-2.5 shadow-xs font-ibm"
+                  className="group inline-flex items-center justify-center gap-2 text-sm font-semibold transition-all duration-300 bg-primary text-primary-foreground hover:bg-primary/90 border border-primary/20 rounded-md px-5 py-2.5 shadow-xs font-ibm"
                 >
-                  <Trophy aria-hidden="true" className="size-4 shrink-0" />
-                  {config.heroCtaPrimaryText}
+                  <Swords className="size-4 shrink-0 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" aria-hidden="true" />
+                  <span>{config.heroCtaPrimaryText}</span>
                 </Link>
               )}
             </div>

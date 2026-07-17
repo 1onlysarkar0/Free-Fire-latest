@@ -122,6 +122,7 @@ export default function AdminSidebar({
       logoAlt={logoAlt}
       sections={sections}
       badge="Admin"
+      disableDock={true}
       footer={(collapsed) => {
         const linkEl = (
           <Link

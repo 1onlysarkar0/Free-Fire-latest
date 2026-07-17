@@ -6,13 +6,28 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronRight } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
+import Image from "next/image";
+import Link from "next/link";
+
 interface AdminNavbarProps {
   userName: string;
   userImage: string | null;
   isAdmin: boolean;
+  siteName?: string;
+  logoSrc?: string;
+  logoUrl?: string;
+  logoAlt?: string;
 }
 
-export default function AdminNavbar({ userName, userImage, isAdmin }: AdminNavbarProps) {
+export default function AdminNavbar({
+  userName,
+  userImage,
+  isAdmin,
+  siteName = "",
+  logoSrc = "/assets/logo.svg",
+  logoUrl = "/dashboard",
+  logoAlt = "logo",
+}: AdminNavbarProps) {
   const pathname = usePathname();
   
   // Extract the segment after the panelSlug

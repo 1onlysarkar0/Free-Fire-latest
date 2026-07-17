@@ -7,6 +7,8 @@ import { ChevronRight, Wallet } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 
+import Image from "next/image";
+
 function WalletBalance({ initialBalance }: { initialBalance: number }) {
   const [balance, setBalance] = useState<number>(initialBalance);
 
@@ -26,19 +28,31 @@ function WalletBalance({ initialBalance }: { initialBalance: number }) {
     <Link
       href="/dashboard/wallet"
       prefetch={true}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 hover:bg-primary/20 transition-colors"
+      className="flex items-center gap-1.5 transition-opacity hover:opacity-80"
     >
       <Wallet className="h-4 w-4 text-foreground shrink-0" />
-      <span className="text-sm font-bold text-primary">
-        {balance === null ? null : (
-          `₹${balance}`
-        )}
+      <span className="text-sm font-bold text-foreground">
+        {balance === null ? null : `₹${balance}`}
       </span>
     </Link>
   );
 }
 
-export default function DashboardTopNav({ initialWalletBalance }: { initialWalletBalance?: number }) {
+interface DashboardTopNavProps {
+  initialWalletBalance?: number;
+  siteName?: string;
+  logoSrc?: string;
+  logoUrl?: string;
+  logoAlt?: string;
+}
+
+export default function DashboardTopNav({
+  initialWalletBalance,
+  siteName = "",
+  logoSrc = "/assets/logo.svg",
+  logoUrl = "/dashboard",
+  logoAlt = "logo",
+}: DashboardTopNavProps) {
   const pathname = usePathname();
 
   const pathSegments = pathname.split("/").filter(Boolean);
@@ -57,16 +71,31 @@ export default function DashboardTopNav({ initialWalletBalance }: { initialWalle
 
   return (
     <header className="sticky top-0 z-40 flex h-14 items-center justify-between px-3 md:px-6 bg-background/70 backdrop-blur-xl border-b border-border/20 shrink-0 supports-[backdrop-filter]:bg-background/60">
-      <div className="flex items-center gap-3">
-        <SidebarTrigger className="shrink-0 text-foreground hover:text-foreground hover:bg-muted rounded-lg p-1.5 transition-colors" />
+      <div className="flex items-center gap-3 min-w-0">
+        <SidebarTrigger className="shrink-0 text-foreground hover:text-foreground hover:bg-muted rounded-lg p-1.5 transition-colors hidden md:flex" />
+        
+        {/* Mobile: Site Logo & Name */}
+        <Link href={logoUrl} prefetch={true} className="flex md:hidden items-center gap-2 min-w-0">
+          {logoSrc && (
+            <Image src={logoSrc} alt={logoAlt} width={28} height={28} className="h-7 w-7 object-contain shrink-0" />
+          )}
+          {siteName && (
+            <span className="font-momo text-base font-normal tracking-tight text-foreground truncate mt-[2px]">
+              {siteName}
+            </span>
+          )}
+        </Link>
+
+        {/* Desktop: Breadcrumbs */}
         <div className="hidden md:flex items-center gap-2 text-sm">
           {breadcrumbs}
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 shrink-0">
         <WalletBalance initialBalance={initialWalletBalance ?? 0} />
       </div>
     </header>
   );
 }
+
