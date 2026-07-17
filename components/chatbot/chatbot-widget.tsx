@@ -65,6 +65,8 @@ export function ChatbotWidget() {
     return () => window.removeEventListener("keydown", handler);
   }, [isOpen, setIsOpen]);
 
+  const isDashboardPath = typeof window !== "undefined" && window.location.pathname.startsWith("/dashboard");
+
   if (configLoading || !config || !config.enabled) return null;
 
   const handleSend = () => {
@@ -92,12 +94,12 @@ export function ChatbotWidget() {
 
   return (
     <>
-      {/* Floating button (desktop only — mobile/tablet use the header trigger) */}
+      {/* Floating button — hidden on mobile/tablet ONLY inside the user dashboard */}
       <button
         data-chatbot-widget="true"
         onClick={() => setIsOpen((v) => !v)}
         aria-label={isOpen ? "Close chat" : "Open chat"}
-        className="hidden md:flex fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-40 items-center justify-center hover:scale-105 transition-all duration-200"
+        className={`${isDashboardPath ? "hidden md:flex" : "flex"} fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-40 items-center justify-center hover:scale-105 transition-all duration-200`}
       >
         {isOpen ? (
           <div className="w-10 h-10 rounded-full bg-destructive text-destructive-foreground shadow-lg flex items-center justify-center border border-border/20">
