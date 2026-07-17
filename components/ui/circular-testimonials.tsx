@@ -197,17 +197,17 @@ export const CircularTestimonials = ({
     <div className="w-full max-w-[56rem] p-4 md:p-8 mx-auto bg-background">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-20 items-center">
         {/* Images */}
-        <div className="relative w-full h-[18rem] md:h-[24rem]" style={{ perspective: 1000 }} ref={imageContainerRef}>
+        <div className="relative w-full max-w-[20rem] md:max-w-[22rem] aspect-square mx-auto" style={{ perspective: 1000 }} ref={imageContainerRef}>
           {testimonials.map((testimonial, index) => (
             <div
               key={testimonial.src}
-              className="absolute inset-0 w-full h-full rounded-2xl overflow-hidden shadow-lg transition-all duration-700 bg-background border border-border/10"
+              className="absolute inset-0 w-full h-full aspect-square rounded-2xl overflow-hidden shadow-lg transition-all duration-700 bg-background border border-border/10 flex items-center justify-center p-2"
               style={getImageStyle(index)}
             >
               <Image
                 src={testimonial.src}
                 alt={testimonial.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full aspect-square object-contain p-2"
                 fill
                 priority={true}
                 sizes="(max-width: 768px) 100vw, 500px"

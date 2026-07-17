@@ -8,18 +8,30 @@ const STORAGE_KEY = "app_cache_version";
  * CacheBuster — runs silently on every page load for every user.
  *
  * Logic:
- * 1. Fetch the current cache version from /api/cache-version (no auth, no-store).
- * 2. Compare to the version stored in localStorage.
- * 3. If they MATCH → do nothing. Zero cost, zero disruption.
- * 4. If they DIFFER → clear all browser caches (Cache API, localStorage,
- *    sessionStorage), store the new version, then hard-reload ONCE.
- *    This ensures every user gets a fresh page after an admin purge.
- *
- * The reload only happens once per version bump — not in a loop.
+ * 1. Automatically cleans up any leftover `__cv` or `purge` query parameters from URL.
+ * 2. Fetches current cache version from /api/cache-version (no-store).
+ * 3. Compares to the version stored in localStorage.
+ * 4. If they DIFFER → clears all browser caches (Cache API, Service Workers,
+ *    localStorage, sessionStorage), stores the new version, then reloads ONCE cleanly.
+ *    This forces every user to fetch 100% fresh CSS, JS, images, and data.
  */
 export default function CacheBuster() {
   useEffect(() => {
     let cancelled = false;
+
+    // ── Clean URL parameters immediately on mount ─────────────────────────────
+    if (typeof window !== "undefined" && window.location.search) {
+      const url = new URL(window.location.href);
+      if (url.searchParams.has("__cv") || url.searchParams.has("purge")) {
+        url.searchParams.delete("__cv");
+        url.searchParams.delete("purge");
+        const cleanPath =
+          url.pathname +
+          (url.searchParams.toString() ? "?" + url.searchParams.toString() : "") +
+          url.hash;
+        window.history.replaceState(null, "", cleanPath);
+      }
+    }
 
     async function checkVersion() {
       try {
@@ -35,13 +47,13 @@ export default function CacheBuster() {
         const stored = localStorage.getItem(STORAGE_KEY);
 
         if (stored === version) {
-          // Versions match — everything is up to date, do nothing
+          // Versions match — everything is up to date
           return;
         }
 
         // ── Version mismatch: purge all client-side caches ────────────────
         console.info(
-          `[CacheBuster] Cache version changed (${stored ?? "none"} → ${version}). Clearing caches…`
+          `[CacheBuster] Cache version changed (${stored ?? "none"} → ${version}). Clearing all caches…`
         );
 
         // 1. Clear Cache API (service worker caches, browser HTTP cache)
@@ -54,12 +66,22 @@ export default function CacheBuster() {
           }
         }
 
-        // 2. Save new version BEFORE clearing localStorage so we don't loop
+        // 2. Unregister any Service Workers
+        if ("serviceWorker" in navigator) {
+          try {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(registrations.map((r) => r.unregister()));
+          } catch {
+            /* non-critical */
+          }
+        }
+
+        // 3. Save new version BEFORE clearing localStorage so we don't loop
         const keysToPreserve: Record<string, string | null> = {
           [STORAGE_KEY]: version,
         };
 
-        // 3. Clear localStorage & sessionStorage
+        // 4. Clear localStorage & sessionStorage
         try {
           localStorage.clear();
           sessionStorage.clear();
@@ -67,7 +89,7 @@ export default function CacheBuster() {
           /* non-critical */
         }
 
-        // 4. Restore the new version key so the reload doesn't re-trigger
+        // 5. Restore the new version key so the reload doesn't re-trigger
         try {
           Object.entries(keysToPreserve).forEach(([k, v]) => {
             if (v !== null) localStorage.setItem(k, v);
@@ -78,12 +100,8 @@ export default function CacheBuster() {
 
         if (cancelled) return;
 
-        // 5. Hard-navigate with a version query param — this forces the browser
-        //    to treat it as a fresh URL, bypassing any page-level HTTP cache,
-        //    and the server returns new HTML referencing new content-hashed CSS.
-        const url = new URL(window.location.href);
-        url.searchParams.set("__cv", version);
-        window.location.replace(url.toString());
+        // 6. Hard-reload page cleanly without leaving query parameters in URL
+        window.location.reload();
       } catch {
         // Network error or API down — silently skip, never crash
       }

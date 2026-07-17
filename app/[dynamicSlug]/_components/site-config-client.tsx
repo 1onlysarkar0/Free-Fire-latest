@@ -55,7 +55,7 @@ export default function SiteConfigClient({ initialData }: { initialData: SiteCon
 
       // Hard-reload admin's own page after a short delay to pick up fresh data
       setTimeout(() => {
-        window.location.href = window.location.pathname + "?purge=" + Date.now();
+        window.location.reload();
       }, 1200);
     } catch (e: unknown) {
       toast.error("Purge cache failed: " + (e instanceof Error ? e.message : String(e)));

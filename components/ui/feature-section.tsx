@@ -98,8 +98,7 @@ export function FeatureSteps({
 
           <div
             className={cn(
-              "order-1 md:order-2 relative w-full overflow-hidden",
-              imageHeight
+              "order-1 md:order-2 relative w-full max-w-[380px] md:max-w-[420px] aspect-square mx-auto overflow-hidden flex items-center justify-center"
             )}
             style={{ perspective: 1000 }}
           >
@@ -108,7 +107,7 @@ export function FeatureSteps({
               return (
                 <motion.div
                   key={index}
-                  className="absolute inset-0"
+                  className="absolute inset-0 flex items-center justify-center p-2"
                   initial={false}
                   animate={mounted ? {
                     opacity: isActive ? 1 : 0,
@@ -124,14 +123,16 @@ export function FeatureSteps({
                   transition={mounted ? { duration: 0.5, ease: "easeInOut" } : { duration: 0 }}
                   style={{ pointerEvents: isActive ? "auto" : "none" }}
                 >
-                  <Image
-                    src={feature.image}
-                    alt={feature.step}
-                    className="w-full h-full object-cover transition-transform transform hover:scale-105 duration-700"
-                    width={1000}
-                    height={500}
-                    priority={true}
-                  />
+                  <div className="relative w-full h-full aspect-square flex items-center justify-center p-3">
+                    <Image
+                      src={feature.image}
+                      alt={feature.step}
+                      className="w-full h-full aspect-square object-contain transition-transform transform hover:scale-105 duration-700"
+                      width={500}
+                      height={500}
+                      priority={true}
+                    />
+                  </div>
                 </motion.div>
               );
             })}
