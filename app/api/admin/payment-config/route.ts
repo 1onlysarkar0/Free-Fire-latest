@@ -7,9 +7,6 @@ import { z } from "zod";
 import { invalidateAdminCache } from "@/lib/cache";
 
 const updateSchema = z.object({
-  trustedSenders: z
-    .array(z.string().email("Each trusted sender must be a valid email"))
-    .max(10),
   upiId: z.string().max(50),
   upiName: z.string().max(100),
   pageContent: z.string().max(5000),
@@ -34,7 +31,6 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     success: true,
     data: {
-      trustedSenders: JSON.parse(row.trustedSenders || "[]"),
       upiId: row.upiId,
       upiName: row.upiName,
       pageContent: row.pageContent,
@@ -64,7 +60,6 @@ export async function PUT(request: NextRequest) {
   }
 
   const {
-    trustedSenders,
     upiId,
     upiName,
     pageContent,
@@ -80,7 +75,6 @@ export async function PUT(request: NextRequest) {
   if (existing.length === 0) {
     await db.insert(paymentConfig).values({
       id: "default",
-      trustedSenders: JSON.stringify(trustedSenders),
       upiId,
       upiName,
       pageContent,
@@ -91,7 +85,6 @@ export async function PUT(request: NextRequest) {
     await db
       .update(paymentConfig)
       .set({
-        trustedSenders: JSON.stringify(trustedSenders),
         upiId,
         upiName,
         pageContent,

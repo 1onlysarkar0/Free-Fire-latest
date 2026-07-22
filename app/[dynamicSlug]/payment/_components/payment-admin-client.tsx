@@ -20,7 +20,6 @@ const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false });
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 
 interface PaymentConfigData {
-  trustedSenders: string[];
   upiId: string;
   upiName: string;
   pageContent: string;
@@ -70,18 +69,9 @@ const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
 };
 
 type ActiveTab = "settings" | "content" | "inbox" | "logs";
-type SettingsTab = "guide" | "sources" | "upi" | "system";
+type SettingsTab = "guide" | "upi" | "system";
 
 const defaultConfig: PaymentConfigData = {
-  trustedSenders: [
-    "alerts@paytm.com",
-    "noreply@alerts.sbi.co.in",
-    "alerts@hdfcbank.net",
-    "notify@idfcfirstbank.com",
-    "alerts@axisbank.com",
-    "noreply@icicibank.com",
-    "alerts@yesbank.in",
-  ],
   upiId: "",
   upiName: "",
   pageContent: "",
@@ -92,7 +82,6 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
   const router = useRouter();
   const [config, setConfig] = useState<PaymentConfigData>(initialConfig || defaultConfig);
   const [saving, setSaving] = useState(false);
-  const [newSender, setNewSender] = useState("");
   const [activeTab, setActiveTab] = useState<ActiveTab>("settings");
   const [settingsTab, setSettingsTab] = useState<SettingsTab>("guide");
   const [verifications, setVerifications] = useState<VerificationRow[]>([]);
@@ -227,10 +216,7 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
       const res = await fetch("/api/admin/payment-config", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...config,
-          trustedSenders: config.trustedSenders.filter((s) => s.trim()),
-        }),
+        body: JSON.stringify(config),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Save failed");
@@ -241,21 +227,6 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
     } finally {
       setSaving(false);
     }
-  }
-
-  function addSender() {
-    const trimmed = newSender.trim().toLowerCase();
-    if (!trimmed || config.trustedSenders.includes(trimmed)) return;
-    if (config.trustedSenders.length >= 10) {
-      toast.error("Maximum 10 trusted senders allowed.");
-      return;
-    }
-    set("trustedSenders", [...config.trustedSenders, trimmed]);
-    setNewSender("");
-  }
-
-  function removeSender(email: string) {
-    set("trustedSenders", config.trustedSenders.filter((s) => s !== email));
   }
 
   const workerCodeSnippet = `export default {
@@ -341,7 +312,7 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
             {activeTab === "settings" && (
               <div className="space-y-4">
                 <div className="flex flex-wrap gap-2">
-                  {(["guide", "sources", "upi", "system"] as SettingsTab[]).map((t) => (
+                  {(["guide", "upi", "system"] as SettingsTab[]).map((t) => (
                     <button
                       key={t}
                       onClick={() => setSettingsTab(t)}
@@ -351,7 +322,7 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
                           : "bg-background text-muted-foreground hover:bg-accent"
                       }`}
                     >
-                      {t === "guide" ? "Cloudflare & Forwarding Setup Guide" : t === "sources" ? "Payment Sources" : t === "upi" ? "UPI Setup" : "System"}
+                      {t === "guide" ? "Cloudflare & Forwarding Setup Guide" : t === "upi" ? "UPI Setup" : "System"}
                     </button>
                   ))}
                 </div>
@@ -452,35 +423,6 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
                   </div>
                 )}
 
-                {/* Payment Sources */}
-                {settingsTab === "sources" && (
-                  <div className="space-y-5">
-                    <div>
-                      <h3 className="text-sm font-semibold text-foreground">Trusted Sender Emails</h3>
-                      <Muted className="text-xs mt-0.5">The system ingests emails ONLY from these verified senders.</Muted>
-                    </div>
-                    <div className="space-y-2 max-w-lg">
-                      {config.trustedSenders.map((email) => (
-                        <div key={email} className="flex items-center gap-2 rounded-xl bg-background/60 px-3 py-2 border">
-                          <span className="text-sm font-mono flex-1">{email}</span>
-                          {canEdit && (
-                            <button onClick={() => removeSender(email)} className="text-muted-foreground hover:text-destructive transition-colors">
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                    {canEdit && config.trustedSenders.length < 10 && (
-                      <div className="flex gap-2 max-w-lg">
-                        <Input placeholder="new-bank-alert@bank.com" value={newSender} onChange={(e) => setNewSender(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addSender()} />
-                        <Button variant="outline" onClick={addSender} className="gap-1 shrink-0">
-                          <Plus className="h-4 w-4" /> Add
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )}
 
                 {/* UPI Setup */}
                 {settingsTab === "upi" && (

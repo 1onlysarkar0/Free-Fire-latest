@@ -41,23 +41,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify Trusted Sender
-    const trustedSenders = config.trustedSenders
-      .map((s) => s.trim().toLowerCase())
-      .filter(Boolean);
-
-    if (trustedSenders.length > 0) {
-      const isTrusted = trustedSenders.some((trusted) =>
-        senderEmail.includes(trusted)
-      );
-      if (!isTrusted) {
-        return NextResponse.json(
-          { success: false, error: "Sender email is not in trusted senders list" },
-          { status: 403 }
-        );
-      }
-    }
-
     // 4. Combine Full Email Text
     const emailSubject = subject || "";
     const emailHtmlText = typeof html === "string" ? stripHtml(html) : "";

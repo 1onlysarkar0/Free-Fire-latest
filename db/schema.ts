@@ -583,7 +583,6 @@ export const contentTemplate = pgTable("content_templates", {
 
 export const paymentConfig = pgTable("payment_config", {
   id: text("id").primaryKey().default("default"),
-  trustedSenders: text("trusted_senders").notNull().default("[]"),
   upiId: text("upi_id").notNull().default(""),
   upiName: text("upi_name").notNull().default("1onlysarkar"),
   pageContent: text("page_content").notNull().default(""),

@@ -13,7 +13,6 @@ const IMAP_FOLDER_PROCESSED = "Free Fire";
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface PaymentConfig {
-  trustedSenders: string[];
   upiId: string;
   upiName: string;
   pageContent: string;
@@ -125,7 +124,6 @@ export async function getPaymentConfig(): Promise<PaymentConfig | null> {
   if (!rows.length) return null;
   const row = rows[0];
   return {
-    trustedSenders: z.array(z.string()).catch([]).parse(JSON.parse(row.trustedSenders || "[]")),
     upiId: row.upiId,
     upiName: row.upiName,
     pageContent: row.pageContent,

@@ -19,7 +19,6 @@ export default async function PaymentAdminPage({ params }: { params: Promise<{ d
   const row = rows[0];
   const initialConfig = row
     ? {
-        trustedSenders: JSON.parse(row.trustedSenders || "[]") as string[],
         upiId: row.upiId,
         upiName: row.upiName,
         pageContent: row.pageContent,

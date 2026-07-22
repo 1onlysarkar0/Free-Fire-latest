@@ -2142,11 +2142,6 @@ Come back here, enter the **amount you paid** and the **UTR number**, then click
     .insert(paymentConfig)
     .values({
       id: "default",
-      trustedSenders: JSON.stringify([
-        "no-reply@famapp.in",
-        "noreply@alerts.sbi.co.in",
-        "alerts@hdfcbank.net",
-      ]),
       upiId: "",
       upiName: "1onlysarkar",
       pageContent: defaultContent,
