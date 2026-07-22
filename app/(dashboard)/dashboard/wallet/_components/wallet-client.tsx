@@ -57,42 +57,42 @@ function TxIcon({ type }: { type: string }) {
   const isCredit = TYPE_CREDIT[type] ?? false;
 
   if (type === "PRIZE_CREDIT") {
-    return <Trophy className="h-4 w-4 shrink-0 text-amber-500" />;
+    return <Trophy className="h-5 w-5 shrink-0 text-foreground" />;
   }
 
   if (type === "JOIN_FEE") {
-    return <Ticket className="h-4 w-4 shrink-0 text-blue-500" />;
+    return <Ticket className="h-5 w-5 shrink-0 text-foreground" />;
   }
 
   if (type === "UPI_DEPOSIT") {
-    return <Plus className="h-4 w-4 shrink-0 text-emerald-500" />;
+    return <Plus className="h-5 w-5 shrink-0 text-foreground" />;
   }
 
   return isCredit ? (
-    <ArrowDownLeft className="h-4 w-4 shrink-0 text-emerald-500" />
+    <ArrowDownLeft className="h-5 w-5 shrink-0 text-foreground" />
   ) : (
-    <ArrowUpRight className="h-4 w-4 shrink-0 text-destructive" />
+    <ArrowUpRight className="h-5 w-5 shrink-0 text-foreground" />
   );
 }
 
 function getStatusBadgeClass(status?: string | null) {
-  if (!status) return "bg-muted text-muted-foreground";
+  if (!status) return "badge badge-muted";
 
   const normalized = status.toLowerCase();
 
   if (normalized === "completed" || normalized === "verified") {
-    return "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20";
+    return "badge badge-success";
   }
 
   if (normalized === "pending") {
-    return "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20";
+    return "badge badge-warning";
   }
 
   if (normalized === "failed") {
-    return "bg-destructive/10 text-destructive border border-destructive/20";
+    return "badge badge-error";
   }
 
-  return "bg-muted text-muted-foreground";
+  return "badge badge-muted";
 }
 
 export interface Transaction {
@@ -297,264 +297,654 @@ export default function WalletClient({
   }
 
   const paymentEnabled = Boolean(paymentInfo?.enabled && paymentInfo?.upiId);
-
   return (
-    <div className="w-full min-w-0 space-y-5 pb-6 text-foreground font-ibm">
-      {/* Top Wallet Overview Tile */}
-      <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
-        <Card className="p-4 rounded-2xl border border-border/40 bg-card shadow-3xs flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              Available Balance
-            </p>
-            <p className="text-xl sm:text-2xl font-extrabold tracking-tight text-foreground font-mono tabular-nums mt-1">
-              ₹{balance}
-            </p>
-          </div>
-          <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-            <Wallet className="h-4 w-4" />
-          </div>
-        </Card>
-
-        <Card className="p-4 rounded-2xl border border-border/40 bg-card shadow-3xs flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              Total Earned
-            </p>
-            <p className="text-xl sm:text-2xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400 font-mono tabular-nums mt-1">
-              +₹{totalEarned}
-            </p>
-          </div>
-          <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-            <TrendingUp className="h-4 w-4" />
-          </div>
-        </Card>
-
-        <Card className="p-4 rounded-2xl border border-border/40 bg-card shadow-3xs flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              Total Spent
-            </p>
-            <p className="text-xl sm:text-2xl font-extrabold tracking-tight text-muted-foreground font-mono tabular-nums mt-1">
-              -₹{totalSpent}
-            </p>
-          </div>
-          <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-            <TrendingDown className="h-4 w-4" />
-          </div>
-        </Card>
-      </div>
-
-      {/* Segmented Action Tabs */}
+    <div className="w-full min-w-0 space-y-6">
       <Tabs defaultValue="add-funds" className="w-full" onValueChange={(v) => { if (v === "withdraw") void loadWithdrawHistory(1); }}>
-        <TabsList className="grid h-10 w-full grid-cols-3 rounded-xl bg-secondary/50 p-1 mb-4">
-          <TabsTrigger value="add-funds" className="rounded-lg text-xs font-semibold data-[state=active]:bg-background data-[state=active]:shadow-2xs">
-            <Plus className="h-3.5 w-3.5 mr-1.5" /> Deposit
-          </TabsTrigger>
-          <TabsTrigger value="withdraw" className="rounded-lg text-xs font-semibold data-[state=active]:bg-background data-[state=active]:shadow-2xs">
-            <ArrowUpFromLine className="h-3.5 w-3.5 mr-1.5" /> Withdraw
-          </TabsTrigger>
-          <TabsTrigger value="history" className="rounded-lg text-xs font-semibold data-[state=active]:bg-background data-[state=active]:shadow-2xs">
-            <History className="h-3.5 w-3.5 mr-1.5" /> History
-          </TabsTrigger>
-        </TabsList>
+        <div className="space-y-5 md:space-y-6">
 
-        {/* Deposit Tab */}
-        <TabsContent value="add-funds" className="space-y-4 mt-0">
-          {!paymentEnabled ? (
-            <Card className="p-6 rounded-2xl border border-border/40 bg-card/60 text-center">
-              <p className="text-sm font-bold text-foreground">UPI Payment Gateway Disabled</p>
-              <p className="text-xs text-muted-foreground mt-1">Contact platform administrator for manual top-ups.</p>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
-              {/* Scan Box */}
-              <Card className="p-4 md:col-span-4 rounded-2xl border border-border/40 bg-card text-center space-y-3">
-                <div className="flex items-center justify-center gap-2 text-xs font-bold text-foreground">
-                  <CreditCard className="w-4 h-4 text-primary" /> Scan UPI QR
-                </div>
-                <div className="p-2 bg-white rounded-xl inline-block border border-border/20 shadow-2xs">
-                  <UPIQR upiId={paymentInfo!.upiId} upiName={paymentInfo!.upiName} size={160} />
-                </div>
-                <p className="text-[11px] text-muted-foreground font-mono">UPI ID: <strong className="text-foreground">{paymentInfo!.upiId}</strong></p>
-              </Card>
-
-              {/* Form Box */}
-              <Card className="p-4 sm:p-5 md:col-span-8 rounded-2xl border border-border/40 bg-card space-y-4">
-                <div>
-                  <h3 className="text-sm font-bold text-foreground">Submit UPI Reference</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">Enter exact amount and 12-digit UTR/Ref number after paying.</p>
-                </div>
-
-                <form onSubmit={handleVerifyPayment} className="space-y-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <Label htmlFor="utr-amount" className="text-xs font-bold">Amount Paid (₹)</Label>
-                      <Input
-                        id="utr-amount"
-                        type="number"
-                        min={1}
-                        placeholder="e.g. 100"
-                        className="h-9 text-xs font-mono font-bold"
-                        value={utrAmount}
-                        onChange={(e) => setUtrAmount(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="utr-number" className="text-xs font-bold">UTR / Ref Number</Label>
-                      <Input
-                        id="utr-number"
-                        type="text"
-                        placeholder="e.g. 412345678901"
-                        className="h-9 text-xs font-mono uppercase font-bold"
-                        value={utrNumber}
-                        onChange={(e) => setUtrNumber(e.target.value.toUpperCase())}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  {formError && (
-                    <div className="p-2.5 rounded-xl bg-destructive/10 text-destructive text-xs font-medium flex items-center gap-2">
-                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                      <span>{formError}</span>
-                    </div>
-                  )}
-
-                  <Button type="submit" disabled={submitting} className="w-full sm:w-auto h-9 text-xs font-bold rounded-xl px-5">
-                    {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />}
-                    Verify Payment
-                  </Button>
-                </form>
-              </Card>
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+            <div className="space-y-1">
+              <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-foreground">
+                My wallet
+              </h1>
+              <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
+                Add funds, verify UPI payments, and track every wallet activity from one place.
+              </p>
             </div>
-          )}
-        </TabsContent>
 
-        {/* Withdraw Tab */}
-        <TabsContent value="withdraw" className="space-y-4 mt-0">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
-            <Card className="p-4 sm:p-5 md:col-span-6 rounded-2xl border border-border/40 bg-card space-y-4">
-              <div>
-                <h3 className="text-sm font-bold text-foreground">Withdraw to UPI</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">Directly request payout to your GPay, PhonePe, or Paytm UPI ID.</p>
+            <TabsList className="grid h-auto w-full grid-cols-3 rounded-2xl bg-accent/60 p-1 shadow-sm xl:w-auto">
+              <TabsTrigger
+                value="add-funds"
+                className="rounded-xl px-3 py-2 text-sm font-semibold text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-h-[44px] flex items-center justify-center gap-2"
+              >
+                <Plus className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Add Funds</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="withdraw"
+                className="rounded-xl px-3 py-2 text-sm font-semibold text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-h-[44px] flex items-center justify-center gap-2"
+              >
+                <ArrowUpFromLine className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Withdraw</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="history"
+                className="rounded-xl px-3 py-2 text-sm font-semibold text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-h-[44px] flex items-center justify-center gap-2"
+              >
+                <History className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">History</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <Card className="card-widget p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                    Available balance
+                  </p>
+                  <p className="mt-1 text-xl md:text-2xl font-semibold tracking-tight text-foreground">
+                    ₹{balance}
+                  </p>
+                </div>
+                <Wallet className="h-5 w-5 shrink-0 text-foreground" />
               </div>
-
-              <form onSubmit={handleWithdrawSubmit} className="space-y-3">
-                <div className="space-y-1">
-                  <Label htmlFor="withdraw-amount" className="text-xs font-bold">Withdraw Amount (₹)</Label>
-                  <Input
-                    id="withdraw-amount"
-                    type="number"
-                    min={1}
-                    placeholder="e.g. 200"
-                    className="h-9 text-xs font-mono font-bold"
-                    value={withdrawAmount}
-                    onChange={(e) => setWithdrawAmount(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="withdraw-upi" className="text-xs font-bold">Your UPI ID</Label>
-                  <Input
-                    id="withdraw-upi"
-                    type="text"
-                    placeholder="e.g. gamer@paytm"
-                    className="h-9 text-xs font-mono font-bold"
-                    value={withdrawUpiId}
-                    onChange={(e) => setWithdrawUpiId(e.target.value)}
-                    required
-                  />
-                </div>
-
-                {withdrawError && (
-                  <div className="p-2.5 rounded-xl bg-destructive/10 text-destructive text-xs font-medium flex items-center gap-2">
-                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                    <span>{withdrawError}</span>
-                  </div>
-                )}
-
-                <Button type="submit" disabled={withdrawSubmitting} className="w-full sm:w-auto h-9 text-xs font-bold rounded-xl px-5">
-                  {withdrawSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <ArrowUpFromLine className="w-3.5 h-3.5 mr-1.5" />}
-                  Submit Request
-                </Button>
-              </form>
+              <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                Current usable wallet amount for tournament entries, refunds, prize credits, and
+                verified deposits.
+              </p>
             </Card>
 
-            {/* Withdraw History Log */}
-            <Card className="p-4 md:col-span-6 rounded-2xl border border-border/40 bg-card space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Withdrawal Requests Log</h3>
-              {withdrawHistoryLoading ? (
-                <div className="py-6 text-center"><Loader2 className="w-5 h-5 animate-spin mx-auto text-muted-foreground" /></div>
-              ) : withdrawHistory.length === 0 ? (
-                <p className="text-xs text-muted-foreground py-4 text-center">No withdrawal requests logged yet.</p>
-              ) : (
-                <div className="space-y-2">
-                  {withdrawHistory.map((w) => (
-                    <div key={w.id} className="p-2.5 rounded-xl bg-secondary/40 border border-border/30 flex items-center justify-between text-xs">
-                      <div>
-                        <p className="font-bold text-foreground font-mono">₹{w.amount} <span className="font-normal text-muted-foreground">to {w.upiId}</span></p>
-                        <p className="text-[10px] text-muted-foreground">{format(new Date(w.createdAt), "dd MMM, h:mm a")}</p>
-                      </div>
-                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${
-                        w.status === "COMPLETED" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : w.status === "CANCELLED" ? "bg-destructive/10 text-destructive" : "bg-amber-500/10 text-amber-600"
-                      }`}>
-                        {w.status.toLowerCase()}
-                      </span>
-                    </div>
-                  ))}
+            <Card className="card-widget p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                    Total earned
+                  </p>
+                  <p className="mt-1 text-xl md:text-2xl font-semibold tracking-tight text-foreground">
+                    +₹{totalEarned}
+                  </p>
                 </div>
-              )}
+                <TrendingUp className="h-5 w-5 shrink-0 text-foreground" />
+              </div>
+              <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                Refunds, prize winnings, admin credits, and successful UPI top-ups.
+              </p>
             </Card>
+
+            <Card className="card-widget p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                    Total spent
+                  </p>
+                  <p className="mt-1 text-xl md:text-2xl font-semibold tracking-tight text-foreground">
+                    -₹{totalSpent}
+                  </p>
+                </div>
+                <TrendingDown className="h-5 w-5 shrink-0 text-foreground" />
+              </div>
+              <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                Tournament entries, manual debits, and withdrawal requests logged from your
+                wallet.
+              </p>
+            </Card>
+
           </div>
-        </TabsContent>
+        </div>
 
-        {/* History Tab */}
-        <TabsContent value="history" className="space-y-3 mt-0">
-          <div className="flex items-center justify-between px-0.5">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Transaction Log</h3>
-            <Button variant="ghost" size="sm" onClick={() => { void loadBalance(); void loadTransactions(1); }} className="h-7 text-[11px] px-2 text-muted-foreground">
-              <RefreshCw className="w-3 h-3 mr-1" /> Refresh
-            </Button>
-          </div>
+          <TabsContent value="add-funds" className="mt-5 md:mt-6">
+            {!paymentEnabled ? (
+              <div className="flex min-h-[300px] flex-col items-center justify-center bg-background px-4 py-8 text-center">
+                <Wallet className="mb-3 h-6 w-6 text-foreground" />
 
-          {loadingTx ? (
-            <div className="py-8 text-center"><Loader2 className="w-5 h-5 animate-spin mx-auto text-muted-foreground" /></div>
-          ) : transactions.length === 0 ? (
-            <Card className="p-6 rounded-2xl border border-border/40 text-center">
-              <p className="text-xs text-muted-foreground">No transaction history recorded yet.</p>
-            </Card>
-          ) : (
-            <div className="space-y-2">
-              {transactions.map((tx) => {
-                const isCredit = TYPE_CREDIT[tx.type] ?? false;
+                <p className="text-base md:text-lg font-semibold text-foreground">
+                  Payment gateway unavailable
+                </p>
 
-                return (
-                  <Card key={tx.id} className="p-3 rounded-xl border border-border/40 bg-card flex items-center justify-between gap-3 hover:border-primary/30 transition-all">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center shrink-0">
-                        <TxIcon type={tx.type} />
-                      </div>
+                <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
+                  Online wallet top-up is currently disabled or not configured. Please contact the
+                  admin for manual assistance.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-5 md:gap-6 lg:grid-cols-12">
+                <div className="lg:col-span-4">
+                  <Card className="card-settings p-5 md:p-6">
+                    <div className="flex items-start gap-3">
+                      <CreditCard className="h-5 w-5 shrink-0 text-foreground" />
                       <div className="min-w-0">
-                        <p className="text-xs font-bold text-foreground truncate">{TYPE_LABELS[tx.type] ?? tx.type}</p>
-                        <p className="text-[10px] text-muted-foreground truncate">{format(new Date(tx.createdAt), "dd MMM yyyy, h:mm a")}</p>
+                        <p className="text-sm font-semibold text-foreground">Scan and pay</p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Use any supported UPI app to complete the payment.
+                        </p>
                       </div>
                     </div>
 
-                    <div className="text-right shrink-0">
-                      <p className={`text-xs font-extrabold font-mono ${isCredit ? "text-emerald-600 dark:text-emerald-400" : "text-foreground"}`}>
-                        {isCredit ? "+" : "-"}₹{tx.amount}
+                    <div className="mt-4 rounded-2xl bg-background/80 p-4 shadow-sm">
+                      <div className="mx-auto flex w-full justify-center">
+                        <UPIQR
+                          upiId={paymentInfo!.upiId}
+                          upiName={paymentInfo!.upiName}
+                          size={200}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-3 rounded-xl bg-background/80 px-3 py-3 md:px-4 md:py-3">
+                      <p className="text-sm leading-6 text-muted-foreground">
+                        After completing payment, submit the exact amount and UTR reference from
+                        your UPI app.
                       </p>
-                      <p className="text-[10px] text-muted-foreground font-mono">Bal: ₹{tx.balanceAfter}</p>
                     </div>
                   </Card>
-                );
-              })}
+                </div>
+
+                <div className="space-y-5 md:space-y-6 lg:col-span-8">
+                  <Card className="card-settings p-5 md:p-6">
+                    <div className="space-y-1">
+                      <h3 className="text-base font-semibold tracking-tight text-foreground">
+                        Submit transaction details
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Use the same amount and UTR from your successful payment.
+                      </p>
+                    </div>
+
+                    <form onSubmit={handleVerifyPayment} className="mt-5 space-y-5">
+                      <div className="grid gap-5 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="utr-amount"
+                            className="text-sm font-semibold text-foreground"
+                          >
+                            Amount paid
+                          </Label>
+
+                          <Input
+                            id="utr-amount"
+                            type="number"
+                            min={1}
+                            max={50000}
+                            step={1}
+                            placeholder="e.g. 100"
+                            className="input font-semibold"
+                            value={utrAmount}
+                            onChange={(e) => {
+                              setUtrAmount(e.target.value);
+                              setFormError(null);
+                            }}
+                            disabled={submitting}
+                            required
+                          />
+
+                          <p className="text-xs leading-5 text-muted-foreground">
+                            Enter the exact amount transferred through UPI.
+                          </p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="utr-number"
+                            className="text-sm font-semibold text-foreground"
+                          >
+                            UTR / UPI reference number
+                          </Label>
+
+                          <Input
+                            id="utr-number"
+                            type="text"
+                            placeholder="e.g. 412345678901"
+                            className="input font-mono font-semibold uppercase"
+                            value={utrNumber}
+                            onChange={(e) => {
+                              setUtrNumber(
+                                e.target.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase()
+                              );
+                              setFormError(null);
+                            }}
+                            maxLength={22}
+                            disabled={submitting}
+                            required
+                          />
+
+                          <p className="text-xs leading-5 text-muted-foreground">
+                            Copy the transaction reference from Paytm, GPay, PhonePe, or BHIM.
+                          </p>
+                        </div>
+                      </div>
+
+                      {formError ? (
+                        <div className="flex items-start gap-2.5 rounded-xl bg-destructive/10 p-3.5 text-sm text-destructive">
+                          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                          <span className="font-medium leading-6">{formError}</span>
+                        </div>
+                      ) : null}
+
+                      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="max-w-sm text-xs leading-5 text-muted-foreground">
+                          Funds are credited after verification. Each UTR can only be used once.
+                        </p>
+
+                        <Button
+                          type="submit"
+                          disabled={submitting}
+                          className="h-11 rounded-xl px-5 font-semibold w-full sm:w-auto sm:min-w-[220px]"
+                        >
+                          {submitting ? (
+                            <>
+                              <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                              Verifying payment...
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle2 className="mr-1.5 h-4 w-4" />
+                              Verify payment
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </form>
+                  </Card>
+
+                  {paymentInfo?.pageContent ? (
+                    <Card className="card-settings p-5 md:p-6">
+                      <div className="space-y-1">
+                        <h3 className="text-base font-semibold tracking-tight text-foreground">
+                          Payment instructions
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          Follow the steps carefully before submitting your transaction details.
+                        </p>
+                      </div>
+
+                      <div className="mt-4 rounded-2xl bg-background/80 p-4 shadow-sm">
+                        <div className="prose prose-sm max-w-none text-muted-foreground prose-headings:text-foreground prose-strong:text-foreground prose-a:text-primary">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {paymentInfo.pageContent}
+                          </ReactMarkdown>
+                        </div>
+                      </div>
+                    </Card>
+                  ) : null}
+                </div>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="withdraw" className="mt-5 md:mt-6">
+            <div className="grid grid-cols-1 gap-5 md:gap-6 lg:grid-cols-12">
+              <div className="lg:col-span-4">
+                {withdrawDescription ? (
+                  <Card className="card-settings p-5 md:p-6">
+                    <div className="flex items-start gap-3">
+                      <ArrowUpFromLine className="h-5 w-5 shrink-0 text-foreground" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-foreground">Withdrawal info</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 rounded-2xl bg-background/80 p-4 shadow-sm">
+                      <div className="prose prose-sm max-w-none text-muted-foreground prose-headings:text-foreground prose-strong:text-foreground prose-a:text-primary">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {withdrawDescription}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
+                  </Card>
+                ) : (
+                  <Card className="card-settings p-5 md:p-6">
+                    <div className="flex items-start gap-3">
+                      <ArrowUpFromLine className="h-5 w-5 shrink-0 text-foreground" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-foreground">Request withdrawal</p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Withdraw your wallet balance to your UPI account.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 rounded-xl bg-background/80 px-3 py-3 md:px-4 md:py-3">
+                      <p className="text-sm leading-6 text-muted-foreground">
+                        Amount is deducted immediately upon request. Admin will process and transfer
+                        funds to your UPI ID.
+                      </p>
+                    </div>
+                  </Card>
+                )}
+              </div>
+
+              <div className="space-y-5 md:space-y-6 lg:col-span-8">
+                <Card className="card-settings p-5 md:p-6">
+                  <div className="space-y-1">
+                    <h3 className="text-base font-semibold tracking-tight text-foreground">
+                      Submit withdrawal request
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Enter your UPI ID and the amount you want to withdraw.
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleWithdrawSubmit} className="mt-5 space-y-5">
+                    <div className="grid gap-5 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="withdraw-amount"
+                          className="text-sm font-semibold text-foreground"
+                        >
+                          Amount (₹)
+                        </Label>
+                        <Input
+                          id="withdraw-amount"
+                          type="number"
+                          min={1}
+                          step={1}
+                          placeholder="e.g. 100"
+                          className="input font-semibold"
+                          value={withdrawAmount}
+                          onChange={(e) => {
+                            setWithdrawAmount(e.target.value);
+                            setWithdrawError(null);
+                          }}
+                          disabled={withdrawSubmitting}
+                          required
+                        />
+                        <p className="text-xs leading-5 text-muted-foreground">
+                          Enter the amount you wish to withdraw.
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="withdraw-upi"
+                          className="text-sm font-semibold text-foreground"
+                        >
+                          UPI ID
+                        </Label>
+                        <Input
+                          id="withdraw-upi"
+                          type="text"
+                          placeholder="e.g. name@paytm"
+                          className="input font-semibold"
+                          value={withdrawUpiId}
+                          onChange={(e) => {
+                            setWithdrawUpiId(e.target.value);
+                            setWithdrawError(null);
+                          }}
+                          disabled={withdrawSubmitting}
+                          required
+                        />
+                        <p className="text-xs leading-5 text-muted-foreground">
+                          Your UPI ID linked to GPay, PhonePe, Paytm, or BHIM.
+                        </p>
+                      </div>
+                    </div>
+
+                    {withdrawError ? (
+                      <div className="flex items-start gap-2.5 rounded-xl bg-destructive/10 p-3.5 text-sm text-destructive">
+                        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                        <span className="font-medium leading-6">{withdrawError}</span>
+                      </div>
+                    ) : null}
+
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="max-w-sm text-xs leading-5 text-muted-foreground">
+                        Current balance: ₹{balance}. Amount will be deducted immediately.
+                      </p>
+
+                      <Button
+                        type="submit"
+                        disabled={withdrawSubmitting}
+                        className="h-11 rounded-xl px-5 font-semibold w-full sm:w-auto sm:min-w-[220px]"
+                      >
+                        {withdrawSubmitting ? (
+                          <>
+                            <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                            Submitting...
+                          </>
+                        ) : (
+                          <>
+                            <ArrowUpFromLine className="mr-1.5 h-4 w-4" />
+                            Submit withdrawal
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                </Card>
+
+                {/* Withdrawal History */}
+                <Card className="card-list">
+                  <div className="space-y-1">
+                    <h3 className="text-base font-semibold tracking-tight text-foreground">
+                      Withdrawal history
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Track your submitted withdrawal requests.
+                    </p>
+                  </div>
+
+                  <div className="mt-4">
+                    {withdrawHistoryLoading ? (
+                      <div className="flex h-24 items-center justify-center">
+                        <Loader2 className="h-6 w-6 animate-spin text-foreground" />
+                      </div>
+                    ) : withdrawHistory.length === 0 ? (
+                      <div className="flex h-24 items-center justify-center text-sm text-muted-foreground">
+                        No withdrawal requests yet.
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {withdrawHistory.map((w) => (
+                          <div
+                            key={w.id}
+                            className="flex items-center justify-between rounded-xl bg-background/60 p-3"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-semibold text-foreground">
+                                  ₹{w.amount}
+                                </span>
+                                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                                  w.status === "COMPLETED"
+                                    ? "bg-success/10 text-success"
+                                    : w.status === "CANCELLED"
+                                    ? "bg-destructive/10 text-destructive"
+                                    : "bg-warning/15 text-warning"
+                                }`}>
+                                  {w.status.toLowerCase()}
+                                </span>
+                              </div>
+                              <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                                {w.upiId} &middot; {format(new Date(w.createdAt), "dd MMM yyyy, h:mm a")}
+                              </p>
+                              {w.adminNote && (
+                                <p className="mt-0.5 text-xs text-muted-foreground italic">
+                                  Note: {w.adminNote}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                        {withdrawTotalPages > 1 && (
+                          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-2">
+                            <span className="text-xs text-muted-foreground">
+                              Page {withdrawPage} of {withdrawTotalPages}
+                            </span>
+                            <div className="flex gap-2 w-full sm:w-auto">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-10 rounded-lg border-0 bg-background/80 px-3 text-xs flex-1"
+                                disabled={withdrawPage <= 1}
+                                onClick={() => void loadWithdrawHistory(withdrawPage - 1)}
+                              >
+                                Previous
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-10 rounded-lg border-0 bg-background/80 px-3 text-xs flex-1"
+                                disabled={withdrawPage >= withdrawTotalPages}
+                                onClick={() => void loadWithdrawHistory(withdrawPage + 1)}
+                              >
+                                Next
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              </div>
             </div>
-          )}
-        </TabsContent>
-      </Tabs>
+          </TabsContent>
+
+          <TabsContent value="history" className="mt-5 md:mt-6">
+            {loadingTx ? (
+              <Card className="card-list">
+                <div className="flex h-36 items-center justify-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-foreground" />
+                </div>
+              </Card>
+            ) : transactions.length === 0 ? (
+              <div className="flex min-h-[300px] flex-col items-center justify-center bg-background px-4 py-8 text-center">
+                <Wallet className="mb-3 h-6 w-6 text-foreground" />
+
+                <p className="text-base md:text-lg font-semibold text-foreground">
+                  No transactions yet
+                </p>
+
+                <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
+                  Wallet activity will appear here after you add funds, win prizes, or join
+                  tournaments.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 px-1">
+                  <div className="space-y-1">
+                    <h2 className="text-base font-semibold tracking-tight text-foreground">
+                      Transaction activity
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                      Review all credits, debits, and wallet balance changes.
+                    </p>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-10 rounded-xl border-0 bg-accent/60 px-4 text-muted-foreground shadow-sm hover:bg-accent/80 hover:text-foreground w-full sm:w-auto"
+                    onClick={() => {
+                      void loadBalance();
+                      void loadTransactions(1);
+                    }}
+                  >
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Refresh
+                  </Button>
+                </div>
+
+                {transactions.map((tx) => {
+                  const isCredit = TYPE_CREDIT[tx.type] ?? false;
+
+                  return (
+                    <Card
+                      key={tx.id}
+                      className="card-widget p-4"
+                    >
+                      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                        <div className="flex min-w-0 items-start gap-4">
+                          <TxIcon type={tx.type} />
+
+                          <div className="min-w-0 flex-1 space-y-1.5">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-sm font-semibold text-foreground">
+                                {TYPE_LABELS[tx.type] ?? tx.type}
+                              </span>
+
+                              {tx.status ? (
+                                <span className={getStatusBadgeClass(tx.status)}>
+                                  {tx.status.toLowerCase()}
+                                </span>
+                              ) : null}
+                            </div>
+
+                            {tx.description ? (
+                              <p className="truncate text-sm text-muted-foreground">
+                                {tx.description}
+                              </p>
+                            ) : null}
+
+                            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                              <span className="inline-flex items-center rounded-full bg-background/80 px-2.5 py-1">
+                                {format(new Date(tx.createdAt), "dd MMM yyyy, h:mm a")}
+                              </span>
+
+                              {tx.referenceId ? (
+                                <span className="inline-flex items-center rounded-full bg-background/80 px-2.5 py-1 font-mono uppercase tracking-wide">
+                                  {tx.referenceId}
+                                </span>
+                              ) : null}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between gap-3 xl:min-w-[170px] xl:justify-end">
+                          <div className="text-left xl:text-right">
+                            <p className="text-base font-semibold tracking-tight text-foreground">
+                              {isCredit ? "+" : "-"}₹{tx.amount}
+                            </p>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              Balance: ₹{tx.balanceAfter}
+                            </p>
+                          </div>
+
+                          <ArrowUpRight className="h-4 w-4 shrink-0 text-foreground" />
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+
+                {totalPages > 1 ? (
+                  <Card className="card-list">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                      <span className="text-sm font-medium text-muted-foreground">
+                        Page {page} of {totalPages}
+                      </span>
+
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-10 rounded-xl border-0 bg-background/80 px-4 flex-1"
+                          disabled={page <= 1}
+                          onClick={() => void loadTransactions(page - 1)}
+                        >
+                          Previous
+                        </Button>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-10 rounded-xl border-0 bg-background/80 px-4 flex-1"
+                          disabled={page >= totalPages}
+                          onClick={() => void loadTransactions(page + 1)}
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ) : null}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
     </div>
   );
 }

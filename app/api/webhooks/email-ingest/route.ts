@@ -52,7 +52,10 @@ export async function POST(request: NextRequest) {
         const mimeText = parsedMime.text || "";
         const mimeHtml = typeof parsedMime.html === "string" ? stripHtml(parsedMime.html) : "";
 
-        fullContent = `${mimeSubject} ${mimeText} ${mimeHtml} ${raw}`;
+        fullContent = `${mimeSubject} ${mimeText} ${mimeHtml}`.trim();
+        if (!fullContent) {
+          fullContent = raw;
+        }
       } catch (parseErr) {
         console.warn("[EmailWebhookIngest] Raw MIME parsing fallback:", parseErr);
         fullContent = `${fullContent} ${raw}`;

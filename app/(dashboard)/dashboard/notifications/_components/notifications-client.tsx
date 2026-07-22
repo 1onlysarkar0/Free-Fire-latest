@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { formatDistanceToNow } from "date-fns";
 import {
   Bell,
+  Check,
   CheckSquare,
   Sparkles,
   Trophy,
@@ -15,7 +16,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { H4, Muted } from "@/components/ui/typography";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 export interface NotificationItem {
@@ -57,7 +60,7 @@ export default function NotificationsClient({ initialData }: NotificationsClient
         body: JSON.stringify({ markAllRead: true }),
       });
       if (!res.ok) throw new Error();
-
+      
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       setUnreadCount(0);
       toast.success("All notifications marked as read");
@@ -86,9 +89,13 @@ export default function NotificationsClient({ initialData }: NotificationsClient
 
   const filteredNotifications = useMemo(() => {
     return notifications.filter((n) => {
+      // 1. Status Filter
       if (statusFilter === "UNREAD" && n.isRead) return false;
       if (statusFilter === "READ" && !n.isRead) return false;
+
+      // 2. Type Filter
       if (typeFilter !== "ALL" && n.type !== typeFilter) return false;
+
       return true;
     });
   }, [notifications, statusFilter, typeFilter]);
@@ -96,15 +103,15 @@ export default function NotificationsClient({ initialData }: NotificationsClient
   const getNotifDetails = (type: string) => {
     switch (type) {
       case "ROOM_REVEALED":
-        return { icon: Trophy, color: "text-amber-500" };
+        return { icon: Trophy };
       case "TOURNAMENT_CANCELLED":
-        return { icon: AlertTriangle, color: "text-destructive" };
+        return { icon: AlertTriangle };
       case "PRIZE_CREDITED":
-        return { icon: Sparkles, color: "text-emerald-500" };
+        return { icon: Sparkles };
       case "REFUND_CREDITED":
-        return { icon: Wallet, color: "text-blue-500" };
+        return { icon: Wallet };
       default:
-        return { icon: Bell, color: "text-primary" };
+        return { icon: Bell };
     }
   };
 
@@ -117,19 +124,40 @@ export default function NotificationsClient({ initialData }: NotificationsClient
   };
 
   return (
-    <div className="w-full min-w-0 space-y-4 pb-6 text-foreground font-ibm">
-      {/* Top Filter Controls */}
-      <Card className="p-3 rounded-2xl border border-border/40 bg-card shadow-3xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-1">
+    <div className="w-full min-w-0 space-y-6">
+      
+      {/* Premium Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-5">
+        <div className="flex items-center gap-3">
+          <Bell className="h-6 w-6 text-foreground shrink-0" />
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-foreground font-lora">Your Notifications</h1>
+            <p className="text-sm text-muted-foreground mt-0.5 font-ibm">
+              Stay updated with your joined match schedules, credits, and announcements.
+            </p>
+          </div>
+        </div>
+        {unreadCount > 0 && (
+          <Button onClick={handleMarkAllRead} variant="outline" className="sm:self-center border-border/60 hover:bg-accent/40 font-semibold self-start text-xs h-9">
+            <CheckSquare className="w-4 h-4 mr-1.5 text-foreground" /> Mark all read
+          </Button>
+        )}
+      </div>
+
+      {/* Filters Area */}
+      <div className="flex flex-col gap-4 bg-card/60 p-4 rounded-2xl border border-border/40 shadow-3xs sm:flex-row sm:items-center sm:justify-between">
+        
+        {/* Read Status Filters */}
+        <div className="flex flex-wrap items-center gap-1.5">
           {(["ALL", "UNREAD", "READ"] as const).map((status) => (
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
               className={cn(
-                "px-3 py-1 text-xs font-semibold rounded-xl border transition-all cursor-pointer",
+                "px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all duration-200 cursor-pointer",
                 statusFilter === status
-                  ? "bg-primary text-primary-foreground border-primary shadow-2xs"
-                  : "bg-secondary/40 text-muted-foreground border-border/40 hover:bg-secondary hover:text-foreground"
+                  ? "bg-primary text-white border-primary shadow-sm"
+                  : "bg-white text-muted-foreground border-border hover:bg-muted/10 hover:text-foreground"
               )}
             >
               {status === "ALL" ? "All" : status === "UNREAD" ? `Unread (${unreadCount})` : "Read"}
@@ -137,44 +165,37 @@ export default function NotificationsClient({ initialData }: NotificationsClient
           ))}
         </div>
 
+        {/* Category Filters */}
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 bg-secondary/50 border border-border/40 px-2.5 py-1 rounded-xl text-xs">
-            <Filter className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="bg-transparent text-xs font-bold text-foreground focus:outline-none cursor-pointer"
-            >
-              <option value="ALL">All Categories</option>
-              {Object.entries(CATEGORY_MAP).map(([type, label]) => (
-                <option key={type} value={type}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {unreadCount > 0 && (
-            <Button onClick={handleMarkAllRead} variant="outline" size="sm" className="h-7 text-xs px-2.5 rounded-xl border-border/50 font-semibold">
-              <CheckSquare className="w-3.5 h-3.5 mr-1" /> Mark read
-            </Button>
-          )}
+          <Filter className="w-3.5 h-3.5 text-muted-foreground" />
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            className="h-8 rounded-lg border border-border bg-white px-2.5 py-1 text-xs font-semibold text-foreground shadow-3xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <option value="ALL">All Categories</option>
+            {Object.entries(CATEGORY_MAP).map(([type, label]) => (
+              <option key={type} value={type}>
+                {label}
+              </option>
+            ))}
+          </select>
         </div>
-      </Card>
+      </div>
 
       {/* Notifications List */}
-      <div className="space-y-2">
+      <div className="space-y-3">
         {filteredNotifications.length === 0 ? (
-          <Card className="p-8 rounded-2xl border border-border/40 bg-card/60 text-center flex flex-col items-center justify-center">
-            <Bell className="h-7 w-7 text-muted-foreground/30 mb-2" />
-            <h2 className="text-sm font-bold font-lora text-foreground">No notifications found</h2>
-            <p className="text-xs text-muted-foreground max-w-xs mt-0.5">
-              You are all caught up! No notifications match the selected filter.
-            </p>
-          </Card>
+          <div className="flex min-h-[300px] flex-col items-center justify-center bg-card/40 rounded-2xl border border-border/40 p-8 text-center">
+            <Bell className="mb-4 h-8 w-8 text-muted-foreground/30 animate-pulse" />
+            <H4 className="mt-0 font-lora">No notifications found</H4>
+            <Muted className="mt-1.5 max-w-sm text-xs leading-5 font-ibm">
+              No matching alerts or messages fit your current filter settings. You&apos;re all caught up!
+            </Muted>
+          </div>
         ) : (
           filteredNotifications.map((n) => {
-            const { icon: Icon, color } = getNotifDetails(n.type);
+            const { icon: Icon } = getNotifDetails(n.type);
             const link = getNotifLink(n);
             const label = CATEGORY_MAP[n.type] || "System Info";
 
@@ -183,50 +204,63 @@ export default function NotificationsClient({ initialData }: NotificationsClient
                 key={n.id}
                 onClick={() => !n.isRead && handleMarkIndividualRead(n.id)}
                 className={cn(
-                  "p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 shadow-3xs hover:border-primary/30",
-                  n.isRead
-                    ? "bg-card border-border/40"
-                    : "bg-primary/5 border-primary/20 ring-1 ring-primary/10"
+                  "group relative overflow-hidden transition-all duration-300 border shadow-3xs rounded-2xl cursor-pointer hover:shadow-md hover:-translate-y-[1px]",
+                  n.isRead 
+                    ? "bg-card border-border/40" 
+                    : "bg-primary/5 border-primary/20 ring-1 ring-primary/5"
                 )}
               >
-                <div className="p-2 rounded-xl bg-secondary shrink-0 mt-0.5">
-                  <Icon className={cn("h-4 w-4", color)} />
-                </div>
+                <CardContent className="p-4 sm:p-5 flex items-start gap-4">
+                  {/* Icon Indicator */}
+                  <Icon className="h-5 w-5 text-foreground shrink-0 mt-0.5" />
 
-                <div className="flex-1 min-w-0 space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <p className={cn("text-xs font-bold truncate", n.isRead ? "text-foreground" : "text-primary font-extrabold")}>
-                      {n.title}
+                  {/* Main Content */}
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className={cn("text-sm font-semibold tracking-tight leading-snug", n.isRead ? "text-foreground" : "text-primary font-bold")}>
+                        {n.title}
+                      </p>
+                      {!n.isRead && (
+                        <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                      )}
+                    </div>
+                    
+                    <p className="text-xs text-muted-foreground leading-relaxed font-ibm pr-4">
+                      {n.message}
                     </p>
-                    {!n.isRead && <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />}
+
+                    <div className="flex flex-wrap items-center gap-3 pt-1 text-[11px] text-muted-foreground font-ibm">
+                      <span className="font-semibold">{label}</span>
+                      <span>•</span>
+                      <span>
+                        {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
+                      </span>
+                    </div>
                   </div>
 
-                  <p className="text-xs text-muted-foreground leading-normal line-clamp-2">
-                    {n.message}
-                  </p>
+                  {/* Action Link Icon */}
+                  {link ? (
+                    <a
+                      href={link}
+                      onClick={(e) => e.stopPropagation()}
+                      className="h-8 w-8 shrink-0 rounded-lg border border-border/50 bg-white hover:bg-muted/20 hover:text-primary transition-all flex items-center justify-center text-muted-foreground self-center group-hover:scale-105"
+                      title="View Details"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  ) : (
+                    <div className="h-8 w-8 shrink-0 flex items-center justify-center self-center opacity-0 group-hover:opacity-40 transition-opacity">
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  )}
 
-                  <div className="flex items-center gap-2 pt-1 text-[10px] text-muted-foreground font-mono">
-                    <span className="font-semibold">{label}</span>
-                    <span>•</span>
-                    <span>{formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}</span>
-                  </div>
-                </div>
-
-                {link && (
-                  <a
-                    href={link}
-                    onClick={(e) => e.stopPropagation()}
-                    className="p-1.5 rounded-lg bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-primary transition-colors shrink-0 self-center"
-                    title="View Details"
-                  >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
-                )}
+                </CardContent>
               </Card>
             );
           })
         )}
       </div>
+
     </div>
   );
 }
