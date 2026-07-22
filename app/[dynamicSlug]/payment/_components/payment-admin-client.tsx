@@ -231,6 +231,17 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
 
   const workerCodeSnippet = `export default {
   async email(message, env, ctx) {
+    const ingestUrl = env.EMAIL_INGEST_URL;
+    const secret = env.EMAIL_WEBHOOK_SECRET;
+
+    if (!ingestUrl) {
+      throw new Error("EMAIL_INGEST_URL is missing in Worker variables.");
+    }
+
+    if (!secret) {
+      throw new Error("EMAIL_WEBHOOK_SECRET is missing in Worker variables.");
+    }
+
     const rawEmail = await new Response(message.raw).text();
 
     const payload = {
@@ -238,16 +249,21 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
       to: message.to,
       subject: message.headers.get("subject") || "",
       raw: rawEmail,
+      rcptTo: message.to,
+      mailFrom: message.from,
+      receivedAt: new Date().toISOString(),
     };
 
     ctx.waitUntil(
-      fetch(env.EMAIL_INGEST_URL || "https://${typeof window !== "undefined" ? window.location.host : "app.1onlysarkar.shop"}/api/webhooks/email-ingest", {
+      fetch(ingestUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": \`Bearer \${env.EMAIL_WEBHOOK_SECRET || "YOUR_SECRET_TOKEN"}\`,
+          "Authorization": \`Bearer \${secret}\`,
         },
         body: JSON.stringify(payload),
+      }).catch((err) => {
+        console.error("Email ingest webhook failed:", err);
       })
     );
   },

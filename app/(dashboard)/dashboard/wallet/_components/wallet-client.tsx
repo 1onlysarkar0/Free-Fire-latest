@@ -298,99 +298,76 @@ export default function WalletClient({
 
   const paymentEnabled = Boolean(paymentInfo?.enabled && paymentInfo?.upiId);
   return (
-    <div className="w-full min-w-0 space-y-6">
+    <div className="w-full min-w-0 space-y-5 pb-6">
       <Tabs defaultValue="add-funds" className="w-full" onValueChange={(v) => { if (v === "withdraw") void loadWithdrawHistory(1); }}>
-        <div className="space-y-5 md:space-y-6">
+        <div className="space-y-4">
 
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-            <div className="space-y-1">
-              <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-foreground">
-                My wallet
-              </h1>
-              <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-                Add funds, verify UPI payments, and track every wallet activity from one place.
-              </p>
+          {/* Compact Top Navigation & Balance Banner */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-card border border-border/60 rounded-xl shadow-2xs">
+            <div>
+              <div className="flex items-center gap-2">
+                <Wallet className="w-5 h-5 text-primary shrink-0" />
+                <h1 className="text-base font-bold text-foreground font-lora">
+                  My Wallet
+                </h1>
+              </div>
+              <div className="mt-1 flex items-baseline gap-2">
+                <span className="text-2xl font-bold font-mono text-foreground tabular-nums">₹{balance}</span>
+                <span className="text-xs text-muted-foreground">Available Coins</span>
+              </div>
             </div>
 
-            <TabsList className="grid h-auto w-full grid-cols-3 rounded-2xl bg-accent/60 p-1 shadow-sm xl:w-auto">
+            {/* Tab Controls Bar */}
+            <TabsList className="grid grid-cols-3 h-9 p-0.5 bg-muted/40 border border-border/60 rounded-lg text-xs w-full sm:w-auto">
               <TabsTrigger
                 value="add-funds"
-                className="rounded-xl px-3 py-2 text-sm font-semibold text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-h-[44px] flex items-center justify-center gap-2"
+                className="rounded-md px-3 py-1 text-xs font-medium text-muted-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-2xs flex items-center justify-center gap-1.5"
               >
-                <Plus className="h-4 w-4 shrink-0" />
-                <span className="hidden sm:inline">Add Funds</span>
+                <Plus className="h-3.5 w-3.5 shrink-0" />
+                <span>Add Funds</span>
               </TabsTrigger>
               <TabsTrigger
                 value="withdraw"
-                className="rounded-xl px-3 py-2 text-sm font-semibold text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-h-[44px] flex items-center justify-center gap-2"
+                className="rounded-md px-3 py-1 text-xs font-medium text-muted-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-2xs flex items-center justify-center gap-1.5"
               >
-                <ArrowUpFromLine className="h-4 w-4 shrink-0" />
-                <span className="hidden sm:inline">Withdraw</span>
+                <ArrowUpFromLine className="h-3.5 w-3.5 shrink-0" />
+                <span>Withdraw</span>
               </TabsTrigger>
               <TabsTrigger
                 value="history"
-                className="rounded-xl px-3 py-2 text-sm font-semibold text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-h-[44px] flex items-center justify-center gap-2"
+                className="rounded-md px-3 py-1 text-xs font-medium text-muted-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-2xs flex items-center justify-center gap-1.5"
               >
-                <History className="h-4 w-4 shrink-0" />
-                <span className="hidden sm:inline">History</span>
+                <History className="h-3.5 w-3.5 shrink-0" />
+                <span>History</span>
               </TabsTrigger>
             </TabsList>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <Card className="card-widget p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                    Available balance
-                  </p>
-                  <p className="mt-1 text-xl md:text-2xl font-semibold tracking-tight text-foreground">
-                    ₹{balance}
-                  </p>
-                </div>
-                <Wallet className="h-5 w-5 shrink-0 text-foreground" />
+          {/* Micro Overview Stats Row */}
+          <div className="grid gap-3 grid-cols-2">
+            <Card className="p-3 bg-card border-border/60 rounded-xl shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Total Earned / Credited
+                </span>
+                <TrendingUp className="h-4 w-4 text-emerald-500 shrink-0" />
               </div>
-              <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                Current usable wallet amount for tournament entries, refunds, prize credits, and
-                verified deposits.
-              </p>
+              <div className="mt-1 text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400 tabular-nums">
+                +₹{totalEarned}
+              </div>
             </Card>
 
-            <Card className="card-widget p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                    Total earned
-                  </p>
-                  <p className="mt-1 text-xl md:text-2xl font-semibold tracking-tight text-foreground">
-                    +₹{totalEarned}
-                  </p>
-                </div>
-                <TrendingUp className="h-5 w-5 shrink-0 text-foreground" />
+            <Card className="p-3 bg-card border-border/60 rounded-xl shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Total Spent / debited
+                </span>
+                <TrendingDown className="h-4 w-4 text-rose-500 shrink-0" />
               </div>
-              <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                Refunds, prize winnings, admin credits, and successful UPI top-ups.
-              </p>
-            </Card>
-
-            <Card className="card-widget p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                    Total spent
-                  </p>
-                  <p className="mt-1 text-xl md:text-2xl font-semibold tracking-tight text-foreground">
-                    -₹{totalSpent}
-                  </p>
-                </div>
-                <TrendingDown className="h-5 w-5 shrink-0 text-foreground" />
+              <div className="mt-1 text-xl font-bold font-mono text-rose-600 dark:text-rose-400 tabular-nums">
+                -₹{totalSpent}
               </div>
-              <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                Tournament entries, manual debits, and withdrawal requests logged from your
-                wallet.
-              </p>
             </Card>
-
           </div>
         </div>
 
