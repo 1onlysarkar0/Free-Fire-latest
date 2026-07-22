@@ -17,7 +17,7 @@ import { useEffect, useState } from "react";
 import { AvatarDisplay } from "@/components/ui/avatar-display";
 import { P } from "@/components/ui/typography";
 import { Shield, Star, LayoutDashboard } from "lucide-react";
-import { slugify } from "@/lib/utils";
+import { cn, slugify } from "@/lib/utils";
 
 export interface PermissionData {
   isAdmin: boolean;
