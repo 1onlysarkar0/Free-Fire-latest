@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   Save, Loader2, Eye, EyeOff, Plus, Trash2,
   Wifi, WifiOff, CheckCircle, XCircle, RefreshCw,
-  CreditCard, Settings, FileText, BarChart3, AlertTriangle,
+  CreditCard, Settings, FileText, BarChart3, AlertTriangle, Inbox,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -47,6 +47,21 @@ interface VerificationRow {
   verifiedAt: string | null;
 }
 
+interface PaymentInboxItem {
+  id: string;
+  utrHash: string;
+  utrNumber: string;
+  amount: number;
+  sender: string;
+  emailMessageId?: string;
+  isClaimed: boolean;
+  claimedByUserId?: string;
+  claimedUserName?: string;
+  claimedUserEmail?: string;
+  claimedAt?: string;
+  receivedAt: string;
+}
+
 interface Props {
   initialConfig: PaymentConfigData | null;
   canEdit: boolean;
@@ -62,7 +77,7 @@ const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   pending: { label: "Pending", className: "bg-info/10 text-info" },
 };
 
-type ActiveTab = "settings" | "content" | "logs";
+type ActiveTab = "settings" | "content" | "inbox" | "logs";
 type SettingsTab = "gmail" | "sources" | "upi" | "system";
 
 const defaultConfig: PaymentConfigData = {
@@ -100,12 +115,108 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
   const [logsTotalPages, setLogsTotalPages] = useState(1);
   const [previewContent, setPreviewContent] = useState(false);
 
+  // Payment Inbox (Pre-Parsed UTRs) State
+  const [inboxItems, setInboxItems] = useState<PaymentInboxItem[]>([]);
+  const [loadingInbox, setLoadingInbox] = useState(false);
+  const [inboxPage, setInboxPage] = useState(1);
+  const [inboxTotalPages, setInboxTotalPages] = useState(1);
+  const [manualUtr, setManualUtr] = useState("");
+  const [manualAmount, setManualAmount] = useState("");
+  const [manualSender, setManualSender] = useState("");
+  const [addingInbox, setAddingInbox] = useState(false);
+  const [deletingInboxId, setDeletingInboxId] = useState<string | null>(null);
+
   const set = <K extends keyof PaymentConfigData>(key: K, val: PaymentConfigData[K]) =>
     setConfig((p) => ({ ...p, [key]: val }));
 
   useEffect(() => {
     if (activeTab === "logs" && canViewLogs) loadVerifications(1);
+    if (activeTab === "inbox") loadInbox(1);
   }, [activeTab, canViewLogs]);
+
+  async function loadInbox(page: number) {
+    setLoadingInbox(true);
+    try {
+      const res = await fetch(`/api/admin/payment-inbox?page=${page}`);
+      if (res.ok) {
+        const data = await res.json();
+        setInboxItems(data.data || []);
+        setInboxPage(page);
+        setInboxTotalPages(data.totalPages ?? 1);
+      }
+    } catch {
+      toast.error("Failed to load payment inbox");
+    } finally {
+      setLoadingInbox(false);
+    }
+  }
+
+  async function handleAddManualInbox() {
+    if (!manualUtr.trim() || !manualAmount.trim()) {
+      toast.error("Please enter UTR number and Amount.");
+      return;
+    }
+    const amt = Number(manualAmount);
+    if (isNaN(amt) || amt <= 0) {
+      toast.error("Amount must be a valid number.");
+      return;
+    }
+
+    setAddingInbox(true);
+    try {
+      const res = await fetch("/api/admin/payment-inbox", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          utrNumber: manualUtr.trim(),
+          amount: amt,
+          sender: manualSender.trim() || "manual@admin",
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        toast.error(data.error || "Failed to add manual UTR");
+        return;
+      }
+
+      toast.success(data.message || "Manual UTR entry added!");
+      setManualUtr("");
+      setManualAmount("");
+      setManualSender("");
+      loadInbox(1);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error adding UTR");
+    } finally {
+      setAddingInbox(false);
+    }
+  }
+
+  async function handleDeleteInboxItem(id: string) {
+    if (!confirm("Are you sure you want to delete this UTR entry from the pre-parsed inbox?")) {
+      return;
+    }
+
+    setDeletingInboxId(id);
+    try {
+      const res = await fetch(`/api/admin/payment-inbox?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        toast.error(data.error || "Failed to delete entry");
+        return;
+      }
+
+      toast.success("UTR entry deleted!");
+      setInboxItems((prev) => prev.filter((item) => item.id !== id));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error deleting entry");
+    } finally {
+      setDeletingInboxId(null);
+    }
+  }
 
   async function loadVerifications(page: number) {
     setLoadingLogs(true);
@@ -188,6 +299,7 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
   const tabs: { key: ActiveTab; label: string; icon: React.ElementType }[] = [
     { key: "settings", label: "Settings", icon: Settings },
     { key: "content", label: "Page Content", icon: FileText },
+    ...(canViewLogs ? [{ key: "inbox" as ActiveTab, label: "Payment Inbox (UTRs)", icon: Inbox }] : []),
     ...(canViewLogs ? [{ key: "logs" as ActiveTab, label: "Verification Logs", icon: BarChart3 }] : []),
   ];
 
@@ -437,6 +549,151 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
                     <MDEditor value={config.pageContent} onChange={(v) => set("pageContent", v || "")} height={400} preview="edit" />
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* ── PAYMENT INBOX (PRE-PARSED UTRS) TAB ── */}
+            {activeTab === "inbox" && canViewLogs && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-semibold text-foreground">Pre-Parsed Payment Inbox</h3>
+                    <Muted className="text-xs mt-0.5">
+                      All synced bank payment emails are stored here encrypted for instant &lt;50ms user verification.
+                    </Muted>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => loadInbox(inboxPage)} disabled={loadingInbox} className="gap-2">
+                    <RefreshCw className={`h-4 w-4 ${loadingInbox ? "animate-spin" : ""}`} />Refresh
+                  </Button>
+                </div>
+
+                {/* Manual Add Form */}
+                {canEdit && (
+                  <Card className="p-4 bg-accent/20 border space-y-3">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Manually Add Pre-Parsed UTR Entry</h4>
+                    <div className="grid sm:grid-cols-3 gap-3">
+                      <Input
+                        placeholder="UTR / Ref Number (e.g. 420918239018)"
+                        value={manualUtr}
+                        onChange={(e) => setManualUtr(e.target.value)}
+                        className="font-mono text-xs"
+                      />
+                      <Input
+                        type="number"
+                        placeholder="Amount in ₹ (e.g. 100)"
+                        value={manualAmount}
+                        onChange={(e) => setManualAmount(e.target.value)}
+                        className="text-xs"
+                      />
+                      <Input
+                        placeholder="Sender Email / Notes (Optional)"
+                        value={manualSender}
+                        onChange={(e) => setManualSender(e.target.value)}
+                        className="text-xs"
+                      />
+                    </div>
+                    <div className="flex justify-end">
+                      <Button size="sm" onClick={handleAddManualInbox} disabled={addingInbox} className="gap-2">
+                        {addingInbox ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                        Add Manual UTR
+                      </Button>
+                    </div>
+                  </Card>
+                )}
+
+                {loadingInbox ? (
+                  <div className="rounded-2xl bg-accent/40 shadow-sm overflow-hidden">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b bg-accent/60">
+                          {["UTR Number", "Amount", "Sender", "Status", "Received Date", "Actions"].map((h) => (
+                            <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {[1, 2, 3].map((i) => (
+                          <tr key={i} className="animate-pulse">
+                            {[1, 2, 3, 4, 5, 6].map((j) => (
+                              <td key={j} className="px-4 py-3"><div className="h-4 w-16 rounded bg-accent/60" /></td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : inboxItems.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground rounded-2xl bg-accent/40">
+                    No pre-parsed payment emails in inbox. System will sync automatically every ~30s.
+                  </div>
+                ) : (
+                  <div className="rounded-2xl bg-accent/40 shadow-sm overflow-hidden overflow-x-auto">
+                    <table className="w-full text-sm min-w-[700px]">
+                      <thead className="bg-accent/60">
+                        <tr>
+                          <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">UTR Number</th>
+                          <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Amount</th>
+                          <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Sender</th>
+                          <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Status</th>
+                          <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground hidden md:table-cell">Received Date</th>
+                          {canEdit && <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Action</th>}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {inboxItems.map((item) => (
+                          <tr key={item.id} className="hover:bg-accent/20 transition-colors">
+                            <td className="px-4 py-3">
+                              <code className="text-xs bg-background/80 rounded px-2 py-1 font-mono font-bold text-foreground">
+                                {item.utrNumber}
+                              </code>
+                            </td>
+                            <td className="px-4 py-3 text-right font-bold text-sm text-success">₹{item.amount}</td>
+                            <td className="px-4 py-3 text-xs text-muted-foreground font-mono">{item.sender}</td>
+                            <td className="px-4 py-3">
+                              {item.isClaimed ? (
+                                <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
+                                  Claimed ({item.claimedUserName || item.claimedByUserId})
+                                </span>
+                              ) : (
+                                <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-success/15 text-success">
+                                  Available for Verification
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-xs text-muted-foreground hidden md:table-cell">
+                              {new Date(item.receivedAt).toLocaleString("en-IN", {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </td>
+                            {canEdit && (
+                              <td className="px-4 py-3 text-right">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  disabled={deletingInboxId === item.id}
+                                  onClick={() => handleDeleteInboxItem(item.id)}
+                                  className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8 p-0"
+                                >
+                                  {deletingInboxId === item.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                                </Button>
+                              </td>
+                            )}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                <div className="flex justify-center gap-2">
+                  <Button variant="outline" size="sm" disabled={inboxPage <= 1 || loadingInbox} onClick={() => loadInbox(inboxPage - 1)}>Previous</Button>
+                  <span className="text-sm text-muted-foreground flex items-center px-2">Page {inboxPage} of {inboxTotalPages}</span>
+                  <Button variant="outline" size="sm" disabled={inboxPage >= inboxTotalPages || loadingInbox} onClick={() => loadInbox(inboxPage + 1)}>Next</Button>
+                </div>
               </div>
             )}
 
