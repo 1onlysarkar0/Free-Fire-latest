@@ -24,7 +24,6 @@ Production: **https://1onlysarkar.shop**
 | Code Editor | Monaco Editor (VS Code engine React wrapper) |
 | React Email | Standard templates compilation and static rendering (`react-dom/server`) |
 | Analytics | Vercel Analytics |
-| Instagram | Instagram Graph API v25.0 (business_discovery for avatar fetch) |
 | Animation | Motion 12.42 (Consolidated animation engine) |
 | AI Chatbot | Google Gemini API (streaming SSE, Gemini-only + custom endpoint) |
 | OG Images | Server-side `@vercel/og` / `next/og` (Edge Runtime, 1200×630) |
