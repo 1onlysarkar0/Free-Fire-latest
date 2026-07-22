@@ -4,8 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Save, Loader2, Plus, Trash2,
-  CheckCircle, RefreshCw,
-  CreditCard, Settings, FileText, BarChart3, Inbox, HelpCircle, Copy, Check,
+  RefreshCw, CreditCard, Settings, FileText, BarChart3, Inbox, HelpCircle, Copy, Check, ShieldCheck, Zap, Server
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -261,23 +260,24 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
 
   const workerCodeSnippet = `export default {
   async email(message, env, ctx) {
-    const rawEmail = await new Response(message.raw).text();
     const payload = {
       from: message.from,
       to: message.to,
       subject: message.headers.get("subject") || "",
-      body: rawEmail,
+      body: await new Response(message.raw).text(),
     };
 
-    await fetch("https://${typeof window !== "undefined" ? window.location.host : "app.1onlysarkar.shop"}/api/webhooks/email-ingest", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": \`Bearer \${env.EMAIL_WEBHOOK_SECRET || "YOUR_SECRET_KEY"}\`,
-      },
-      body: JSON.stringify(payload),
-    });
-  }
+    ctx.waitUntil(
+      fetch("https://${typeof window !== "undefined" ? window.location.host : "app.1onlysarkar.shop"}/api/webhooks/email-ingest", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": \`Bearer \${env.EMAIL_WEBHOOK_SECRET || "YOUR_SECRET_TOKEN"}\`,
+        },
+        body: JSON.stringify(payload),
+      })
+    );
+  },
 };`;
 
   function copyWorkerCode() {
@@ -358,48 +358,95 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
 
                 {/* Cloudflare & Forwarding Setup Guide */}
                 {settingsTab === "guide" && (
-                  <div className="space-y-6 max-w-3xl">
-                    <div className="rounded-2xl bg-primary/10 border border-primary/20 p-4 text-sm">
-                      <h3 className="font-semibold text-primary mb-1 flex items-center gap-2">
-                        <HelpCircle className="h-4 w-4" />
-                        100% Free & Unlimited Ingestion Architecture
-                      </h3>
-                      <p className="text-xs text-muted-foreground">
-                        Emails are forwarded from Gmail to Cloudflare Email Routing, which triggers a Cloudflare Worker to instantly post email data to your webhook. Original emails remain safely in your Gmail Inbox!
+                  <div className="space-y-6 max-w-4xl">
+                    {/* Top Overview Banner */}
+                    <div className="rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-background border border-primary/20 p-5 text-sm space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-semibold text-primary flex items-center gap-2 text-base">
+                          <Zap className="h-5 w-5 text-primary" />
+                          100% Free &amp; Unlimited Real-Time Webhook Architecture
+                        </h3>
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-success/15 text-success border border-success/20">
+                          <ShieldCheck className="h-3.5 w-3.5" /> Zero IMAP Banning Risk
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Bank alerts are forwarded from Gmail to Cloudflare Email Routing. A lightweight Cloudflare Worker instantly posts the email data to your webhook in real time using non-blocking <code>ctx.waitUntil()</code>. Original emails stay 100% safe in your Gmail inbox!
                       </p>
                     </div>
 
-                    <div className="space-y-4 text-sm">
-                      <div className="rounded-xl border p-4 bg-background space-y-2">
-                        <h4 className="font-semibold text-foreground flex items-center gap-2">
-                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">1</span>
-                          Gmail Specific Forwarding Rule (Keep Original Emails)
+                    {/* Step-by-Step Step Cards */}
+                    <div className="space-y-5 text-sm">
+                      {/* Step 1 */}
+                      <div className="rounded-2xl border p-5 bg-background shadow-xs space-y-3">
+                        <h4 className="font-bold text-foreground flex items-center gap-2 text-base">
+                          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold shadow-xs">1</span>
+                          Cloudflare Email Routing Setup
                         </h4>
-                        <ol className="list-decimal list-inside space-y-1.5 text-xs text-muted-foreground pl-2">
-                          <li>Go to <strong>Gmail Settings → Forwarding and POP/IMAP → Add a forwarding address</strong>.</li>
-                          <li>Enter your Cloudflare Email address (e.g. <code>pay@1onlysarkar.shop</code>).</li>
-                          <li>Select <strong>&quot;Keep Gmail&apos;s copy in the Inbox&quot;</strong> so original emails are never deleted.</li>
-                          <li>To forward ONLY bank payment emails: Create a Gmail Filter: <strong>From: (alerts@paytm.com OR noreply@alerts.sbi.co.in OR alerts@hdfcbank.net)</strong> → Check <strong>Forward it to pay@1onlysarkar.shop</strong>.</li>
+                        <p className="text-xs text-muted-foreground">
+                          Follow this exact path in your Cloudflare Dashboard:
+                        </p>
+                        <div className="p-3 bg-muted/60 rounded-xl border text-xs font-mono text-foreground flex items-center gap-2">
+                          <Server className="h-4 w-4 text-primary shrink-0" />
+                          <span>Dashboard → Compute → Email Service → Email Routing</span>
+                        </div>
+                        <ol className="list-decimal list-inside space-y-2 text-xs text-muted-foreground pl-1">
+                          <li><strong>Onboard Domain:</strong> If not already enabled, click <em>Onboard Domain</em> and enable Email Routing.</li>
+                          <li><strong>Open Routing Rules:</strong> Select your domain (<code>1onlysarkar.shop</code>) → Click on <strong>Routing Rules</strong> tab.</li>
+                          <li><strong>Create Rule:</strong> Click <strong>Create routing rule</strong>.</li>
+                          <li><strong>Rule Settings:</strong>
+                            <ul className="list-disc list-inside pl-4 pt-1 space-y-1 text-foreground/90">
+                              <li>Email pattern: <code>pay</code></li>
+                              <li>Domain: <code>1onlysarkar.shop</code> (creates <code>pay@1onlysarkar.shop</code>)</li>
+                              <li>Action: Choose <strong>Send to a Worker</strong></li>
+                              <li>Worker: Select your Email Worker (created in Step 2)</li>
+                            </ul>
+                          </li>
+                          <li>Click <strong>Save</strong>.</li>
                         </ol>
                       </div>
 
-                      <div className="rounded-xl border p-4 bg-background space-y-3">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-semibold text-foreground flex items-center gap-2">
-                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">2</span>
-                            Cloudflare Worker Script
+                      {/* Step 2 */}
+                      <div className="rounded-2xl border p-5 bg-background shadow-xs space-y-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
+                          <h4 className="font-bold text-foreground flex items-center gap-2 text-base">
+                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold shadow-xs">2</span>
+                            Create Cloudflare Worker Code
                           </h4>
-                          <Button size="sm" variant="outline" onClick={copyWorkerCode} className="gap-1.5 text-xs">
-                            {copiedCode ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
-                            {copiedCode ? "Copied" : "Copy Worker Script"}
+                          <Button size="sm" variant="default" onClick={copyWorkerCode} className="gap-1.5 text-xs shrink-0">
+                            {copiedCode ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                            {copiedCode ? "Copied Script!" : "Copy Worker Script"}
                           </Button>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          Create a Cloudflare Worker (Workers &amp; Pages → Create Worker), paste this script, and route <code>pay@1onlysarkar.shop</code> to it under Email Routing Rules:
+                          Go to <strong>Cloudflare Dashboard → Workers &amp; Pages → Create Worker</strong> (or via local <code>wrangler</code>). Paste the optimized code below:
                         </p>
-                        <pre className="p-3 bg-muted rounded-lg text-xs font-mono overflow-x-auto border">
+                        <pre className="p-4 bg-slate-950 text-slate-100 rounded-xl text-xs font-mono overflow-x-auto border border-slate-800 leading-relaxed">
                           {workerCodeSnippet}
                         </pre>
+                        <div className="rounded-xl bg-muted/50 p-3 text-xs text-muted-foreground border">
+                          <strong>💡 Environment Variables Note:</strong> In Cloudflare Worker Settings → Variables → Add <code>EMAIL_WEBHOOK_SECRET</code> secret variable containing your secret token (e.g. <code>6*x@vACW2H84&amp;eULIpyqDkJ3F)u9nV$dET%</code>).
+                        </div>
+                      </div>
+
+                      {/* Step 3 */}
+                      <div className="rounded-2xl border p-5 bg-background shadow-xs space-y-3">
+                        <h4 className="font-bold text-foreground flex items-center gap-2 text-base">
+                          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold shadow-xs">3</span>
+                          Gmail Auto-Forwarding Rule (Original Emails Preserved)
+                        </h4>
+                        <ol className="list-decimal list-inside space-y-2 text-xs text-muted-foreground pl-1">
+                          <li>Go to <strong>Gmail Settings → Forwarding and POP/IMAP → Add a forwarding address</strong>.</li>
+                          <li>Enter your Cloudflare email: <code>pay@1onlysarkar.shop</code>.</li>
+                          <li>Confirm verification link sent to Cloudflare Worker log / destination inbox.</li>
+                          <li>Ensure <strong>&quot;Keep Gmail&apos;s copy in the Inbox&quot;</strong> is selected so original emails remain in your mailbox.</li>
+                          <li><strong>Forward ONLY Bank Emails:</strong> Create a Gmail Filter:
+                            <div className="my-1.5 p-2.5 bg-muted rounded-lg font-mono text-[11px] text-foreground border">
+                              From: (alerts@paytm.com OR noreply@alerts.sbi.co.in OR alerts@hdfcbank.net OR no-reply@famapp.in)
+                            </div>
+                            Check <em>&quot;Forward it to: pay@1onlysarkar.shop&quot;</em> and click <strong>Create Filter</strong>.
+                          </li>
+                        </ol>
                       </div>
                     </div>
                   </div>
