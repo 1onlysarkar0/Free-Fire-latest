@@ -6,10 +6,6 @@ import { creditWallet } from "@/lib/wallet";
 import { eq, and, gte, sql, count } from "drizzle-orm";
 import crypto from "node:crypto";
 
-// ─── Constants ───────────────────────────────────────────────────────────────
-
-const IMAP_FOLDER_PROCESSED = "Free Fire";
-
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface PaymentConfig {
@@ -31,18 +27,6 @@ export interface VerifyPaymentResult {
   error?: string;
   creditedAmount?: number;
 }
-
-interface EmailMatch {
-  messageId: string;
-  sender: string;
-  utrNumber: string;
-  amount: number;
-}
-
-type FindEmailResult =
-  | { type: "match"; match: EmailMatch }
-  | { type: "amount_mismatch"; emailAmount: number; sender: string }
-  | { type: "not_found" };
 
 // ─── Cryptography & Keys (Domain Separation) ─────────────────────────────────
 
