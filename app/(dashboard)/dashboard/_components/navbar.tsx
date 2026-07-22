@@ -2,6 +2,7 @@
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
+import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 import { ChevronRight, Wallet } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
