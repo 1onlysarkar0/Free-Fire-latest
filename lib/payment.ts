@@ -284,6 +284,15 @@ function stripHtml(html: string): string {
     .trim();
 }
 
+function isCreditTransaction(body: string): boolean {
+  const lower = body.toLowerCase();
+  const debitWords = /\b(debited|sent|paid to|transferred|payment sent|debited from|paid to\s)/;
+  if (debitWords.test(lower)) return false;
+  const creditWords = /\b(credited|received|credited to|got|payment received|deposited)\b/;
+  if (creditWords.test(lower)) return true;
+  return false;
+}
+
 // ─── STRICT SPF/DKIM verification ───────────────────────────────────────────
 
 function checkEmailAuth(parsed: { headers: Map<string, unknown> }): boolean {
@@ -383,6 +392,8 @@ export async function findPaymentEmail(
       const subject = parsed.subject ?? "";
       const htmlText = typeof parsed.html === "string" ? stripHtml(parsed.html) : "";
       const body = `${subject} ${parsed.text ?? ""} ${htmlText}`;
+
+      if (!isCreditTransaction(body)) continue;
 
       if (config.upiName) {
         const safeUpiName = config.upiName.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
@@ -599,6 +610,8 @@ export async function syncPaymentEmails(passedConfig?: PaymentConfig): Promise<n
       const subject = parsed.subject ?? "";
       const htmlText = typeof parsed.html === "string" ? stripHtml(parsed.html) : "";
       const body = `${subject} ${parsed.text ?? ""} ${htmlText}`;
+
+      if (!isCreditTransaction(body)) continue;
 
       if (config.upiName) {
         const safeUpiName = config.upiName.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();

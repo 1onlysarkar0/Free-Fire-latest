@@ -89,6 +89,15 @@ function stripHtml(html: string): string {
     .trim();
 }
 
+function isCreditTransaction(body: string): boolean {
+  const lower = body.toLowerCase();
+  const creditWords = /\b(credited|received|credited to|got|payment received|deposited)\b/;
+  const debitWords = /\b(debited|sent|paid to|transferred|payment sent|debited from|paid to\s)/;
+  if (debitWords.test(lower) && !creditWords.test(lower)) return false;
+  if (creditWords.test(lower)) return true;
+  return false;
+}
+
 function buildOrSearch(criteria: Array<Record<string, unknown>>): Record<string, unknown> {
   if (criteria.length === 0) throw new Error("buildOrSearch: empty array");
   if (criteria.length === 1) return criteria[0];
@@ -185,6 +194,12 @@ export async function GET(req: NextRequest) {
         const subject = parsed.subject ?? "";
         const htmlText = typeof parsed.html === "string" ? stripHtml(parsed.html) : "";
         const body = `${subject} ${parsed.text ?? ""} ${htmlText}`;
+
+        if (!isCreditTransaction(body)) {
+          logs.push("Skipping debit/sent transaction email");
+          continue;
+        }
+        logs.push("Credit/received transaction detected");
 
         if (config.upiName) {
           const safeUpiName = config.upiName.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();

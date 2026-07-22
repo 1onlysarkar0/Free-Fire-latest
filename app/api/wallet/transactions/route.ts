@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { db } from "@/db/drizzle";
 import { walletTransaction } from "@/db/schema";
+import { triggerAutonomousSyncIfNeeded } from "@/lib/payment";
 import { count, desc, eq } from "drizzle-orm";
 import { rethrowIfPrerenderError } from "@/lib/api-response";
 
@@ -15,6 +16,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Authentication required" }, { status: 401 });
     }
     const userId = session.user.id;
+
+    triggerAutonomousSyncIfNeeded();
 
     const { searchParams } = new URL(req.url);
     const page = Math.max(1, parseInt(searchParams.get("page") ?? "1"));
