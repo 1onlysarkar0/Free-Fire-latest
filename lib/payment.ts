@@ -5,7 +5,7 @@ import { simpleParser } from "mailparser";
 import { db } from "@/db/drizzle";
 import { paymentConfig, paymentVerification, paymentEmailInbox } from "@/db/schema";
 import { creditWallet } from "@/lib/wallet";
-import { eq, and, gte, sql, or, lt, count } from "drizzle-orm";
+import { eq, and, gte, sql, lt, count } from "drizzle-orm";
 import crypto from "node:crypto";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -663,18 +663,12 @@ export async function syncPaymentEmails(passedConfig?: PaymentConfig): Promise<n
       }
     }
 
-    // DATA LIFECYCLE: Cleanup old claimed (>30 days) or unclaimed (>60 days) records
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
-
+    // DATA LIFECYCLE: Delete unclaimed rows older than 3 days (e.g. unpaid attempts).
+    // Claimed rows are already deleted immediately on successful claim.
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
     await db
       .delete(paymentEmailInbox)
-      .where(
-        or(
-          and(eq(paymentEmailInbox.isClaimed, true), lt(paymentEmailInbox.claimedAt, thirtyDaysAgo)),
-          lt(paymentEmailInbox.receivedAt, sixtyDaysAgo)
-        )
-      );
+      .where(lt(paymentEmailInbox.receivedAt, threeDaysAgo));
 
   } catch (err) {
     console.error("[PaymentSync] IMAP sync failed:", err);
@@ -754,32 +748,18 @@ export async function verifyAndCreditPayment(
   // 6. Lock UTR to serialize concurrent attempts
   await acquireUTRLock(cleanUTR);
   try {
-    // ── STEP A: FAST INSTANT DATABASE LOOKUP (Atomically claim) ─────────────
+    // ── STEP A: FAST INSTANT DATABASE LOOKUP (Atomically claim by existence) ─
+    // Rows are deleted on successful claim, so existence = unclaimed.
+    // We use SELECT ... FOR UPDATE to prevent concurrent double-claim.
     let matchedInboxItem = await db.transaction(async (tx) => {
       const [item] = await tx
         .select()
         .from(paymentEmailInbox)
-        .where(
-          and(
-            eq(paymentEmailInbox.utrHash, utrHashed),
-            eq(paymentEmailInbox.isClaimed, false)
-          )
-        )
+        .where(eq(paymentEmailInbox.utrHash, utrHashed))
         .for("update")
         .limit(1);
 
-      if (!item) return null;
-
-      await tx
-        .update(paymentEmailInbox)
-        .set({
-          isClaimed: true,
-          claimedAt: new Date(),
-          claimedByUserId: userId,
-        })
-        .where(eq(paymentEmailInbox.id, item.id));
-
-      return item;
+      return item ?? null;
     });
 
     // ── STEP B: FALLBACK SYNC IF NOT IN PRE-PARSED INBOX ───────────────────
@@ -790,27 +770,11 @@ export async function verifyAndCreditPayment(
         const [item] = await tx
           .select()
           .from(paymentEmailInbox)
-          .where(
-            and(
-              eq(paymentEmailInbox.utrHash, utrHashed),
-              eq(paymentEmailInbox.isClaimed, false)
-            )
-          )
+          .where(eq(paymentEmailInbox.utrHash, utrHashed))
           .for("update")
           .limit(1);
 
-        if (!item) return null;
-
-        await tx
-          .update(paymentEmailInbox)
-          .set({
-            isClaimed: true,
-            claimedAt: new Date(),
-            claimedByUserId: userId,
-          })
-          .where(eq(paymentEmailInbox.id, item.id));
-
-        return item;
+        return item ?? null;
       });
     }
 
@@ -846,18 +810,8 @@ export async function verifyAndCreditPayment(
       };
     }
 
-    // Check amount match
+    // Check amount match — if mismatch, leave the row (do NOT delete) so others can claim
     if (matchedInboxItem.amount !== amount) {
-      // Revert atomically claimed state
-      await db
-        .update(paymentEmailInbox)
-        .set({
-          isClaimed: false,
-          claimedAt: null,
-          claimedByUserId: null,
-        })
-        .where(eq(paymentEmailInbox.id, matchedInboxItem.id));
-
       await db
         .update(paymentVerification)
         .set({
@@ -884,28 +838,16 @@ export async function verifyAndCreditPayment(
     });
 
     if (!creditResult.success) {
-      // Revert atomically claimed state if wallet credit failed
-      await db
-        .update(paymentEmailInbox)
-        .set({
-          isClaimed: false,
-          claimedAt: null,
-          claimedByUserId: null,
-        })
-        .where(eq(paymentEmailInbox.id, matchedInboxItem.id));
-
+      // Wallet credit failed (UTR already credited) — row stays unclaimed, user gets error
       return { success: false, error: "This UTR number has already been used." };
     }
 
-    // ── STEP E: PERSIST FINAL CLAIMED & VERIFIED STATUS (SCRUB ENCRYPTED DATA)
+    // ── STEP E: DELETE inbox row & PERSIST VERIFIED STATUS ─────────────────
+    // Row deletion = permanent claim. Duplicate protection comes from
+    // paymentVerification.utrHash (status=verified) — not from inbox.
     await db.transaction(async (tx) => {
-      // Scrub raw encrypted email details to blank in inbox log to respect retention policy
       await tx
-        .update(paymentEmailInbox)
-        .set({
-          encryptedData: "",
-          isClaimed: true,
-        })
+        .delete(paymentEmailInbox)
         .where(eq(paymentEmailInbox.id, matchedInboxItem!.id));
 
       await tx
@@ -922,19 +864,7 @@ export async function verifyAndCreditPayment(
 
     return { success: true, creditedAmount: amount };
   } catch (err) {
-    // Revert claimed state on unexpected errors
-    try {
-      await db
-        .update(paymentEmailInbox)
-        .set({
-          isClaimed: false,
-          claimedAt: null,
-          claimedByUserId: null,
-        })
-        .where(eq(paymentEmailInbox.utrHash, utrHashed));
-    } catch (revertErr) {
-      console.error("[PaymentVerify] Fatal: Revert claimed state failed:", revertErr);
-    }
+    // No inbox revert needed — row was never modified, just not deleted
 
     await db
       .update(paymentVerification)

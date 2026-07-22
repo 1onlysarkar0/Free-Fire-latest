@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminOrRole } from "@/lib/admin-auth";
 import { db } from "@/db/drizzle";
-import { paymentEmailInbox, user } from "@/db/schema";
-import { eq, desc, count, and } from "drizzle-orm";
+import { paymentEmailInbox } from "@/db/schema";
+import { eq, desc, count } from "drizzle-orm";
 import {
   hashUTR,
   encryptPaymentPayload,
@@ -25,15 +25,9 @@ export async function GET(request: NextRequest) {
       amount: paymentEmailInbox.amount,
       encryptedData: paymentEmailInbox.encryptedData,
       emailMessageId: paymentEmailInbox.emailMessageId,
-      isClaimed: paymentEmailInbox.isClaimed,
-      claimedByUserId: paymentEmailInbox.claimedByUserId,
-      claimedUserName: user.name,
-      claimedUserEmail: user.email,
-      claimedAt: paymentEmailInbox.claimedAt,
       receivedAt: paymentEmailInbox.receivedAt,
     })
     .from(paymentEmailInbox)
-    .leftJoin(user, eq(paymentEmailInbox.claimedByUserId, user.id))
     .orderBy(desc(paymentEmailInbox.receivedAt))
     .limit(limit)
     .offset(offset);
@@ -47,11 +41,7 @@ export async function GET(request: NextRequest) {
       amount: row.amount,
       sender: decrypted?.sender || "Direct Ingestion",
       emailMessageId: row.emailMessageId,
-      isClaimed: row.isClaimed,
-      claimedByUserId: row.claimedByUserId,
-      claimedUserName: row.claimedUserName,
-      claimedUserEmail: row.claimedUserEmail,
-      claimedAt: row.claimedAt ? row.claimedAt.toISOString() : null,
+      isClaimed: false, // All rows in inbox are unclaimed (deleted on claim)
       receivedAt: row.receivedAt.toISOString(),
     };
   });

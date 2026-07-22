@@ -635,13 +635,11 @@ export const paymentEmailInbox = pgTable("payment_email_inbox", {
   amount: integer("amount").notNull(),
   encryptedData: text("encrypted_data").notNull(),
   emailMessageId: text("email_message_id"),
-  isClaimed: boolean("is_claimed").notNull().default(false),
-  claimedByUserId: text("claimed_by_user_id").references(() => user.id, { onDelete: "set null" }),
-  claimedAt: timestamp("claimed_at"),
+  // NOTE: No isClaimed/claimedAt columns — rows are DELETED on successful claim.
+  // Duplicate protection is enforced via paymentVerification.utrHash (permanent audit log).
   receivedAt: timestamp("received_at").notNull().defaultNow(),
 }, (t) => [
   index("pei_utr_hash_idx").on(t.utrHash),
-  index("pei_claimed_idx").on(t.isClaimed),
   index("pei_received_idx").on(t.receivedAt),
 ]);
 
