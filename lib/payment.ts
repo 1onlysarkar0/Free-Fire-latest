@@ -374,6 +374,7 @@ export async function findPaymentEmail(
     let mismatch: { emailAmount: number; sender: string } | null = null;
     let matchedUid: number | null = null;
     let finalMatch: EmailMatch | null = null;
+    const debitUids: number[] = [];
 
     for (const msg of messages) {
       const parsed = await simpleParser(msg.source, {
@@ -393,7 +394,10 @@ export async function findPaymentEmail(
       const htmlText = typeof parsed.html === "string" ? stripHtml(parsed.html) : "";
       const body = `${subject} ${parsed.text ?? ""} ${htmlText}`;
 
-      if (!isCreditTransaction(body)) continue;
+      if (!isCreditTransaction(body)) {
+        debitUids.push(msg.uid);
+        continue;
+      }
 
       if (config.upiName) {
         const safeUpiName = config.upiName.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
@@ -420,6 +424,14 @@ export async function findPaymentEmail(
       if (emailAmount !== null) mismatch = { emailAmount, sender };
     }
 
+    for (const uid of debitUids) {
+      try {
+        await client.messageFlagsAdd(uid, ["\\Seen"], { uid: true });
+      } catch {
+        console.warn(`[Payment] Failed to mark debit email UID ${uid} as read`);
+      }
+    }
+
     if (matchedUid && finalMatch) {
       await client.messageFlagsAdd(matchedUid, ["\\Seen"], { uid: true });
       try {
@@ -429,7 +441,6 @@ export async function findPaymentEmail(
           await client.mailboxCreate(IMAP_FOLDER_PROCESSED);
           await client.messageMove(matchedUid, IMAP_FOLDER_PROCESSED, { uid: true });
         } catch {
-          // Fallback to archiving if mailbox creation fails
           try {
             await client.messageMove(matchedUid, "[Gmail]/All Mail", { uid: true });
           } catch {
@@ -532,7 +543,8 @@ export async function triggerAutonomousSyncIfNeeded(config?: PaymentConfig) {
 
     if (shouldSync) {
       try {
-        await syncPaymentEmails(config);
+        const result = await syncPaymentEmails(config);
+        console.log(`[AutonomousSync] Synced ${result.syncedCount} emails`);
       } catch (err) {
         console.error("[AutonomousSync] Background sync error:", err);
       }
@@ -544,19 +556,25 @@ export async function triggerAutonomousSyncIfNeeded(config?: PaymentConfig) {
 
 // ─── Background Email Ingestion Worker ─────────────────────────────────────
 
-export async function syncPaymentEmails(passedConfig?: PaymentConfig): Promise<number> {
+export async function syncPaymentEmails(passedConfig?: PaymentConfig): Promise<{ syncedCount: number; logs: string[] }> {
+  const logs: string[] = [];
   const config = passedConfig || (await getPaymentConfig());
   if (!config || !config.enabled || !config.gmailEmail || !config.gmailAppPassword) {
-    return 0;
+    logs.push("Payment config not found or disabled");
+    return { syncedCount: 0, logs };
   }
   const trustedSenders = config.trustedSenders
     .map((sender) => sender.trim().toLowerCase())
     .filter(Boolean);
-  if (trustedSenders.length === 0) return 0;
+  if (trustedSenders.length === 0) {
+    logs.push("No trusted senders configured");
+    return { syncedCount: 0, logs };
+  }
 
   const client = createImapClient(config.gmailEmail, config.gmailAppPassword);
   let lock: Awaited<ReturnType<ImapFlow["getMailboxLock"]>> | undefined;
   let syncedCount = 0;
+  const debitUids: number[] = [];
 
   try {
     await client.connect();
@@ -566,14 +584,16 @@ export async function syncPaymentEmails(passedConfig?: PaymentConfig): Promise<n
     const senderCriteria = trustedSenders.map((from) => ({ from }));
     const senderFilter = buildOrSearch(senderCriteria);
 
-    // CRITICAL BUSINESS RULE: Only search unread emails (seen: false).
-    // This prevents reprocessing/re-claiming of already sync'd or manually read payments.
-    // Do NOT remove or change seen: false to include read/seen emails.
+    logs.push(`IMAP connected, searching unread since ${sinceDate.toISOString()}`);
     const ids = await client.search(
       { seen: false, since: sinceDate, ...senderFilter },
       { uid: true }
     );
-    if (!ids || ids.length === 0) return 0;
+    if (!ids || ids.length === 0) {
+      logs.push("No unread emails found from trusted senders");
+      return { syncedCount: 0, logs };
+    }
+    logs.push(`Found ${ids.length} unread emails`);
 
     const messages: { uid: number; source: Buffer }[] = [];
     const fetchIterator = client.fetch(
@@ -592,6 +612,7 @@ export async function syncPaymentEmails(passedConfig?: PaymentConfig): Promise<n
       await fetchIterator.return?.();
       throw fetchErr;
     }
+    logs.push(`Fetched ${messages.length} message bodies`);
 
     const processedUids: number[] = [];
 
@@ -605,7 +626,7 @@ export async function syncPaymentEmails(passedConfig?: PaymentConfig): Promise<n
       if (!trustedSenders.includes(sender)) continue;
 
       if (!checkEmailAuth(parsed)) {
-        console.warn(`[PaymentSync] SPF/DKIM check failed for email UID ${msg.uid} from ${sender}`);
+        logs.push(`UID ${msg.uid}: skipped (SPF/DKIM failed) from ${sender}`);
         continue;
       }
 
@@ -613,12 +634,17 @@ export async function syncPaymentEmails(passedConfig?: PaymentConfig): Promise<n
       const htmlText = typeof parsed.html === "string" ? stripHtml(parsed.html) : "";
       const body = `${subject} ${parsed.text ?? ""} ${htmlText}`;
 
-      if (!isCreditTransaction(body)) continue;
+      if (!isCreditTransaction(body)) {
+        debitUids.push(msg.uid);
+        logs.push(`UID ${msg.uid}: debit/sent email from ${sender} - marking as read`);
+        continue;
+      }
 
       if (config.upiName) {
         const safeUpiName = config.upiName.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
         const safeBody = body.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
         if (safeUpiName.length > 3 && !safeBody.includes(safeUpiName)) {
+          logs.push(`UID ${msg.uid}: skipped (UPI name mismatch)`);
           continue;
         }
       }
@@ -651,41 +677,54 @@ export async function syncPaymentEmails(passedConfig?: PaymentConfig): Promise<n
 
           if (inserted.length > 0) {
             syncedCount++;
+            logs.push(`UID ${msg.uid}: synced UTR=${cleanUTR} amount=${emailAmount}`);
+          } else {
+            logs.push(`UID ${msg.uid}: skipped (duplicate - already in inbox)`);
           }
           processedUids.push(msg.uid);
         } catch (e) {
-          console.error("[PaymentSync] Error inserting inbox row:", e);
+          logs.push(`UID ${msg.uid}: DB insert error ${e instanceof Error ? e.message : e}`);
         }
+      } else {
+        logs.push(`UID ${msg.uid}: could not parse UTR (${emailUTR}) or amount (${emailAmount})`);
       }
     }
 
-    // Perform message flag/move operations safely outside the fetch loop
-    for (const uid of processedUids) {
+    const allUids = [...new Set([...processedUids, ...debitUids])];
+
+    for (const uid of allUids) {
       try {
         await client.messageFlagsAdd(uid, ["\\Seen"], { uid: true });
-        try {
-          await client.messageMove(uid, IMAP_FOLDER_PROCESSED, { uid: true });
-        } catch {
-          try {
-            await client.mailboxCreate(IMAP_FOLDER_PROCESSED);
-            await client.messageMove(uid, IMAP_FOLDER_PROCESSED, { uid: true });
-          } catch (moveErr) {
-            console.error(`[PaymentSync] Failed to move email UID ${uid} to ${IMAP_FOLDER_PROCESSED}:`, moveErr);
-          }
-        }
       } catch (flagErr) {
-        console.error(`[PaymentSync] Failed to set Seen flag for email UID ${uid}:`, flagErr);
+        logs.push(`UID ${uid}: failed to set Seen flag`);
       }
     }
 
-    // DATA LIFECYCLE: Delete unclaimed rows older than 3 days (e.g. unpaid attempts).
-    // Claimed rows are already deleted immediately on successful claim.
+    for (const uid of processedUids) {
+      try {
+        await client.messageMove(uid, IMAP_FOLDER_PROCESSED, { uid: true });
+      } catch {
+        try {
+          await client.mailboxCreate(IMAP_FOLDER_PROCESSED);
+          await client.messageMove(uid, IMAP_FOLDER_PROCESSED, { uid: true });
+        } catch (moveErr) {
+          logs.push(`UID ${uid}: failed to move to ${IMAP_FOLDER_PROCESSED}`);
+        }
+      }
+    }
+
     const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
-    await db
+    const deleted = await db
       .delete(paymentEmailInbox)
-      .where(lt(paymentEmailInbox.receivedAt, threeDaysAgo));
+      .where(lt(paymentEmailInbox.receivedAt, threeDaysAgo))
+      .returning({ id: paymentEmailInbox.id });
+    if (deleted.length > 0) {
+      logs.push(`Cleaned up ${deleted.length} stale inbox rows older than 3 days`);
+    }
 
   } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    logs.push(`SYNC ERROR: ${msg}`);
     console.error("[PaymentSync] IMAP sync failed:", err);
   } finally {
     lock?.release();
@@ -693,7 +732,8 @@ export async function syncPaymentEmails(passedConfig?: PaymentConfig): Promise<n
     else client.close();
   }
 
-  return syncedCount;
+  logs.push(`Sync complete: ${syncedCount} emails synced`);
+  return { syncedCount, logs };
 }
 
 // ─── Main Verification Function (Zero Cron & Advisory Lock & Claims) ───────

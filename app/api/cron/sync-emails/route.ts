@@ -1,23 +1,33 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { headers } from "next/headers";
 import { syncPaymentEmails } from "@/lib/payment";
+import { requireAdminOrRole } from "@/lib/admin-auth";
 
-export const maxDuration = 60;
 export const instant = false;
+export const maxDuration = 60;
 
-export async function GET(req: NextRequest) {
+export async function GET(request: Request) {
   try {
-    const authHeader = req.headers.get("authorization");
+    const headersList = await headers();
+    const authHeader = headersList.get("authorization");
     const cronSecret = process.env.CRON_SECRET;
 
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const isCronJob = cronSecret && authHeader === `Bearer ${cronSecret}`;
+
+    if (!isCronJob) {
+      const admin = await requireAdminOrRole(request);
+      if (admin instanceof Response) {
+        return NextResponse.json({ error: "Not found" }, { status: 404 });
+      }
     }
 
-    const syncedCount = await syncPaymentEmails();
+    console.log("[Cron/SyncEmails] Starting sync...");
+    const result = await syncPaymentEmails();
 
     return NextResponse.json({
       success: true,
-      syncedCount,
+      syncedCount: result.syncedCount,
+      logs: result.logs,
       timestamp: new Date().toISOString(),
     });
   } catch (err) {
