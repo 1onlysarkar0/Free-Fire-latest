@@ -1,7 +1,6 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { getOrCreateWallet } from "@/lib/wallet";
-import { triggerAutonomousSyncIfNeeded } from "@/lib/payment";
 import { apiSuccess, apiError, rethrowIfPrerenderError } from "@/lib/api-response";
 import type { NextRequest } from "next/server";
 
@@ -15,8 +14,6 @@ export async function GET(req: NextRequest) {
     }
 
     const walletRow = await getOrCreateWallet(session.user.id);
-
-    triggerAutonomousSyncIfNeeded();
 
     return apiSuccess({ balance: walletRow.balance });
   } catch (err) {

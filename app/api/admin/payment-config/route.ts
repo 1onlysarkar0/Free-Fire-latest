@@ -7,12 +7,9 @@ import { z } from "zod";
 import { invalidateAdminCache } from "@/lib/cache";
 
 const updateSchema = z.object({
-  gmailEmail: z.string().email("Invalid Gmail address"),
-  gmailAppPassword: z.string().max(64),
   trustedSenders: z
     .array(z.string().email("Each trusted sender must be a valid email"))
     .max(10),
-  checkDays: z.number().int().min(1).max(7),
   upiId: z.string().max(50),
   upiName: z.string().max(100),
   pageContent: z.string().max(5000),
@@ -37,10 +34,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     success: true,
     data: {
-      gmailEmail: row.gmailEmail,
-      gmailAppPassword: row.gmailAppPassword ? "••••••••" : "",
       trustedSenders: JSON.parse(row.trustedSenders || "[]"),
-      checkDays: row.checkDays,
       upiId: row.upiId,
       upiName: row.upiName,
       pageContent: row.pageContent,
@@ -70,10 +64,7 @@ export async function PUT(request: NextRequest) {
   }
 
   const {
-    gmailEmail,
-    gmailAppPassword,
     trustedSenders,
-    checkDays,
     upiId,
     upiName,
     pageContent,
@@ -81,25 +72,15 @@ export async function PUT(request: NextRequest) {
   } = parsed.data;
 
   const existing = await db
-    .select({ id: paymentConfig.id, gmailAppPassword: paymentConfig.gmailAppPassword })
+    .select({ id: paymentConfig.id })
     .from(paymentConfig)
     .where(eq(paymentConfig.id, "default"))
     .limit(1);
 
-  const keepExistingPassword =
-    !gmailAppPassword || gmailAppPassword === "••••••••";
-  const finalPassword =
-    keepExistingPassword && existing[0]
-      ? existing[0].gmailAppPassword
-      : gmailAppPassword;
-
   if (existing.length === 0) {
     await db.insert(paymentConfig).values({
       id: "default",
-      gmailEmail,
-      gmailAppPassword: finalPassword,
       trustedSenders: JSON.stringify(trustedSenders),
-      checkDays,
       upiId,
       upiName,
       pageContent,
@@ -110,10 +91,7 @@ export async function PUT(request: NextRequest) {
     await db
       .update(paymentConfig)
       .set({
-        gmailEmail,
-        gmailAppPassword: finalPassword,
         trustedSenders: JSON.stringify(trustedSenders),
-        checkDays,
         upiId,
         upiName,
         pageContent,

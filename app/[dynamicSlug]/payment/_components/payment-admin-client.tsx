@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Save, Loader2, Eye, EyeOff, Plus, Trash2,
-  Wifi, WifiOff, CheckCircle, XCircle, RefreshCw,
-  CreditCard, Settings, FileText, BarChart3, AlertTriangle, Inbox,
+  Save, Loader2, Plus, Trash2,
+  CheckCircle, RefreshCw,
+  CreditCard, Settings, FileText, BarChart3, Inbox, HelpCircle, Copy, Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -21,10 +21,7 @@ const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false });
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 
 interface PaymentConfigData {
-  gmailEmail: string;
-  gmailAppPassword: string;
   trustedSenders: string[];
-  checkDays: number;
   upiId: string;
   upiName: string;
   pageContent: string;
@@ -55,10 +52,6 @@ interface PaymentInboxItem {
   sender: string;
   emailMessageId?: string;
   isClaimed: boolean;
-  claimedByUserId?: string;
-  claimedUserName?: string;
-  claimedUserEmail?: string;
-  claimedAt?: string;
   receivedAt: string;
 }
 
@@ -78,11 +71,9 @@ const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
 };
 
 type ActiveTab = "settings" | "content" | "inbox" | "logs";
-type SettingsTab = "gmail" | "sources" | "upi" | "system";
+type SettingsTab = "guide" | "sources" | "upi" | "system";
 
 const defaultConfig: PaymentConfigData = {
-  gmailEmail: "",
-  gmailAppPassword: "",
   trustedSenders: [
     "alerts@paytm.com",
     "noreply@alerts.sbi.co.in",
@@ -92,7 +83,6 @@ const defaultConfig: PaymentConfigData = {
     "noreply@icicibank.com",
     "alerts@yesbank.in",
   ],
-  checkDays: 1,
   upiId: "",
   upiName: "",
   pageContent: "",
@@ -103,19 +93,17 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
   const router = useRouter();
   const [config, setConfig] = useState<PaymentConfigData>(initialConfig || defaultConfig);
   const [saving, setSaving] = useState(false);
-  const [showPass, setShowPass] = useState(false);
-  const [testing, setTesting] = useState(false);
-  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [newSender, setNewSender] = useState("");
   const [activeTab, setActiveTab] = useState<ActiveTab>("settings");
-  const [settingsTab, setSettingsTab] = useState<SettingsTab>("gmail");
+  const [settingsTab, setSettingsTab] = useState<SettingsTab>("guide");
   const [verifications, setVerifications] = useState<VerificationRow[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [logsPage, setLogsPage] = useState(1);
   const [logsTotalPages, setLogsTotalPages] = useState(1);
   const [previewContent, setPreviewContent] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
 
-  // Payment Inbox (Pre-Parsed UTRs) State
+  // Payment Inbox State
   const [inboxItems, setInboxItems] = useState<PaymentInboxItem[]>([]);
   const [loadingInbox, setLoadingInbox] = useState(false);
   const [inboxPage, setInboxPage] = useState(1);
@@ -256,31 +244,6 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
     }
   }
 
-  async function handleTestConnection() {
-    if (!config.gmailEmail) {
-      toast.error("Enter a Gmail address first.");
-      return;
-    }
-    setTesting(true);
-    setTestResult(null);
-    try {
-      const res = await fetch("/api/admin/payment-config/test-connection", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          gmailEmail: config.gmailEmail,
-          gmailAppPassword: config.gmailAppPassword,
-        }),
-      });
-      const data = await res.json();
-      setTestResult({ success: data.success, message: data.message || data.error || "" });
-    } catch {
-      setTestResult({ success: false, message: "Network error during test." });
-    } finally {
-      setTesting(false);
-    }
-  }
-
   function addSender() {
     const trimmed = newSender.trim().toLowerCase();
     if (!trimmed || config.trustedSenders.includes(trimmed)) return;
@@ -296,63 +259,77 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
     set("trustedSenders", config.trustedSenders.filter((s) => s !== email));
   }
 
+  const workerCodeSnippet = `export default {
+  async email(message, env, ctx) {
+    const rawEmail = await new Response(message.raw).text();
+    const payload = {
+      from: message.from,
+      to: message.to,
+      subject: message.headers.get("subject") || "",
+      body: rawEmail,
+    };
+
+    await fetch("https://${typeof window !== "undefined" ? window.location.host : "app.1onlysarkar.shop"}/api/webhooks/email-ingest", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": \`Bearer \${env.EMAIL_WEBHOOK_SECRET || "YOUR_SECRET_KEY"}\`,
+      },
+      body: JSON.stringify(payload),
+    });
+  }
+};`;
+
+  function copyWorkerCode() {
+    navigator.clipboard.writeText(workerCodeSnippet);
+    setCopiedCode(true);
+    toast.success("Cloudflare Worker script copied to clipboard!");
+    setTimeout(() => setCopiedCode(false), 3000);
+  }
+
   const tabs: { key: ActiveTab; label: string; icon: React.ElementType }[] = [
-    { key: "settings", label: "Settings", icon: Settings },
-    { key: "content", label: "Page Content", icon: FileText },
-    ...(canViewLogs ? [{ key: "inbox" as ActiveTab, label: "Payment Inbox (UTRs)", icon: Inbox }] : []),
+    { key: "settings", label: "Settings & Guide", icon: Settings },
+    { key: "content", label: "Payment Page UI", icon: FileText },
+    { key: "inbox", label: "Payment Inbox", icon: Inbox },
     ...(canViewLogs ? [{ key: "logs" as ActiveTab, label: "Verification Logs", icon: BarChart3 }] : []),
   ];
 
   return (
-    <div className="w-full min-w-0 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="header-admin">
-        <div className="flex items-center gap-4">
-          <div className="rounded-xl bg-primary/10 p-2.5">
-            <CreditCard className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-foreground">Payment Gateway</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">Configure UPI payments, Gmail IMAP verification, and page content.</p>
-          </div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <CreditCard className="h-6 w-6 text-primary" />
+            Automatic UPI Payment Gateway
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Zero-Maintenance Cloudflare Webhook Ingestion with 50ms UTR Auto-Verification.
+          </p>
         </div>
         {canEdit && (
-          <Button onClick={handleSave} disabled={saving}>
+          <Button onClick={handleSave} disabled={saving} className="gap-2 shrink-0">
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            {saving ? "Saving..." : "Save Changes"}
+            Save Configuration
           </Button>
         )}
       </div>
 
-      {/* Security Info Box */}
-      <div className="rounded-2xl bg-info/10 dark:bg-info/5 border border-info/20 p-4 flex gap-3">
-        <AlertTriangle className="h-5 w-5 text-info shrink-0 mt-0.5" />
-        <div className="text-sm space-y-1">
-          <p className="font-semibold text-info">Security & System Notes</p>
-          <ul className="text-xs text-info/80 space-y-0.5 list-disc list-inside">
-            <li><strong>Zero Cron Autonomous Sync</strong>: System automatically checks Gmail emails every ~30s without external crons.</li>
-            <li><strong>Hardened AES-256-GCM Encryption</strong>: All UTR and payment payloads are encrypted with AES-256-GCM + HMAC SHA-256 hashes.</li>
-            <li><strong>Instant Record Drop on Claim</strong>: Claimed UTR and amount records are immediately <strong>DELETED</strong> from the database upon verification.</li>
-            <li><strong>Check Window & Trusted Senders</strong>: Only unread emails within your selected days back and from trusted senders are processed.</li>
-            <li><strong>Rate Limiting & Advisory Locking</strong>: Max 5 verification attempts per user per 15 mins with PostgreSQL advisory locks.</li>
-          </ul>
-        </div>
-      </div>
-
-
-      {/* Main Tabs */}
-      <Card className="card-settings">
-        <div className="flex gap-1 p-2 bg-accent/40 border-b">
-          {tabs.map(({ key, label, icon: Icon }) => (
-            <button
-              key={key}
-              onClick={() => setActiveTab(key)}
-              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
-                activeTab === key
-                  ? "bg-background shadow-sm text-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
-              }`}
-            >
+      {/* Main Container Card */}
+      <Card className="overflow-hidden border border-border/50 bg-card shadow-sm">
+        {/* Navigation Bar */}
+        <div className="border-b bg-muted/40 p-2 sm:p-3">
+          <div className="flex flex-wrap gap-1">
+            {tabs.map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                onClick={() => setActiveTab(key)}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+                  activeTab === key
+                    ? "bg-background shadow-sm text-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
+                }`}
+              >
                 <Icon className="h-4 w-4" />
                 {label}
               </button>
@@ -364,7 +341,7 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
             {activeTab === "settings" && (
               <div className="space-y-4">
                 <div className="flex flex-wrap gap-2">
-                  {(["gmail", "sources", "upi", "system"] as SettingsTab[]).map((t) => (
+                  {(["guide", "sources", "upi", "system"] as SettingsTab[]).map((t) => (
                     <button
                       key={t}
                       onClick={() => setSettingsTab(t)}
@@ -374,57 +351,56 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
                           : "bg-background text-muted-foreground hover:bg-accent"
                       }`}
                     >
-                      {t === "gmail" ? "Gmail Setup" : t === "sources" ? "Payment Sources" : t === "upi" ? "UPI Setup" : "System"}
+                      {t === "guide" ? "Cloudflare & Forwarding Setup Guide" : t === "sources" ? "Payment Sources" : t === "upi" ? "UPI Setup" : "System"}
                     </button>
                   ))}
                 </div>
 
-                {/* Gmail Setup */}
-                {settingsTab === "gmail" && (
-                  <div className="space-y-5">
-                    <div className="rounded-2xl bg-warning/10 dark:bg-warning/5 border border-warning/20 p-4 text-sm">
-                      <p className="font-semibold text-warning mb-2">How to create a Gmail App Password:</p>
-                      <ol className="list-decimal list-inside space-y-1 text-xs text-warning/80">
-                        <li>Go to <strong>myaccount.google.com</strong></li>
-                        <li>Select <strong>Security → 2-Step Verification → App passwords</strong></li>
-                        <li>Select &quot;Mail&quot; and &quot;Other device&quot; → name it after your app</li>
-                        <li>Copy the 16-character password shown</li>
-                        <li>Paste it in the App Password field below</li>
-                      </ol>
+                {/* Cloudflare & Forwarding Setup Guide */}
+                {settingsTab === "guide" && (
+                  <div className="space-y-6 max-w-3xl">
+                    <div className="rounded-2xl bg-primary/10 border border-primary/20 p-4 text-sm">
+                      <h3 className="font-semibold text-primary mb-1 flex items-center gap-2">
+                        <HelpCircle className="h-4 w-4" />
+                        100% Free & Unlimited Ingestion Architecture
+                      </h3>
+                      <p className="text-xs text-muted-foreground">
+                        Emails are forwarded from Gmail to Cloudflare Email Routing, which triggers a Cloudflare Worker to instantly post email data to your webhook. Original emails remain safely in your Gmail Inbox!
+                      </p>
                     </div>
-                    <div className="space-y-4 max-w-lg">
-                      <Field>
-                        <FieldLabel>Gmail Address</FieldLabel>
-                        <Input type="email" placeholder="payments@gmail.com" value={config.gmailEmail} onChange={(e) => set("gmailEmail", e.target.value)} disabled={!canEdit} />
-                      </Field>
-                      <Field>
-                        <FieldLabel>App Password</FieldLabel>
-                        <div className="relative">
-                          <Input type={showPass ? "text" : "password"} placeholder="16-character app password" value={config.gmailAppPassword} onChange={(e) => set("gmailAppPassword", e.target.value)} disabled={!canEdit} className="pr-10" />
-                          <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
-                            {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </button>
-                        </div>
-                        <Muted className="text-xs">Leave blank to keep the existing password.</Muted>
-                      </Field>
-                      {canEdit && (
-                        <div className="space-y-2">
-                          <Button variant="outline" onClick={handleTestConnection} disabled={testing || !config.gmailEmail} className="gap-2">
-                            {testing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wifi className="h-4 w-4" />}
-                            Test Gmail Connection
+
+                    <div className="space-y-4 text-sm">
+                      <div className="rounded-xl border p-4 bg-background space-y-2">
+                        <h4 className="font-semibold text-foreground flex items-center gap-2">
+                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">1</span>
+                          Gmail Specific Forwarding Rule (Keep Original Emails)
+                        </h4>
+                        <ol className="list-decimal list-inside space-y-1.5 text-xs text-muted-foreground pl-2">
+                          <li>Go to <strong>Gmail Settings → Forwarding and POP/IMAP → Add a forwarding address</strong>.</li>
+                          <li>Enter your Cloudflare Email address (e.g. <code>pay@1onlysarkar.shop</code>).</li>
+                          <li>Select <strong>&quot;Keep Gmail&apos;s copy in the Inbox&quot;</strong> so original emails are never deleted.</li>
+                          <li>To forward ONLY bank payment emails: Create a Gmail Filter: <strong>From: (alerts@paytm.com OR noreply@alerts.sbi.co.in OR alerts@hdfcbank.net)</strong> → Check <strong>Forward it to pay@1onlysarkar.shop</strong>.</li>
+                        </ol>
+                      </div>
+
+                      <div className="rounded-xl border p-4 bg-background space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-semibold text-foreground flex items-center gap-2">
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">2</span>
+                            Cloudflare Worker Script
+                          </h4>
+                          <Button size="sm" variant="outline" onClick={copyWorkerCode} className="gap-1.5 text-xs">
+                            {copiedCode ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
+                            {copiedCode ? "Copied" : "Copy Worker Script"}
                           </Button>
-                          {testResult && (
-                            <div className={`flex items-start gap-2 p-3 rounded-xl text-sm ${
-                              testResult.success
-                                ? "bg-success/10 text-green-800 border border-success/20"
-                                : "bg-destructive/10 text-destructive border border-destructive/20"
-                            }`}>
-                              {testResult.success ? <CheckCircle className="h-4 w-4 mt-0.5 shrink-0" /> : <XCircle className="h-4 w-4 mt-0.5 shrink-0" />}
-                              {testResult.message}
-                            </div>
-                          )}
                         </div>
-                      )}
+                        <p className="text-xs text-muted-foreground">
+                          Create a Cloudflare Worker (Workers &amp; Pages → Create Worker), paste this script, and route <code>pay@1onlysarkar.shop</code> to it under Email Routing Rules:
+                        </p>
+                        <pre className="p-3 bg-muted rounded-lg text-xs font-mono overflow-x-auto border">
+                          {workerCodeSnippet}
+                        </pre>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -434,7 +410,7 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
                   <div className="space-y-5">
                     <div>
                       <h3 className="text-sm font-semibold text-foreground">Trusted Sender Emails</h3>
-                      <Muted className="text-xs mt-0.5">The system checks <strong>UNREAD</strong> emails from these senders within the selected days.</Muted>
+                      <Muted className="text-xs mt-0.5">The system ingests emails ONLY from these verified senders.</Muted>
                     </div>
                     <div className="space-y-2 max-w-lg">
                       {config.trustedSenders.map((email) => (
@@ -450,235 +426,138 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
                     </div>
                     {canEdit && config.trustedSenders.length < 10 && (
                       <div className="flex gap-2 max-w-lg">
-                        <Input placeholder="alerts@newbank.com" value={newSender} onChange={(e) => setNewSender(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addSender()} />
-                        <Button variant="outline" onClick={addSender} className="gap-1 shrink-0"><Plus className="h-4 w-4" /> Add</Button>
+                        <Input placeholder="new-bank-alert@bank.com" value={newSender} onChange={(e) => setNewSender(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addSender()} />
+                        <Button variant="outline" onClick={addSender} className="gap-1 shrink-0">
+                          <Plus className="h-4 w-4" /> Add
+                        </Button>
                       </div>
                     )}
-                    <Field>
-                      <FieldLabel>Check Window (Days Back)</FieldLabel>
-                      <select value={config.checkDays} onChange={(e) => set("checkDays", parseInt(e.target.value))} disabled={!canEdit}
-                        className="flex h-9 w-full max-w-xs rounded-lg border bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
-                        {[1, 2, 3, 5, 7].map((d) => (
-                          <option key={d} value={d}>{d} {d === 1 ? "day" : "days"}</option>
-                        ))}
-                      </select>
-                      <Muted className="text-xs">Only unread emails received within this window will be checked.</Muted>
-                    </Field>
                   </div>
                 )}
 
                 {/* UPI Setup */}
                 {settingsTab === "upi" && (
-                  <div className="space-y-5">
-                    <h3 className="text-sm font-semibold text-foreground">UPI Payment Details</h3>
-                    <div className="grid sm:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <Field>
-                          <FieldLabel>UPI ID</FieldLabel>
-                          <Input placeholder="yourname@paytm" value={config.upiId} onChange={(e) => set("upiId", e.target.value)} disabled={!canEdit} />
-                          <Muted className="text-xs">e.g. name@paytm, name@ybl, name@okaxis</Muted>
-                        </Field>
-                        <Field>
-                          <FieldLabel>Display Name</FieldLabel>
-                          <Input placeholder="1onlysarkar" value={config.upiName} onChange={(e) => set("upiName", e.target.value)} disabled={!canEdit} />
-                          <Muted className="text-xs">Shown as payee name on the QR code.</Muted>
-                        </Field>
-                      </div>
-                      <div className="flex flex-col items-center justify-center">
-                        {config.upiId ? (
-                          <div className="text-center space-y-2">
-                            <Muted className="text-xs font-medium uppercase tracking-[0.08em]">QR Preview</Muted>
-                            <div className="p-3 bg-white rounded-xl border shadow-sm inline-block">
-                              <QRPreview upiId={config.upiId} upiName={config.upiName} />
-                            </div>
-                            <p className="text-xs font-mono text-muted-foreground">{config.upiId}</p>
-                          </div>
-                        ) : (
-                          <div className="text-center text-sm text-muted-foreground">Enter UPI ID to see QR preview</div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
+                  <div className="space-y-5 max-w-lg">
+                    <Field>
+                      <FieldLabel>UPI ID (VPA)</FieldLabel>
+                      <Input placeholder="yourname@upi / 9876543210@paytm" value={config.upiId} onChange={(e) => set("upiId", e.target.value)} disabled={!canEdit} />
+                      <Muted className="text-xs">Dynamic QR codes generate automatically using this VPA.</Muted>
+                    </Field>
 
-                {/* System Toggle */}
-                {settingsTab === "system" && (
-                  <div className="space-y-5">
-                    <div className="flex items-center justify-between p-4 rounded-xl bg-background/60 border max-w-lg">
-                      <div className="space-y-0.5">
-                        <p className="text-sm font-semibold text-foreground">Payment System Enabled</p>
-                        <Muted className="text-xs">When disabled, users see &quot;Payment unavailable&quot;.</Muted>
-                      </div>
-                      <Switch checked={config.enabled} onCheckedChange={(v) => set("enabled", v)} disabled={!canEdit} />
-                    </div>
-                    {config.enabled ? (
-                      <div className="p-3 rounded-xl bg-success/10 border border-success/20 flex items-center gap-2 text-sm text-green-800 max-w-lg">
-                        <CheckCircle className="h-4 w-4 shrink-0" />
-                        Payment system is <strong>active</strong>.
-                      </div>
-                    ) : (
-                      <div className="p-3 rounded-xl bg-background/60 border flex items-center gap-2 text-sm text-muted-foreground max-w-lg">
-                        <WifiOff className="h-4 w-4 shrink-0" />
-                        Payment system is <strong>disabled</strong>.
+                    <Field>
+                      <FieldLabel>UPI Merchant / Account Name</FieldLabel>
+                      <Input placeholder="Saurabh Sarkar" value={config.upiName} onChange={(e) => set("upiName", e.target.value)} disabled={!canEdit} />
+                      <Muted className="text-xs">Security filter: Emails must contain this name to be processed.</Muted>
+                    </Field>
+
+                    {config.upiId && (
+                      <div className="pt-2">
+                        <Muted className="text-xs font-semibold uppercase tracking-wider mb-2 block">Live QR Preview</Muted>
+                        <div className="p-4 bg-white rounded-xl border w-fit shadow-sm">
+                          <QRCodeSVG value={`upi://pay?pa=${encodeURIComponent(config.upiId)}&pn=${encodeURIComponent(config.upiName)}`} size={140} />
+                        </div>
                       </div>
                     )}
                   </div>
                 )}
+
+                {/* System Controls */}
+                {settingsTab === "system" && (
+                  <div className="space-y-5 max-w-lg">
+                    <div className="flex items-center justify-between rounded-xl border p-4 bg-background">
+                      <div>
+                        <p className="font-medium text-sm text-foreground">Enable Payment Gateway</p>
+                        <Muted className="text-xs">Allow users to top-up wallet via auto-verified UPI.</Muted>
+                      </div>
+                      <Switch checked={config.enabled} onCheckedChange={(val) => set("enabled", val)} disabled={!canEdit} />
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
-            {/* ── PAGE CONTENT TAB ── */}
+            {/* ── CONTENT TAB ── */}
             {activeTab === "content" && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-semibold text-foreground">Wallet Page Content</h3>
-                    <Muted className="text-xs">Markdown content shown above the QR code on the wallet page.</Muted>
-                  </div>
-                  <Button variant="outline" size="sm" onClick={() => setPreviewContent(!previewContent)} className="gap-2">
-                    {previewContent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    {previewContent ? "Edit" : "Preview"}
+                  <span className="text-sm font-medium text-foreground">Custom Instructions (Markdown)</span>
+                  <Button variant="ghost" size="sm" onClick={() => setPreviewContent(!previewContent)}>
+                    {previewContent ? "Edit Code" : "Live Preview"}
                   </Button>
                 </div>
+
                 {previewContent ? (
-                  <div className="min-h-64 bg-background rounded-xl border p-6">
-                    <MarkdownRenderer content={config.pageContent} />
+                  <div className="p-4 border rounded-xl bg-background min-h-[250px]">
+                    <MarkdownRenderer content={config.pageContent || "*No instructions set.*"} />
                   </div>
                 ) : (
-                  <div data-color-mode="light">
-                    <MDEditor value={config.pageContent} onChange={(v) => set("pageContent", v || "")} height={400} preview="edit" />
+                  <div data-color-mode="auto" className="rounded-xl overflow-hidden border">
+                    <MDEditor value={config.pageContent} onChange={(val) => set("pageContent", val || "")} height={350} />
                   </div>
                 )}
               </div>
             )}
 
-            {/* ── PAYMENT INBOX (PRE-PARSED UTRS) TAB ── */}
-            {activeTab === "inbox" && canViewLogs && (
+            {/* ── INBOX TAB ── */}
+            {activeTab === "inbox" && (
               <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-semibold text-foreground">Pre-Parsed Payment Inbox</h3>
-                    <Muted className="text-xs mt-0.5">
-                      All synced bank payment emails are stored here encrypted for instant &lt;50ms user verification.
-                    </Muted>
+                {/* Add Manual UTR Section */}
+                {canEdit && (
+                  <div className="p-4 rounded-xl border bg-muted/30 space-y-3">
+                    <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      <Plus className="h-4 w-4 text-primary" />
+                      Add Manual UTR Entry
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <Input placeholder="UTR Number (e.g. 420420458140)" value={manualUtr} onChange={(e) => setManualUtr(e.target.value)} />
+                      <Input type="number" placeholder="Amount (₹)" value={manualAmount} onChange={(e) => setManualAmount(e.target.value)} />
+                      <Input placeholder="Sender (Optional)" value={manualSender} onChange={(e) => setManualSender(e.target.value)} />
+                    </div>
+                    <Button onClick={handleAddManualInbox} disabled={addingInbox} size="sm" className="gap-2">
+                      {addingInbox ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                      Add to Pre-Parsed Inbox
+                    </Button>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => loadInbox(inboxPage)} disabled={loadingInbox} className="gap-2">
-                    <RefreshCw className={`h-4 w-4 ${loadingInbox ? "animate-spin" : ""}`} />Refresh
+                )}
+
+                {/* Inbox List */}
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-foreground">Pre-Parsed Pending Payments</h3>
+                  <Button variant="outline" size="sm" onClick={() => loadInbox(1)} disabled={loadingInbox} className="gap-1.5">
+                    <RefreshCw className={`h-3.5 w-3.5 ${loadingInbox ? "animate-spin" : ""}`} />
+                    Refresh Inbox
                   </Button>
                 </div>
 
-                {/* Manual Add Form */}
-                {canEdit && (
-                  <Card className="p-4 bg-accent/20 border space-y-3">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Manually Add Pre-Parsed UTR Entry</h4>
-                    <div className="grid sm:grid-cols-3 gap-3">
-                      <Input
-                        placeholder="UTR / Ref Number (e.g. 420918239018)"
-                        value={manualUtr}
-                        onChange={(e) => setManualUtr(e.target.value)}
-                        className="font-mono text-xs"
-                      />
-                      <Input
-                        type="number"
-                        placeholder="Amount in ₹ (e.g. 100)"
-                        value={manualAmount}
-                        onChange={(e) => setManualAmount(e.target.value)}
-                        className="text-xs"
-                      />
-                      <Input
-                        placeholder="Sender Email / Notes (Optional)"
-                        value={manualSender}
-                        onChange={(e) => setManualSender(e.target.value)}
-                        className="text-xs"
-                      />
-                    </div>
-                    <div className="flex justify-end">
-                      <Button size="sm" onClick={handleAddManualInbox} disabled={addingInbox} className="gap-2">
-                        {addingInbox ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                        Add Manual UTR
-                      </Button>
-                    </div>
-                  </Card>
-                )}
-
                 {loadingInbox ? (
-                  <div className="rounded-2xl bg-accent/40 shadow-sm overflow-hidden">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b bg-accent/60">
-                          {["UTR Number", "Amount", "Sender", "Status", "Received Date", "Actions"].map((h) => (
-                            <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">{h}</th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y">
-                        {[1, 2, 3].map((i) => (
-                          <tr key={i} className="animate-pulse">
-                            {[1, 2, 3, 4, 5, 6].map((j) => (
-                              <td key={j} className="px-4 py-3"><div className="h-4 w-16 rounded bg-accent/60" /></td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
                 ) : inboxItems.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground rounded-2xl bg-accent/40">
-                    No pre-parsed payment emails in inbox. System will sync automatically every ~30s.
+                  <div className="text-center p-8 border rounded-xl bg-background/50">
+                    <p className="text-sm text-muted-foreground">No pending pre-parsed payments in inbox.</p>
                   </div>
                 ) : (
-                  <div className="rounded-2xl bg-accent/40 shadow-sm overflow-hidden overflow-x-auto">
-                    <table className="w-full text-sm min-w-[700px]">
-                      <thead className="bg-accent/60">
+                  <div className="overflow-x-auto border rounded-xl">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-muted/50 border-b text-muted-foreground uppercase tracking-wider font-semibold">
                         <tr>
-                          <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">UTR Number</th>
-                          <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Amount</th>
-                          <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Sender</th>
-                          <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Status</th>
-                          <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground hidden md:table-cell">Received Date</th>
-                          {canEdit && <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Action</th>}
+                          <th className="p-3">UTR Number</th>
+                          <th className="p-3">Amount</th>
+                          <th className="p-3">Sender</th>
+                          <th className="p-3">Received At</th>
+                          {canEdit && <th className="p-3 text-right">Actions</th>}
                         </tr>
                       </thead>
                       <tbody className="divide-y">
                         {inboxItems.map((item) => (
-                          <tr key={item.id} className="hover:bg-accent/20 transition-colors">
-                            <td className="px-4 py-3">
-                              <code className="text-xs bg-background/80 rounded px-2 py-1 font-mono font-bold text-foreground">
-                                {item.utrNumber}
-                              </code>
-                            </td>
-                            <td className="px-4 py-3 text-right font-bold text-sm text-success">₹{item.amount}</td>
-                            <td className="px-4 py-3 text-xs text-muted-foreground font-mono">{item.sender}</td>
-                            <td className="px-4 py-3">
-                              {item.isClaimed ? (
-                                <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
-                                  Claimed ({item.claimedUserName || item.claimedByUserId})
-                                </span>
-                              ) : (
-                                <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-success/15 text-success">
-                                  Available for Verification
-                                </span>
-                              )}
-                            </td>
-                            <td className="px-4 py-3 text-xs text-muted-foreground hidden md:table-cell">
-                              {new Date(item.receivedAt).toLocaleString("en-IN", {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </td>
+                          <tr key={item.id} className="hover:bg-muted/30 transition-colors">
+                            <td className="p-3 font-mono font-medium">{item.utrNumber}</td>
+                            <td className="p-3 font-semibold text-green-600 dark:text-green-400">₹{item.amount}</td>
+                            <td className="p-3">{item.sender}</td>
+                            <td className="p-3 text-muted-foreground">{new Date(item.receivedAt).toLocaleString()}</td>
                             {canEdit && (
-                              <td className="px-4 py-3 text-right">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  disabled={deletingInboxId === item.id}
-                                  onClick={() => handleDeleteInboxItem(item.id)}
-                                  className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8 p-0"
-                                >
-                                  {deletingInboxId === item.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                              <td className="p-3 text-right">
+                                <Button variant="ghost" size="icon" onClick={() => handleDeleteInboxItem(item.id)} disabled={deletingInboxId === item.id} className="h-7 w-7 text-muted-foreground hover:text-destructive">
+                                  {deletingInboxId === item.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
                                 </Button>
                               </td>
                             )}
@@ -688,84 +567,55 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
                     </table>
                   </div>
                 )}
-
-                <div className="flex justify-center gap-2">
-                  <Button variant="outline" size="sm" disabled={inboxPage <= 1 || loadingInbox} onClick={() => loadInbox(inboxPage - 1)}>Previous</Button>
-                  <span className="text-sm text-muted-foreground flex items-center px-2">Page {inboxPage} of {inboxTotalPages}</span>
-                  <Button variant="outline" size="sm" disabled={inboxPage >= inboxTotalPages || loadingInbox} onClick={() => loadInbox(inboxPage + 1)}>Next</Button>
-                </div>
               </div>
             )}
 
-            {/* ── LOGS TAB ── */}
-            {activeTab === "logs" && canViewLogs && (
+            {/* ── VERIFICATION LOGS TAB ── */}
+            {activeTab === "logs" && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-foreground">Payment Verification Log</h3>
-                  <Button variant="outline" size="sm" onClick={() => loadVerifications(logsPage)} disabled={loadingLogs} className="gap-2">
-                    <RefreshCw className={`h-4 w-4 ${loadingLogs ? "animate-spin" : ""}`} />Refresh
+                  <h3 className="text-sm font-semibold text-foreground">Audit & Verification Logs</h3>
+                  <Button variant="outline" size="sm" onClick={() => loadVerifications(1)} disabled={loadingLogs} className="gap-1.5">
+                    <RefreshCw className={`h-3.5 w-3.5 ${loadingLogs ? "animate-spin" : ""}`} />
+                    Refresh Logs
                   </Button>
                 </div>
 
                 {loadingLogs ? (
-                  <div className="rounded-2xl bg-accent/40 shadow-sm overflow-hidden">
-                    <table className="w-full text-sm">
-                      <thead><tr className="border-b bg-accent/60">
-                        {["User","UTR","Claimed","Verified","Status","Sender","Date"].map(h => (
-                          <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">{h}</th>
-                        ))}
-                      </tr></thead>
-                      <tbody className="divide-y">
-                        {[1,2,3].map(i => (
-                          <tr key={i} className="animate-pulse">
-                            {[1,2,3,4,5,6,7].map(j => (
-                              <td key={j} className="px-4 py-3"><div className="h-4 w-16 rounded bg-accent/60" /></td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
                 ) : verifications.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground rounded-2xl bg-accent/40">No verification attempts yet.</div>
+                  <div className="text-center p-8 border rounded-xl bg-background/50">
+                    <p className="text-sm text-muted-foreground">No verification logs found.</p>
+                  </div>
                 ) : (
-                  <div className="rounded-2xl bg-accent/40 shadow-sm overflow-hidden overflow-x-auto">
-                    <table className="w-full text-sm min-w-[700px]">
-                      <thead className="bg-accent/60">
+                  <div className="overflow-x-auto border rounded-xl">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-muted/50 border-b text-muted-foreground uppercase tracking-wider font-semibold">
                         <tr>
-                          <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">User</th>
-                          <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">UTR</th>
-                          <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Claimed</th>
-                          <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Verified</th>
-                          <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Status</th>
-                          <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground hidden md:table-cell">Sender</th>
-                          <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground hidden lg:table-cell">Date</th>
+                          <th className="p-3">User</th>
+                          <th className="p-3">Claimed Amt</th>
+                          <th className="p-3">Status</th>
+                          <th className="p-3">Fail Reason</th>
+                          <th className="p-3">Date</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y">
-                        {verifications.map((v) => {
-                          const statusCfg = STATUS_CONFIG[v.status] || { label: v.status, className: "bg-muted text-muted-foreground" };
+                        {verifications.map((row) => {
+                          const st = STATUS_CONFIG[row.status] || { label: row.status, className: "bg-muted text-muted-foreground" };
                           return (
-                            <tr key={v.id} className="hover:bg-accent/20 transition-colors">
-                              <td className="px-4 py-3">
-                                <p className="font-medium text-sm text-foreground">{v.userName || "—"}</p>
-                                <p className="text-xs text-muted-foreground">{v.userEmail || v.userId}</p>
+                            <tr key={row.id} className="hover:bg-muted/30 transition-colors">
+                              <td className="p-3">
+                                <div className="font-medium text-foreground">{row.userName || "Unknown"}</div>
+                                <div className="text-[11px] text-muted-foreground">{row.userEmail}</div>
                               </td>
-                              <td className="px-4 py-3">
-                                <code className="text-xs bg-background/80 rounded px-1.5 py-0.5 font-mono">{v.utrNumber}</code>
+                              <td className="p-3 font-semibold">₹{row.claimedAmount}</td>
+                              <td className="p-3">
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium ${st.className}`}>
+                                  {st.label}
+                                </span>
                               </td>
-                              <td className="px-4 py-3 text-right font-medium text-sm">₹{v.claimedAmount}</td>
-                              <td className="px-4 py-3 text-right">
-                                {v.verifiedAmount != null ? <span className="text-success font-medium text-sm">₹{v.verifiedAmount}</span> : <span className="text-muted-foreground">—</span>}
-                              </td>
-                              <td className="px-4 py-3">
-                                <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${statusCfg.className}`}>{statusCfg.label}</span>
-                                {v.failReason && <p className="text-xs text-muted-foreground mt-0.5 max-w-xs truncate">{v.failReason}</p>}
-                              </td>
-                              <td className="px-4 py-3 text-xs text-muted-foreground hidden md:table-cell">{v.emailSender || "—"}</td>
-                              <td className="px-4 py-3 text-xs text-muted-foreground hidden lg:table-cell">
-                                {new Date(v.createdAt).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-                              </td>
+                              <td className="p-3 text-muted-foreground max-w-xs truncate">{row.failReason || "—"}</td>
+                              <td className="p-3 text-muted-foreground">{new Date(row.createdAt).toLocaleString()}</td>
                             </tr>
                           );
                         })}
@@ -773,21 +623,11 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
                     </table>
                   </div>
                 )}
-
-                <div className="flex justify-center gap-2">
-                  <Button variant="outline" size="sm" disabled={logsPage <= 1 || loadingLogs} onClick={() => loadVerifications(logsPage - 1)}>Previous</Button>
-                  <span className="text-sm text-muted-foreground flex items-center px-2">Page {logsPage}</span>
-                  <Button variant="outline" size="sm" disabled={logsPage >= logsTotalPages || loadingLogs} onClick={() => loadVerifications(logsPage + 1)}>Next</Button>
-                </div>
               </div>
             )}
           </div>
-        </Card>
+        </div>
+      </Card>
     </div>
   );
-}
-
-function QRPreview({ upiId, upiName }: { upiId: string; upiName: string }) {
-  const upiUrl = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(upiName || "")}&cu=INR`;
-  return <QRCodeSVG value={upiUrl} size={150} bgColor="#ffffff" fgColor="#000000" level="M" />;
 }

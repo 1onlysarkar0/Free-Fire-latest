@@ -1,11 +1,9 @@
 import "server-only";
 import { z } from "zod";
-import { ImapFlow } from "imapflow";
-import { simpleParser } from "mailparser";
 import { db } from "@/db/drizzle";
 import { paymentConfig, paymentVerification, paymentEmailInbox } from "@/db/schema";
 import { creditWallet } from "@/lib/wallet";
-import { eq, and, gte, sql, lt, count } from "drizzle-orm";
+import { eq, and, gte, sql, count } from "drizzle-orm";
 import crypto from "node:crypto";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -15,10 +13,7 @@ const IMAP_FOLDER_PROCESSED = "Free Fire";
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface PaymentConfig {
-  gmailEmail: string;
-  gmailAppPassword: string;
   trustedSenders: string[];
-  checkDays: number;
   upiId: string;
   upiName: string;
   pageContent: string;
@@ -130,10 +125,7 @@ export async function getPaymentConfig(): Promise<PaymentConfig | null> {
   if (!rows.length) return null;
   const row = rows[0];
   return {
-    gmailEmail: row.gmailEmail,
-    gmailAppPassword: row.gmailAppPassword,
     trustedSenders: z.array(z.string()).catch([]).parse(JSON.parse(row.trustedSenders || "[]")),
-    checkDays: row.checkDays,
     upiId: row.upiId,
     upiName: row.upiName,
     pageContent: row.pageContent,
@@ -220,9 +212,7 @@ export function validateAmount(amount: number): boolean {
   return Number.isInteger(amount) && amount >= 1 && amount <= 50000;
 }
 
-// ─── UTR & Amount Extraction ─────────────────────────────────────────────────
-
-function extractUTR(text: string): string | null {
+export function extractUTR(text: string): string | null {
   const patterns = [
     /UPI\s*[/\\]\s*([A-Za-z0-9]{10,22})\s*[/\\]/i,
     /UPI\s+Ref(?:erence)?(?:\s+No\.?)?[:\s]+([A-Za-z0-9]{10,22})/i,
@@ -243,7 +233,7 @@ function extractUTR(text: string): string | null {
   return null;
 }
 
-function extractAmount(text: string): number | null {
+export function extractAmount(text: string): number | null {
   const patterns = [
     /Amount[:\s]+(?:Rs\.?|INR|₹)?\s*([\d,]+(?:\.\d{1,2})?)/i,
     /(?:Rs\.?|INR|₹)\s*([\d,]+(?:\.\d{1,2})?)/i,
@@ -262,17 +252,7 @@ function extractAmount(text: string): number | null {
   return null;
 }
 
-// ─── Search criteria helper ──────────────────────────────────────────────────
-
-function buildOrSearch(
-  criteria: Array<Record<string, unknown>>
-): Record<string, unknown> {
-  if (criteria.length === 0) throw new Error("buildOrSearch: empty array");
-  if (criteria.length === 1) return criteria[0];
-  return { or: [criteria[0], buildOrSearch(criteria.slice(1))] };
-}
-
-function stripHtml(html: string): string {
+export function stripHtml(html: string): string {
   return html
     .replace(/<style[\s\S]*?<\/style>/gi, " ")
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
@@ -284,220 +264,33 @@ function stripHtml(html: string): string {
     .trim();
 }
 
-function isCreditTransaction(body: string): boolean {
-  const lower = body.toLowerCase();
-  const debitWords = /\b(debited|debited from|paid to|payment sent|transferred from)\b/;
-  if (debitWords.test(lower)) return false;
-  const creditWords = /\b(credited|credited to|received|payment received|deposited)\b/;
-  if (creditWords.test(lower)) return true;
-  return false;
-}
+export function isCreditTransaction(text: string): boolean {
+  const lower = text.toLowerCase();
 
-// ─── STRICT SPF/DKIM verification ───────────────────────────────────────────
-
-function checkEmailAuth(parsed: { headers: Map<string, unknown> }): boolean {
-  const rawHeader = parsed.headers.get("authentication-results");
-  if (!rawHeader) {
-    return false; // STRICT: Reject immediately if authentication header is missing
+  const debitKeywords = [
+    "debited",
+    "sent to",
+    "transfer to",
+    "paid to",
+    "payment to",
+    "withdrawn",
+    "debit",
+  ];
+  for (const kw of debitKeywords) {
+    if (lower.includes(kw)) {
+      const creditKeywords = [
+        "credited",
+        "received from",
+        "received in",
+        "received ₹",
+        "received rs",
+      ];
+      const hasCredit = creditKeywords.some((ckw) => lower.includes(ckw));
+      if (!hasCredit) return false;
+    }
   }
-  const parts: string[] = [];
-  const collect = (v: unknown) => {
-    if (typeof v === "string") { parts.push(v); return; }
-    if (Array.isArray(v)) { v.forEach(collect); return; }
-    if (v && typeof v === "object") {
-      const obj = v as Record<string, unknown>;
-      if (typeof obj["value"] === "string") parts.push(obj["value"]);
-      else parts.push(JSON.stringify(obj));
-    }
-  };
-  collect(rawHeader);
 
-  const authStr = parts.join(" ").toLowerCase();
-  if (!authStr) {
-    return false; // STRICT: Reject if headers parse empty
-  }
-  const spfPass  = /\bspf=pass\b/.test(authStr);
-  const dkimPass = /\bdkim=pass\b/.test(authStr);
-  return spfPass || dkimPass;
-}
-
-// ─── Gmail IMAP Direct Find ──────────────────────────────────────────────────
-
-export async function findPaymentEmail(
-  config: PaymentConfig,
-  targetUTR: string,
-  targetAmount: number
-): Promise<FindEmailResult> {
-  const trustedSenders = config.trustedSenders
-    .map((sender) => sender.trim().toLowerCase())
-    .filter(Boolean);
-  if (trustedSenders.length === 0) return { type: "not_found" };
-
-  const client = createImapClient(config.gmailEmail, config.gmailAppPassword);
-  let lock: Awaited<ReturnType<ImapFlow["getMailboxLock"]>> | undefined;
-
-  try {
-    await client.connect();
-    lock = await client.getMailboxLock("INBOX");
-    const sinceDate = new Date();
-    sinceDate.setDate(sinceDate.getDate() - config.checkDays);
-    const senderCriteria = trustedSenders.map((from) => ({ from }));
-    const senderFilter = buildOrSearch(senderCriteria);
-
-    // CRITICAL BUSINESS RULE: Only search unread emails (seen: false).
-    // This prevents reprocessing/re-claiming of already sync'd or manually read payments.
-    // Do NOT remove or change seen: false to include read/seen emails.
-    const ids = await client.search(
-      { seen: false, since: sinceDate, ...senderFilter },
-      { uid: true }
-    );
-    if (!ids || ids.length === 0) return { type: "not_found" };
-
-    const messages: { uid: number; source: Buffer }[] = [];
-    const fetchIterator = client.fetch(
-      ids,
-      { uid: true, source: { maxLength: 2 * 1024 * 1024 } },
-      { uid: true }
-    );
-
-    try {
-      for await (const message of fetchIterator) {
-        if (message.uid && message.source) {
-          messages.push({ uid: message.uid, source: message.source });
-        }
-      }
-    } catch (fetchErr) {
-      await fetchIterator.return?.();
-      throw fetchErr;
-    }
-
-    let mismatch: { emailAmount: number; sender: string } | null = null;
-    let matchedUid: number | null = null;
-    let finalMatch: EmailMatch | null = null;
-    const debitUids: number[] = [];
-
-    for (const msg of messages) {
-      const parsed = await simpleParser(msg.source, {
-        skipImageLinks: true,
-        skipHtmlToText: true,
-        maxHtmlLengthToParse: 1_000_000,
-      });
-      const sender = parsed.from?.value?.[0]?.address?.trim().toLowerCase() ?? "";
-      if (!trustedSenders.includes(sender)) continue;
-
-      if (!checkEmailAuth(parsed)) {
-        console.warn(`[Payment] Skipped email from ${sender}: failed SPF/DKIM.`);
-        continue;
-      }
-
-      const subject = parsed.subject ?? "";
-      const htmlText = typeof parsed.html === "string" ? stripHtml(parsed.html) : "";
-      const body = `${subject} ${parsed.text ?? ""} ${htmlText}`;
-
-      if (!isCreditTransaction(body)) {
-        debitUids.push(msg.uid);
-        continue;
-      }
-
-      if (config.upiName) {
-        const safeUpiName = config.upiName.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
-        const safeBody = body.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
-        if (safeUpiName.length > 3 && !safeBody.includes(safeUpiName)) {
-          continue;
-        }
-      }
-
-      const emailUTR = extractUTR(body);
-      if (!emailUTR || normalizeUTR(emailUTR) !== normalizeUTR(targetUTR)) continue;
-      const emailAmount = extractAmount(body);
-
-      if (emailAmount !== null && emailAmount === targetAmount) {
-        matchedUid = msg.uid;
-        finalMatch = {
-          messageId: String(msg.uid),
-          sender,
-          utrNumber: emailUTR,
-          amount: emailAmount,
-        };
-        break;
-      }
-      if (emailAmount !== null) mismatch = { emailAmount, sender };
-    }
-
-    for (const uid of debitUids) {
-      try {
-        await client.messageFlagsAdd(uid, ["\\Seen"], { uid: true });
-      } catch {
-        console.warn(`[Payment] Failed to mark debit email UID ${uid} as read`);
-      }
-    }
-
-    if (matchedUid && finalMatch) {
-      await client.messageFlagsAdd(matchedUid, ["\\Seen"], { uid: true });
-      try {
-        await client.messageMove(matchedUid, IMAP_FOLDER_PROCESSED, { uid: true });
-      } catch {
-        try {
-          await client.mailboxCreate(IMAP_FOLDER_PROCESSED);
-          await client.messageMove(matchedUid, IMAP_FOLDER_PROCESSED, { uid: true });
-        } catch {
-          try {
-            await client.messageMove(matchedUid, "[Gmail]/All Mail", { uid: true });
-          } catch {
-            console.warn("[Payment] Email remains in INBOX, move failed.");
-          }
-        }
-      }
-      return { type: "match", match: finalMatch };
-    }
-
-    return mismatch ? { type: "amount_mismatch", ...mismatch } : { type: "not_found" };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown IMAP error";
-    throw new Error(`IMAP verification failed: ${message}`);
-  } finally {
-    lock?.release();
-    if (client.usable) await client.logout().catch(() => client.close());
-    else client.close();
-  }
-}
-
-// ─── Test IMAP Connection ─────────────────────────────────────────────────
-
-export async function testImapConnection(
-  gmailEmail: string,
-  gmailAppPassword: string
-): Promise<{ success: boolean; error?: string }> {
-  const client = createImapClient(gmailEmail, gmailAppPassword, true);
-  try {
-    await client.connect();
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : "IMAP connection failed" };
-  } finally {
-    if (client.usable) await client.logout().catch(() => client.close());
-    else client.close();
-  }
-}
-
-function createImapClient(user: string, pass: string, verifyOnly = false) {
-  const client = new ImapFlow({
-    host: "imap.gmail.com",
-    port: 993,
-    secure: true,
-    auth: { user, pass },
-    verifyOnly,
-    logger: false,
-    connectionTimeout: 15_000,
-    greetingTimeout: 10_000,
-    socketTimeout: 30_000,
-    maxLiteralSize: 4 * 1024 * 1024,
-    tls: { minVersion: "TLSv1.2", rejectUnauthorized: true },
-  });
-  client.on("error", (err) => {
-    console.error("[IMAP Client Error] Error event:", err);
-  });
-  return client;
+  return true;
 }
 
 // ─── Advisory Locks ─────────────────────────────────────────────────────────
@@ -514,228 +307,6 @@ async function releaseUTRLock(utr: string): Promise<void> {
   await db.execute(sql`SELECT pg_advisory_unlock(${lockInt})`);
 }
 
-// ─── Distributed Lock Sync Throttling ────────────────────────────────────────
-
-export async function triggerAutonomousSyncIfNeeded(config?: PaymentConfig) {
-  const now = new Date();
-  const thirtySecondsAgo = new Date(Date.now() - 30_000);
-
-  try {
-    const shouldSync = await db.transaction(async (tx) => {
-      const [cfg] = await tx
-        .select({ lastSyncAt: paymentConfig.lastSyncAt })
-        .from(paymentConfig)
-        .where(eq(paymentConfig.id, "default"))
-        .for("update")
-        .limit(1);
-
-      if (cfg && cfg.lastSyncAt && cfg.lastSyncAt >= thirtySecondsAgo) {
-        return false;
-      }
-
-      await tx
-        .update(paymentConfig)
-        .set({ lastSyncAt: now })
-        .where(eq(paymentConfig.id, "default"));
-
-      return true;
-    });
-
-    if (shouldSync) {
-      try {
-        const result = await syncPaymentEmails(config);
-        console.log(`[AutonomousSync] Synced ${result.syncedCount} emails`);
-      } catch (err) {
-        console.error("[AutonomousSync] Background sync error:", err);
-      }
-    }
-  } catch (err) {
-    console.error("[AutonomousSync] Failed to evaluate lock:", err);
-  }
-}
-
-// ─── Background Email Ingestion Worker ─────────────────────────────────────
-
-export async function syncPaymentEmails(passedConfig?: PaymentConfig): Promise<{ syncedCount: number; logs: string[] }> {
-  const logs: string[] = [];
-  const config = passedConfig || (await getPaymentConfig());
-  if (!config || !config.enabled || !config.gmailEmail || !config.gmailAppPassword) {
-    logs.push("Payment config not found or disabled");
-    return { syncedCount: 0, logs };
-  }
-  const trustedSenders = config.trustedSenders
-    .map((sender) => sender.trim().toLowerCase())
-    .filter(Boolean);
-  if (trustedSenders.length === 0) {
-    logs.push("No trusted senders configured");
-    return { syncedCount: 0, logs };
-  }
-
-  const client = createImapClient(config.gmailEmail, config.gmailAppPassword);
-  let lock: Awaited<ReturnType<ImapFlow["getMailboxLock"]>> | undefined;
-  let syncedCount = 0;
-  const debitUids: number[] = [];
-
-  try {
-    await client.connect();
-    lock = await client.getMailboxLock("INBOX");
-    const sinceDate = new Date();
-    sinceDate.setDate(sinceDate.getDate() - config.checkDays);
-    const senderCriteria = trustedSenders.map((from) => ({ from }));
-    const senderFilter = buildOrSearch(senderCriteria);
-
-    logs.push(`IMAP connected, searching unread since ${sinceDate.toISOString()}`);
-    const ids = await client.search(
-      { seen: false, since: sinceDate, ...senderFilter },
-      { uid: true }
-    );
-    if (!ids || ids.length === 0) {
-      logs.push("No unread emails found from trusted senders");
-      return { syncedCount: 0, logs };
-    }
-    logs.push(`Found ${ids.length} unread emails`);
-
-    const messages: { uid: number; source: Buffer }[] = [];
-    const fetchIterator = client.fetch(
-      ids,
-      { uid: true, source: { maxLength: 2 * 1024 * 1024 } },
-      { uid: true }
-    );
-
-    try {
-      for await (const message of fetchIterator) {
-        if (message.uid && message.source) {
-          messages.push({ uid: message.uid, source: message.source });
-        }
-      }
-    } catch (fetchErr) {
-      await fetchIterator.return?.();
-      throw fetchErr;
-    }
-    logs.push(`Fetched ${messages.length} message bodies`);
-
-    const processedUids: number[] = [];
-
-    for (const msg of messages) {
-      const parsed = await simpleParser(msg.source, {
-        skipImageLinks: true,
-        skipHtmlToText: true,
-        maxHtmlLengthToParse: 1_000_000,
-      });
-      const sender = parsed.from?.value?.[0]?.address?.trim().toLowerCase() ?? "";
-      if (!trustedSenders.includes(sender)) continue;
-
-      if (!checkEmailAuth(parsed)) {
-        logs.push(`UID ${msg.uid}: skipped (SPF/DKIM failed) from ${sender}`);
-        continue;
-      }
-
-      const subject = parsed.subject ?? "";
-      const htmlText = typeof parsed.html === "string" ? stripHtml(parsed.html) : "";
-      const body = `${subject} ${parsed.text ?? ""} ${htmlText}`;
-
-      if (!isCreditTransaction(body)) {
-        debitUids.push(msg.uid);
-        logs.push(`UID ${msg.uid}: debit/sent email from ${sender} - marking as read`);
-        continue;
-      }
-
-      if (config.upiName) {
-        const safeUpiName = config.upiName.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
-        const safeBody = body.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
-        if (safeUpiName.length > 3 && !safeBody.includes(safeUpiName)) {
-          logs.push(`UID ${msg.uid}: skipped (UPI name mismatch)`);
-          continue;
-        }
-      }
-
-      const emailUTR = extractUTR(body);
-      const emailAmount = extractAmount(body);
-
-      if (emailUTR !== null && emailAmount !== null) {
-        const cleanUTR = normalizeUTR(emailUTR);
-        const utrHashed = hashUTR(cleanUTR);
-        const encryptedPayload = encryptPaymentPayload({
-          utr: cleanUTR,
-          amount: emailAmount,
-          sender,
-          emailMessageId: String(msg.uid),
-        });
-
-        try {
-          const inserted = await db
-            .insert(paymentEmailInbox)
-            .values({
-              utrHash: utrHashed,
-              amount: emailAmount,
-              encryptedData: encryptedPayload,
-              emailMessageId: String(msg.uid),
-              receivedAt: new Date(),
-            })
-            .onConflictDoNothing()
-            .returning({ id: paymentEmailInbox.id });
-
-          if (inserted.length > 0) {
-            syncedCount++;
-            logs.push(`UID ${msg.uid}: synced UTR=${cleanUTR} amount=${emailAmount}`);
-          } else {
-            logs.push(`UID ${msg.uid}: skipped (duplicate - already in inbox)`);
-          }
-          processedUids.push(msg.uid);
-        } catch (e) {
-          logs.push(`UID ${msg.uid}: DB insert error ${e instanceof Error ? e.message : e}`);
-        }
-      } else {
-        logs.push(`UID ${msg.uid}: could not parse UTR (${emailUTR}) or amount (${emailAmount})`);
-      }
-    }
-
-    const allUids = [...new Set([...processedUids, ...debitUids])];
-
-    for (const uid of allUids) {
-      try {
-        await client.messageFlagsAdd(uid, ["\\Seen"], { uid: true });
-      } catch (flagErr) {
-        logs.push(`UID ${uid}: failed to set Seen flag`);
-      }
-    }
-
-    for (const uid of processedUids) {
-      try {
-        await client.messageMove(uid, IMAP_FOLDER_PROCESSED, { uid: true });
-      } catch {
-        try {
-          await client.mailboxCreate(IMAP_FOLDER_PROCESSED);
-          await client.messageMove(uid, IMAP_FOLDER_PROCESSED, { uid: true });
-        } catch (moveErr) {
-          logs.push(`UID ${uid}: failed to move to ${IMAP_FOLDER_PROCESSED}`);
-        }
-      }
-    }
-
-    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
-    const deleted = await db
-      .delete(paymentEmailInbox)
-      .where(lt(paymentEmailInbox.receivedAt, threeDaysAgo))
-      .returning({ id: paymentEmailInbox.id });
-    if (deleted.length > 0) {
-      logs.push(`Cleaned up ${deleted.length} stale inbox rows older than 3 days`);
-    }
-
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    logs.push(`SYNC ERROR: ${msg}`);
-    console.error("[PaymentSync] IMAP sync failed:", err);
-  } finally {
-    lock?.release();
-    if (client.usable) await client.logout().catch(() => client.close());
-    else client.close();
-  }
-
-  logs.push(`Sync complete: ${syncedCount} emails synced`);
-  return { syncedCount, logs };
-}
-
 // ─── Main Verification Function (Zero Cron & Advisory Lock & Claims) ───────
 
 export async function verifyAndCreditPayment(
@@ -745,9 +316,6 @@ export async function verifyAndCreditPayment(
 
   const cleanUTR = normalizeUTR(utrNumber);
   const utrHashed = hashUTR(cleanUTR);
-
-  // Trigger autonomous background sync if throttle allows
-  triggerAutonomousSyncIfNeeded();
 
   // 1. Validate formats
   if (!validateUTR(cleanUTR)) {
@@ -783,9 +351,6 @@ export async function verifyAndCreditPayment(
   if (!config || !config.enabled) {
     return { success: false, error: "Payment verification is not available right now." };
   }
-  if (!config.gmailEmail || !config.gmailAppPassword) {
-    return { success: false, error: "Payment system is not configured. Contact admin." };
-  }
 
   // 5. Create audit log row (Status: pending)
   const [pendingRow] = await db
@@ -803,10 +368,9 @@ export async function verifyAndCreditPayment(
   // 6. Lock UTR to serialize concurrent attempts
   await acquireUTRLock(cleanUTR);
   try {
-    // ── STEP A: FAST INSTANT DATABASE LOOKUP (Atomically claim by existence) ─
-    // Rows are deleted on successful claim, so existence = unclaimed.
-    // We use SELECT ... FOR UPDATE to prevent concurrent double-claim.
-    let matchedInboxItem = await db.transaction(async (tx) => {
+    // ── FAST INSTANT DATABASE LOOKUP (Atomically claim by existence) ─────────
+    // Rows are ingested automatically via Webhook. Existence = unclaimed.
+    const matchedInboxItem = await db.transaction(async (tx) => {
       const [item] = await tx
         .select()
         .from(paymentEmailInbox)
@@ -817,51 +381,17 @@ export async function verifyAndCreditPayment(
       return item ?? null;
     });
 
-    // ── STEP B: FALLBACK SYNC IF NOT IN PRE-PARSED INBOX ───────────────────
     if (!matchedInboxItem) {
-      await syncPaymentEmails(config);
-
-      matchedInboxItem = await db.transaction(async (tx) => {
-        const [item] = await tx
-          .select()
-          .from(paymentEmailInbox)
-          .where(eq(paymentEmailInbox.utrHash, utrHashed))
-          .for("update")
-          .limit(1);
-
-        return item ?? null;
-      });
-    }
-
-    // ── STEP C: EVALUATE RESULT ───────────────────────────────────────────
-    if (!matchedInboxItem) {
-      const emailResult = await findPaymentEmail(config, cleanUTR, amount);
-
-      if (emailResult.type === "amount_mismatch") {
-        await db
-          .update(paymentVerification)
-          .set({
-            status: "amount_mismatch",
-            emailSender: emailResult.sender,
-            failReason: `UTR found but email shows ₹${emailResult.emailAmount}, user claimed ₹${amount}`,
-          })
-          .where(eq(paymentVerification.id, pendingRow.id));
-        return {
-          success: false,
-          error: "Payment verification failed. Please check the UTR number and ensure you entered the exact amount paid.",
-        };
-      }
-
       await db
         .update(paymentVerification)
         .set({
           status: "email_not_found",
-          failReason: "No matching unread email found for UTR + amount combination",
+          failReason: "No matching payment email found for UTR + amount combination",
         })
         .where(eq(paymentVerification.id, pendingRow.id));
       return {
         success: false,
-        error: "Payment not found. Please check the UTR number and amount. If paid recently, wait 2–3 minutes and try again.",
+        error: "Payment not found. Please check the UTR number and amount. If paid recently, wait 1–2 minutes and try again.",
       };
     }
 

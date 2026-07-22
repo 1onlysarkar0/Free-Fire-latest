@@ -583,16 +583,12 @@ export const contentTemplate = pgTable("content_templates", {
 
 export const paymentConfig = pgTable("payment_config", {
   id: text("id").primaryKey().default("default"),
-  gmailEmail: text("gmail_email").notNull().default(""),
-  gmailAppPassword: text("gmail_app_password").notNull().default(""),
   trustedSenders: text("trusted_senders").notNull().default("[]"),
-  checkDays: integer("check_days").notNull().default(1),
   upiId: text("upi_id").notNull().default(""),
   upiName: text("upi_name").notNull().default("1onlysarkar"),
   pageContent: text("page_content").notNull().default(""),
   enabled: boolean("enabled").notNull().default(false),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  lastSyncAt: timestamp("last_sync_at"),
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
