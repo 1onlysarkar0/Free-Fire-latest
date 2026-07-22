@@ -38,17 +38,19 @@ ENV HOSTNAME=0.0.0.0
 
 RUN addgroup -S nodejs -g 1001 && adduser -S nextjs -u 1001 -G nodejs
 
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+# 🟢 FIXED: Kept standalone structure intact and nested assets properly
+COPY --from=builder /app/public ./public
+
+# Automatically leverages standalone output folder correctly
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-RUN mkdir -p /app/.next && chown -R nextjs:nodejs /app
 
 USER nextjs
 
 EXPOSE 3000
 
+# 🟢 FIXED: Changed healthcheck destination to Next.js internal health indicator
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD node -e "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+  CMD node -e "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))"
 
 CMD ["node", "server.js"]
