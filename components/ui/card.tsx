@@ -8,10 +8,10 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
       data-slot="card"
       className={cn(
         [
-          "flex flex-col gap-6",
-          "rounded-2xl border border-border",
+          "flex flex-col gap-4",
+          "rounded-xl border border-border/60",
           "bg-card text-card-foreground",
-          "shadow-sm",
+          "shadow-2xs transition-all duration-200",
         ].join(" "),
         className
       )}
