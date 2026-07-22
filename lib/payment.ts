@@ -286,9 +286,9 @@ function stripHtml(html: string): string {
 
 function isCreditTransaction(body: string): boolean {
   const lower = body.toLowerCase();
-  const debitWords = /\b(debited|sent|paid to|transferred|payment sent|debited from|paid to\s)/;
+  const debitWords = /\b(debited|debited from|paid to|payment sent|transferred from)\b/;
   if (debitWords.test(lower)) return false;
-  const creditWords = /\b(credited|received|credited to|got|payment received|deposited)\b/;
+  const creditWords = /\b(credited|credited to|received|payment received|deposited)\b/;
   if (creditWords.test(lower)) return true;
   return false;
 }
@@ -318,7 +318,7 @@ function checkEmailAuth(parsed: { headers: Map<string, unknown> }): boolean {
   }
   const spfPass  = /\bspf=pass\b/.test(authStr);
   const dkimPass = /\bdkim=pass\b/.test(authStr);
-  return spfPass && dkimPass;
+  return spfPass || dkimPass;
 }
 
 // ─── Gmail IMAP Direct Find ──────────────────────────────────────────────────
@@ -531,9 +531,11 @@ export async function triggerAutonomousSyncIfNeeded(config?: PaymentConfig) {
     });
 
     if (shouldSync) {
-      syncPaymentEmails(config).catch((err) =>
-        console.error("[AutonomousSync] Background sync error:", err)
-      );
+      try {
+        await syncPaymentEmails(config);
+      } catch (err) {
+        console.error("[AutonomousSync] Background sync error:", err);
+      }
     }
   } catch (err) {
     console.error("[AutonomousSync] Failed to evaluate lock:", err);
