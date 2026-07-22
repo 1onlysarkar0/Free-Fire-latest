@@ -21,6 +21,7 @@ import {
   CreditCard,
   ArrowUpFromLine,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -550,232 +551,234 @@ export default function WalletClient({
             )}
           </TabsContent>
 
-          <TabsContent value="withdraw" className="mt-5 md:mt-6">
-            <div className="grid grid-cols-1 gap-5 md:gap-6 lg:grid-cols-12">
-              <div className="lg:col-span-4">
-                {withdrawDescription ? (
-                  <Card className="card-settings p-5 md:p-6">
-                    <div className="flex items-start gap-3">
-                      <ArrowUpFromLine className="h-5 w-5 shrink-0 text-foreground" />
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-foreground">Withdrawal info</p>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 rounded-2xl bg-background/80 p-4 shadow-sm">
-                      <div className="prose prose-sm max-w-none text-muted-foreground prose-headings:text-foreground prose-strong:text-foreground prose-a:text-primary">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {withdrawDescription}
-                        </ReactMarkdown>
-                      </div>
-                    </div>
-                  </Card>
-                ) : (
-                  <Card className="card-settings p-5 md:p-6">
-                    <div className="flex items-start gap-3">
-                      <ArrowUpFromLine className="h-5 w-5 shrink-0 text-foreground" />
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-foreground">Request withdrawal</p>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          Withdraw your wallet balance to your UPI account.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="mt-3 rounded-xl bg-background/80 px-3 py-3 md:px-4 md:py-3">
-                      <p className="text-sm leading-6 text-muted-foreground">
-                        Amount is deducted immediately upon request. Admin will process and transfer
-                        funds to your UPI ID.
+          <TabsContent value="withdraw" className="mt-4">
+            <div className="flex flex-col space-y-4">
+              
+              {/* Top: Withdrawal Form & History Grid */}
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+                <div className="lg:col-span-6">
+                  <Card className="p-4 bg-card border-border/60 rounded-xl shadow-2xs">
+                    <div className="space-y-1">
+                      <h3 className="text-sm font-bold tracking-tight text-foreground font-lora">
+                        Submit Withdrawal Request
+                      </h3>
+                      <p className="text-xs text-muted-foreground">
+                        Enter your registered UPI ID and withdrawal amount.
                       </p>
                     </div>
-                  </Card>
-                )}
-              </div>
 
-              <div className="space-y-5 md:space-y-6 lg:col-span-8">
-                <Card className="card-settings p-5 md:p-6">
-                  <div className="space-y-1">
-                    <h3 className="text-base font-semibold tracking-tight text-foreground">
-                      Submit withdrawal request
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Enter your UPI ID and the amount you want to withdraw.
-                    </p>
-                  </div>
-
-                  <form onSubmit={handleWithdrawSubmit} className="mt-5 space-y-5">
-                    <div className="grid gap-5 md:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label
-                          htmlFor="withdraw-amount"
-                          className="text-sm font-semibold text-foreground"
-                        >
-                          Amount (₹)
-                        </Label>
-                        <Input
-                          id="withdraw-amount"
-                          type="number"
-                          min={1}
-                          step={1}
-                          placeholder="e.g. 100"
-                          className="input font-semibold"
-                          value={withdrawAmount}
-                          onChange={(e) => {
-                            setWithdrawAmount(e.target.value);
-                            setWithdrawError(null);
-                          }}
-                          disabled={withdrawSubmitting}
-                          required
-                        />
-                        <p className="text-xs leading-5 text-muted-foreground">
-                          Enter the amount you wish to withdraw.
-                        </p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label
-                          htmlFor="withdraw-upi"
-                          className="text-sm font-semibold text-foreground"
-                        >
-                          UPI ID
-                        </Label>
-                        <Input
-                          id="withdraw-upi"
-                          type="text"
-                          placeholder="e.g. name@paytm"
-                          className="input font-semibold"
-                          value={withdrawUpiId}
-                          onChange={(e) => {
-                            setWithdrawUpiId(e.target.value);
-                            setWithdrawError(null);
-                          }}
-                          disabled={withdrawSubmitting}
-                          required
-                        />
-                        <p className="text-xs leading-5 text-muted-foreground">
-                          Your UPI ID linked to GPay, PhonePe, Paytm, or BHIM.
-                        </p>
-                      </div>
-                    </div>
-
-                    {withdrawError ? (
-                      <div className="flex items-start gap-2.5 rounded-xl bg-destructive/10 p-3.5 text-sm text-destructive">
-                        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                        <span className="font-medium leading-6">{withdrawError}</span>
-                      </div>
-                    ) : null}
-
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                      <p className="max-w-sm text-xs leading-5 text-muted-foreground">
-                        Current balance: ₹{balance}. Amount will be deducted immediately.
-                      </p>
-
-                      <Button
-                        type="submit"
-                        disabled={withdrawSubmitting}
-                        className="h-11 rounded-xl px-5 font-semibold w-full sm:w-auto sm:min-w-[220px]"
-                      >
-                        {withdrawSubmitting ? (
-                          <>
-                            <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-                            Submitting...
-                          </>
-                        ) : (
-                          <>
-                            <ArrowUpFromLine className="mr-1.5 h-4 w-4" />
-                            Submit withdrawal
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </form>
-                </Card>
-
-                {/* Withdrawal History */}
-                <Card className="card-list">
-                  <div className="space-y-1">
-                    <h3 className="text-base font-semibold tracking-tight text-foreground">
-                      Withdrawal history
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Track your submitted withdrawal requests.
-                    </p>
-                  </div>
-
-                  <div className="mt-4">
-                    {withdrawHistoryLoading ? (
-                      <div className="flex h-24 items-center justify-center">
-                        <Loader2 className="h-6 w-6 animate-spin text-foreground" />
-                      </div>
-                    ) : withdrawHistory.length === 0 ? (
-                      <div className="flex h-24 items-center justify-center text-sm text-muted-foreground">
-                        No withdrawal requests yet.
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {withdrawHistory.map((w) => (
-                          <div
-                            key={w.id}
-                            className="flex items-center justify-between rounded-xl bg-background/60 p-3"
+                    <form onSubmit={handleWithdrawSubmit} className="mt-4 space-y-4">
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <Label
+                            htmlFor="withdraw-amount"
+                            className="text-xs font-semibold text-foreground"
                           >
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-semibold text-foreground">
-                                  ₹{w.amount}
-                                </span>
-                                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                                  w.status === "COMPLETED"
-                                    ? "bg-success/10 text-success"
-                                    : w.status === "CANCELLED"
-                                    ? "bg-destructive/10 text-destructive"
-                                    : "bg-warning/15 text-warning"
-                                }`}>
-                                  {w.status.toLowerCase()}
-                                </span>
-                              </div>
-                              <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                                {w.upiId} &middot; {format(new Date(w.createdAt), "dd MMM yyyy, h:mm a")}
-                              </p>
-                              {w.adminNote && (
-                                <p className="mt-0.5 text-xs text-muted-foreground italic">
-                                  Note: {w.adminNote}
-                                </p>
-                              )}
-                            </div>
+                            Amount (₹)
+                          </Label>
+                          <Input
+                            id="withdraw-amount"
+                            type="number"
+                            min={1}
+                            step={1}
+                            placeholder="e.g. 100"
+                            className="h-9 text-xs font-mono font-semibold"
+                            value={withdrawAmount}
+                            onChange={(e) => {
+                              setWithdrawAmount(e.target.value);
+                              setWithdrawError(null);
+                            }}
+                            disabled={withdrawSubmitting}
+                            required
+                          />
+                          <p className="text-[10px] text-muted-foreground">
+                            Min withdrawal limit applies.
+                          </p>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label
+                            htmlFor="withdraw-upi"
+                            className="text-xs font-semibold text-foreground"
+                          >
+                            UPI ID
+                          </Label>
+                          <Input
+                            id="withdraw-upi"
+                            type="text"
+                            placeholder="e.g. name@paytm"
+                            className="h-9 text-xs font-mono font-semibold"
+                            value={withdrawUpiId}
+                            onChange={(e) => {
+                              setWithdrawUpiId(e.target.value);
+                              setWithdrawError(null);
+                            }}
+                            disabled={withdrawSubmitting}
+                            required
+                          />
+                          <p className="text-[10px] text-muted-foreground">
+                            GPay, PhonePe, Paytm, BHIM.
+                          </p>
+                        </div>
+                      </div>
+
+                      {withdrawError ? (
+                        <div className="flex items-center gap-2 rounded-lg bg-destructive/10 p-2.5 text-xs text-destructive">
+                          <AlertCircle className="h-4 w-4 shrink-0" />
+                          <span className="font-medium">{withdrawError}</span>
+                        </div>
+                      ) : null}
+
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-1">
+                        <p className="text-[11px] text-muted-foreground">
+                          Available: <strong className="text-foreground font-mono">₹{balance}</strong>
+                        </p>
+
+                        <Button
+                          type="submit"
+                          disabled={withdrawSubmitting}
+                          className="h-9 px-4 font-semibold text-xs rounded-lg w-full sm:w-auto"
+                        >
+                          {withdrawSubmitting ? (
+                            <>
+                              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                              Submitting...
+                            </>
+                          ) : (
+                            <>
+                              <ArrowUpFromLine className="mr-1.5 h-3.5 w-3.5" />
+                              Submit Request
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </form>
+                  </Card>
+                </div>
+
+                {/* Right: Withdrawal History */}
+                <div className="lg:col-span-6">
+                  <Card className="p-4 bg-card border-border/60 rounded-xl shadow-2xs h-full flex flex-col justify-between">
+                    <div>
+                      <div className="space-y-0.5">
+                        <h3 className="text-sm font-bold tracking-tight text-foreground font-lora">
+                          Withdrawal History
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          Track your submitted withdrawal requests.
+                        </p>
+                      </div>
+
+                      <div className="mt-3">
+                        {withdrawHistoryLoading ? (
+                          <div className="flex h-24 items-center justify-center">
+                            <Loader2 className="h-5 w-5 animate-spin text-primary" />
                           </div>
-                        ))}
-                        {withdrawTotalPages > 1 && (
-                          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-2">
-                            <span className="text-xs text-muted-foreground">
-                              Page {withdrawPage} of {withdrawTotalPages}
-                            </span>
-                            <div className="flex gap-2 w-full sm:w-auto">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-10 rounded-lg border-0 bg-background/80 px-3 text-xs flex-1"
-                                disabled={withdrawPage <= 1}
-                                onClick={() => void loadWithdrawHistory(withdrawPage - 1)}
+                        ) : withdrawHistory.length === 0 ? (
+                          <div className="flex h-24 items-center justify-center text-xs text-muted-foreground border border-dashed rounded-lg">
+                            No withdrawal requests yet.
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            {withdrawHistory.map((w) => (
+                              <div
+                                key={w.id}
+                                className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 rounded-lg bg-muted/40 p-2.5 border border-border/40 text-xs"
                               >
-                                Previous
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-10 rounded-lg border-0 bg-background/80 px-3 text-xs flex-1"
-                                disabled={withdrawPage >= withdrawTotalPages}
-                                onClick={() => void loadWithdrawHistory(withdrawPage + 1)}
-                              >
-                                Next
-                              </Button>
-                            </div>
+                                <div className="min-w-0 flex-1 space-y-0.5">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-mono font-bold text-foreground">
+                                      ₹{w.amount}
+                                    </span>
+                                    <span className={`inline-flex items-center rounded-md px-1.5 py-0.2 text-[10px] font-mono font-semibold uppercase ${
+                                      w.status === "COMPLETED"
+                                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                                        : w.status === "CANCELLED"
+                                        ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                                        : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                                    }`}>
+                                      {w.status.toLowerCase()}
+                                    </span>
+                                  </div>
+                                  <p className="text-[11px] text-muted-foreground break-all font-mono">
+                                    {w.upiId} &middot; {format(new Date(w.createdAt), "dd MMM yyyy, h:mm a")}
+                                  </p>
+                                  {w.adminNote && (
+                                    <p className="text-[11px] text-muted-foreground italic break-words">
+                                      Note: {w.adminNote}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         )}
+                      </div>
+                    </div>
+
+                    {withdrawTotalPages > 1 && (
+                      <div className="flex items-center justify-between gap-2 pt-3 border-t border-border/40 mt-3">
+                        <span className="text-[11px] text-muted-foreground">
+                          Page {withdrawPage} of {withdrawTotalPages}
+                        </span>
+                        <div className="flex gap-1.5">
+                          <Button
+                            variant="outline"
+                            size="xs"
+                            className="h-7 px-2 text-[11px]"
+                            disabled={withdrawPage <= 1}
+                            onClick={() => void loadWithdrawHistory(withdrawPage - 1)}
+                          >
+                            Previous
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="xs"
+                            className="h-7 px-2 text-[11px]"
+                            disabled={withdrawPage >= withdrawTotalPages}
+                            onClick={() => void loadWithdrawHistory(withdrawPage + 1)}
+                          >
+                            Next
+                          </Button>
+                        </div>
                       </div>
                     )}
+                  </Card>
+                </div>
+              </div>
+
+              {/* Bottom: Withdrawal Guide & Info (Below form as requested) */}
+              {withdrawDescription ? (
+                <Card className="p-4 bg-card border-border/60 rounded-xl shadow-2xs">
+                  <div className="flex items-center gap-2 mb-2">
+                    <ArrowUpFromLine className="h-4 w-4 text-primary shrink-0" />
+                    <h3 className="text-xs font-bold text-foreground font-lora">
+                      Withdrawal Terms & Guidelines
+                    </h3>
+                  </div>
+
+                  <div className="rounded-lg bg-muted/30 p-3.5 border border-border/40">
+                    <div className="prose prose-xs max-w-none text-muted-foreground prose-headings:text-foreground prose-strong:text-foreground prose-a:text-primary">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {withdrawDescription}
+                      </ReactMarkdown>
+                    </div>
                   </div>
                 </Card>
-              </div>
+              ) : (
+                <Card className="p-4 bg-card border-border/60 rounded-xl shadow-2xs">
+                  <div className="flex items-center gap-2">
+                    <ArrowUpFromLine className="h-4 w-4 text-primary shrink-0" />
+                    <h3 className="text-xs font-bold text-foreground font-lora">
+                      Withdrawal Information
+                    </h3>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                    Amount is deducted immediately upon request. Admins verify each transaction and transfer funds directly to your specified UPI ID within standard processing windows.
+                  </p>
+                </Card>
+              )}
+
             </div>
           </TabsContent>
 
@@ -831,15 +834,17 @@ export default function WalletClient({
                   return (
                     <Card
                       key={tx.id}
-                      className="card-widget p-4"
+                      className="p-3 bg-card border-border/60 rounded-xl shadow-2xs hover:border-border transition-all"
                     >
-                      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-                        <div className="flex min-w-0 items-start gap-4">
-                          <TxIcon type={tx.type} />
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0">
+                        <div className="flex items-start gap-3 min-w-0 flex-1">
+                          <div className="p-2 rounded-lg bg-muted shrink-0 mt-0.5">
+                            <TxIcon type={tx.type} />
+                          </div>
 
-                          <div className="min-w-0 flex-1 space-y-1.5">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="text-sm font-semibold text-foreground">
+                          <div className="min-w-0 flex-1 space-y-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-xs font-bold text-foreground">
                                 {TYPE_LABELS[tx.type] ?? tx.type}
                               </span>
 
@@ -851,36 +856,37 @@ export default function WalletClient({
                             </div>
 
                             {tx.description ? (
-                              <p className="truncate text-sm text-muted-foreground">
+                              <p className="text-xs text-muted-foreground break-words leading-tight">
                                 {tx.description}
                               </p>
                             ) : null}
 
-                            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                              <span className="inline-flex items-center rounded-full bg-background/80 px-2.5 py-1">
+                            <div className="flex items-center gap-2 text-[11px] text-muted-foreground flex-wrap pt-0.5">
+                              <span>
                                 {format(new Date(tx.createdAt), "dd MMM yyyy, h:mm a")}
                               </span>
 
                               {tx.referenceId ? (
-                                <span className="inline-flex items-center rounded-full bg-background/80 px-2.5 py-1 font-mono uppercase tracking-wide">
-                                  {tx.referenceId}
+                                <span className="font-mono text-[10px] uppercase bg-muted/50 px-1.5 py-0.5 rounded border border-border/40 shrink-0">
+                                  Ref: {tx.referenceId}
                                 </span>
                               ) : null}
                             </div>
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between gap-3 xl:min-w-[170px] xl:justify-end">
-                          <div className="text-left xl:text-right">
-                            <p className="text-base font-semibold tracking-tight text-foreground">
+                        <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/30">
+                          <div className="text-left sm:text-right">
+                            <p className={cn(
+                              "text-sm font-bold font-mono tabular-nums",
+                              isCredit ? "text-emerald-600 dark:text-emerald-400" : "text-foreground"
+                            )}>
                               {isCredit ? "+" : "-"}₹{tx.amount}
                             </p>
-                            <p className="mt-1 text-xs text-muted-foreground">
-                              Balance: ₹{tx.balanceAfter}
+                            <p className="text-[10px] text-muted-foreground font-mono">
+                              Bal: ₹{tx.balanceAfter}
                             </p>
                           </div>
-
-                          <ArrowUpRight className="h-4 w-4 shrink-0 text-foreground" />
                         </div>
                       </div>
                     </Card>
