@@ -66,18 +66,18 @@ function NavItemLink({
       href={item.href}
       prefetch={true}
       className={cn(
-        "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 group w-full overflow-hidden",
+        "flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all duration-150 group w-full overflow-hidden",
         isActive
-          ? "bg-primary/10 text-primary"
-          : "text-muted-foreground hover:bg-secondary hover:text-foreground",
-        collapsed && "justify-center px-0 h-9 w-9 mx-auto"
+          ? "bg-primary/10 text-primary font-semibold shadow-2xs"
+          : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+        collapsed && "justify-center px-0 h-8 w-8 mx-auto"
       )}
     >
       <Icon className={cn("h-4 w-4 shrink-0 transition-colors", isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
       {!collapsed && (
         <>
-          <span className="flex-1 truncate transition-opacity duration-200">{item.label}</span>
-          {isActive && <ChevronRight className="h-3 w-3 text-foreground shrink-0" />}
+          <span className="flex-1 truncate transition-opacity duration-150">{item.label}</span>
+          {isActive && <ChevronRight className="h-3 w-3 text-primary/70 shrink-0" />}
         </>
       )}
     </Link>

@@ -111,20 +111,25 @@ export default function UserProfile({
         ) : (
           <button
             type="button"
-            className={`flex gap-2 justify-start items-center w-full rounded cursor-pointer text-left border-0 bg-transparent focus:outline-none ${mini ? "" : "px-4 pt-2 pb-3"}`}
+            className={cn(
+              "flex items-center gap-2.5 w-full rounded-lg cursor-pointer text-left transition-colors hover:bg-muted/50 focus:outline-none",
+              mini ? "justify-center p-1" : "p-1.5"
+            )}
           >
             <AvatarDisplay
               image={userInfo?.image}
               name={userInfo?.name}
-              className="h-8 w-8 shrink-0"
+              className="h-7 w-7 shrink-0 rounded-full border border-border/40"
             />
             {mini ? null : (
-              <div className="flex flex-col min-w-0">
-                <P className="font-medium text-md mt-0 truncate">
+              <div className="flex flex-col min-w-0 flex-1">
+                <span className="font-semibold text-xs text-foreground truncate leading-snug">
                   {!userInfo && loading ? "Loading..." : userInfo?.name || "User"}
-                </P>
-                {roleLabel && (
-                  <span className="text-xs text-primary font-semibold truncate">{roleLabel}</span>
+                </span>
+                {roleLabel ? (
+                  <span className="text-[10px] text-primary font-medium truncate leading-none mt-0.5">{roleLabel}</span>
+                ) : (
+                  <span className="text-[10px] text-muted-foreground truncate leading-none mt-0.5">Player</span>
                 )}
               </div>
             )}

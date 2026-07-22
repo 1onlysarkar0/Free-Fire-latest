@@ -124,12 +124,12 @@ export default function NotificationsClient({ initialData }: NotificationsClient
   };
 
   return (
-    <div className="w-full min-w-0 space-y-5 pb-6">
+    <div className="w-full min-w-0 space-y-4 pb-6">
       
       {/* Compact Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-card border border-border/60 rounded-xl shadow-2xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 bg-card border border-border/60 rounded-xl shadow-2xs">
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+          <div className="h-8 w-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
             <Bell className="h-4 w-4 text-primary" />
           </div>
           <div>
@@ -142,14 +142,14 @@ export default function NotificationsClient({ initialData }: NotificationsClient
           </div>
         </div>
         {unreadCount > 0 && (
-          <Button onClick={handleMarkAllRead} variant="outline" className="border-border/60 hover:bg-muted/40 font-semibold text-xs h-8 px-3 shrink-0">
+          <Button onClick={handleMarkAllRead} variant="outline" className="border-border/60 hover:bg-muted/40 font-semibold text-xs h-7 px-3 shrink-0 self-start sm:self-auto">
             <CheckSquare className="w-3.5 h-3.5 mr-1.5 text-primary" /> Mark all read
           </Button>
         )}
       </div>
 
       {/* High-Density Filters Strip */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-2 bg-muted/40 border border-border/60 rounded-xl text-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-1.5 bg-muted/40 border border-border/60 rounded-xl text-xs">
         
         {/* Status Filter Pills */}
         <div className="flex items-center gap-1">
@@ -170,12 +170,12 @@ export default function NotificationsClient({ initialData }: NotificationsClient
         </div>
 
         {/* Category Dropdown */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 px-1">
           <Filter className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="h-7 rounded-md border border-border/60 bg-card px-2 py-0 text-xs font-semibold text-foreground focus-visible:outline-none"
+            className="h-7 rounded-md border border-border/60 bg-card px-2 py-0 text-xs font-semibold text-foreground focus-visible:outline-none cursor-pointer"
           >
             <option value="ALL">All Categories</option>
             {Object.entries(CATEGORY_MAP).map(([type, label]) => (

@@ -93,7 +93,7 @@ export default async function DashboardLayout({
           logoAlt={config?.logoAlt ?? "logo"}
         />
         <main className="flex-1 overflow-y-auto w-full">
-          <div className="px-3 sm:px-6 py-4 pb-20 max-w-6xl mx-auto w-full">
+          <div className="px-3 sm:px-6 md:px-8 py-4 pb-20 w-full min-w-0">
             {children}
           </div>
         </main>

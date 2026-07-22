@@ -253,54 +253,54 @@ export default function InviteClient({
               </div>
             </div>
           </Card>
-          {/* Referred Users Squad Audit Log */}
-          <Card className="rounded-3xl border border-border/30 bg-card/60 backdrop-blur-xs overflow-hidden shadow-sm">
-            <div className="p-5 border-b border-border/20 bg-muted/20 flex items-center justify-between gap-3">
+          {/* Referred Squad Audit Log */}
+          <Card className="rounded-xl border border-border/60 bg-card overflow-hidden shadow-2xs">
+            <div className="p-3.5 border-b border-border/40 bg-muted/20 flex items-center justify-between gap-3">
               <div>
-                <h3 className="text-base font-bold text-foreground font-lora">Referred Squad Log</h3>
-                <p className="text-xs text-muted-foreground mt-0.5 font-ibm">
-                  History of friends who registered for Free Fire tournaments using your invitation link.
+                <h3 className="text-xs font-bold text-foreground font-lora">Referred Squad Log</h3>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  Friends who registered for Free Fire tournaments using your invitation link.
                 </p>
               </div>
-              <span className="text-xs font-extrabold text-muted-foreground bg-background px-3 py-1.5 rounded-full border border-border/30 shrink-0">
+              <span className="text-[10px] font-mono font-bold text-muted-foreground bg-background px-2.5 py-1 rounded-md border border-border/60 shrink-0">
                 {uses.length} Registrations
               </span>
             </div>
 
             {uses.length === 0 ? (
-              <div className="text-center py-14 px-4">
-                <div className="w-14 h-14 rounded-3xl bg-muted/30 p-3 mx-auto mb-3 border border-border/20 flex items-center justify-center text-muted-foreground/50">
-                  <UserCheck className="w-8 h-8" />
+              <div className="text-center py-10 px-4">
+                <div className="w-10 h-10 rounded-full bg-muted/40 p-2 mx-auto mb-2 border border-border/40 flex items-center justify-center text-muted-foreground">
+                  <UserCheck className="w-5 h-5" />
                 </div>
-                <p className="text-base font-bold text-foreground">No referral signups yet</p>
-                <p className="text-xs text-muted-foreground mt-1 max-w-xs mx-auto leading-relaxed">
-                  Copy your link above and share it on WhatsApp, Telegram, or Discord to start earning bonus coins!
+                <p className="text-xs font-bold text-foreground">No referral signups yet</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5 max-w-xs mx-auto leading-relaxed">
+                  Copy your link above and share it on WhatsApp or Telegram to start earning bonus coins!
                 </p>
               </div>
             ) : (
-              <div className="divide-y divide-border/20">
+              <div className="divide-y divide-border/40">
                 {uses.map((use) => (
                   <div
                     key={use.id}
-                    className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-muted/15 transition-colors"
+                    className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 hover:bg-muted/20 transition-colors"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 text-primary font-bold flex items-center justify-center text-xs shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 text-primary font-bold flex items-center justify-center text-xs shrink-0">
                         {use.inviteeName?.substring(0, 2).toUpperCase() || "FF"}
                       </div>
                       <div className="min-w-0">
-                        <p className="font-bold text-sm text-foreground truncate">
+                        <p className="font-bold text-xs text-foreground truncate">
                           {use.inviteeName || "Gamertag Member"}
                         </p>
-                        <p className="text-xs text-muted-foreground truncate">
+                        <p className="text-[10px] text-muted-foreground truncate">
                           Joined {format(new Date(use.createdAt), "dd MMM yyyy, h:mm a")}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between sm:justify-end gap-4 text-xs shrink-0 border-t sm:border-t-0 border-border/20 pt-2 sm:pt-0">
+                    <div className="flex items-center justify-between sm:justify-end gap-3 text-xs shrink-0 border-t sm:border-t-0 border-border/30 pt-2 sm:pt-0">
                       <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${
+                        className={`px-2 py-0.5 rounded-md text-[9px] font-mono font-bold uppercase border ${
                           use.signupMethod === "google"
                             ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
                             : "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20"
@@ -310,10 +310,10 @@ export default function InviteClient({
                       </span>
 
                       <div className="text-right">
-                        <span className="block font-extrabold text-emerald-600 dark:text-emerald-400 text-sm">
+                        <span className="block font-bold text-emerald-600 dark:text-emerald-400 text-xs font-mono tabular-nums">
                           +₹{use.inviterBonusAmount} Credited
                         </span>
-                        <span className="block text-[10px] text-muted-foreground">
+                        <span className="block text-[9px] text-muted-foreground">
                           Friend got +₹{use.inviteeBonusAmount}
                         </span>
                       </div>

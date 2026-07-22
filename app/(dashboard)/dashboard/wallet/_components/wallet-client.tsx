@@ -795,26 +795,26 @@ export default function WalletClient({
               </div>
             ) : (
               <div className="space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 px-1">
-                  <div className="space-y-1">
-                    <h2 className="text-base font-semibold tracking-tight text-foreground">
-                      Transaction activity
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 px-0.5">
+                  <div>
+                    <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground font-sans">
+                      Transaction Activity
                     </h2>
-                    <p className="text-sm text-muted-foreground">
-                      Review all credits, debits, and wallet balance changes.
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      History of all wallet credits, debits, and tournament fees.
                     </p>
                   </div>
 
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-10 rounded-xl border-0 bg-accent/60 px-4 text-muted-foreground shadow-sm hover:bg-accent/80 hover:text-foreground w-full sm:w-auto"
+                    className="h-8 rounded-lg border border-border/60 px-3 text-xs font-semibold text-foreground hover:bg-muted/40 shrink-0 self-start sm:self-auto"
                     onClick={() => {
                       void loadBalance();
                       void loadTransactions(1);
                     }}
                   >
-                    <RefreshCw className="mr-2 h-4 w-4" />
+                    <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
                     Refresh
                   </Button>
                 </div>
