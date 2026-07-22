@@ -61,7 +61,7 @@ export default function MyTournamentsClient({
     <div className="w-full min-w-0 space-y-5 pb-6">
       
       {/* 3-Column Compact Stats Header */}
-      <div className="grid gap-3 grid-cols-3">
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
         <Card className="p-3.5 bg-card border-border/60 rounded-xl shadow-2xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -69,7 +69,7 @@ export default function MyTournamentsClient({
             </span>
             <Trophy className="h-4 w-4 text-primary shrink-0" />
           </div>
-          <div className="mt-1.5 text-2xl font-bold font-mono text-foreground tabular-nums">
+          <div className="mt-1.5 text-xl sm:text-2xl font-bold font-mono text-foreground tabular-nums">
             {stats.total}
           </div>
         </Card>
@@ -81,7 +81,7 @@ export default function MyTournamentsClient({
             </span>
             <CalendarClock className="h-4 w-4 text-blue-500 shrink-0" />
           </div>
-          <div className="mt-1.5 text-2xl font-bold font-mono text-blue-600 dark:text-blue-400 tabular-nums">
+          <div className="mt-1.5 text-xl sm:text-2xl font-bold font-mono text-blue-600 dark:text-blue-400 tabular-nums">
             {stats.upcoming}
           </div>
         </Card>
@@ -93,7 +93,7 @@ export default function MyTournamentsClient({
             </span>
             <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
           </div>
-          <div className="mt-1.5 text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400 tabular-nums">
+          <div className="mt-1.5 text-xl sm:text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400 tabular-nums">
             {stats.completed}
           </div>
         </Card>

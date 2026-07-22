@@ -92,8 +92,8 @@ export default async function DashboardLayout({
           logoUrl={config?.logoUrl ?? "/dashboard"}
           logoAlt={config?.logoAlt ?? "logo"}
         />
-        <main className="flex-1 overflow-y-auto">
-          <div className="p-4 pb-20 md:p-6 max-w-7xl mx-auto">
+        <main className="flex-1 overflow-y-auto w-full">
+          <div className="px-3 sm:px-6 py-4 pb-20 max-w-6xl mx-auto w-full">
             {children}
           </div>
         </main>

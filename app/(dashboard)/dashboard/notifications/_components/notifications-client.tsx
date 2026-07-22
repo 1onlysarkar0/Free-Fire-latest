@@ -224,9 +224,9 @@ export default function NotificationsClient({ initialData }: NotificationsClient
 
                 {/* Main Content */}
                 <div className="flex-1 min-w-0 space-y-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <p className={cn("text-xs font-bold truncate", n.isRead ? "text-foreground" : "text-primary")}>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <p className={cn("text-xs font-bold font-sans break-words", n.isRead ? "text-foreground" : "text-primary")}>
                         {n.title}
                       </p>
                       {!n.isRead && (
@@ -238,7 +238,7 @@ export default function NotificationsClient({ initialData }: NotificationsClient
                     </span>
                   </div>
                   
-                  <p className="text-xs text-muted-foreground leading-snug line-clamp-2">
+                  <p className="text-xs text-muted-foreground leading-relaxed break-words">
                     {n.message}
                   </p>
 

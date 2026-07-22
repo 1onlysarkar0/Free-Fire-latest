@@ -87,7 +87,7 @@ export default function DashboardClient({
       </div>
 
       {/* High-Density 4-Metric Grid */}
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         
         {/* Balance Card */}
         <Card className="p-4 bg-card border-border/60 hover:border-primary/40 transition-all rounded-xl shadow-2xs flex flex-col justify-between">

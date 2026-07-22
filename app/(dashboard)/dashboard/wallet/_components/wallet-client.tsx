@@ -387,57 +387,58 @@ export default function WalletClient({
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-5 md:gap-6 lg:grid-cols-12">
-                <div className="lg:col-span-4">
-                  <Card className="card-settings p-5 md:p-6">
-                    <div className="flex items-start gap-3">
-                      <CreditCard className="h-5 w-5 shrink-0 text-foreground" />
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-foreground">Scan and pay</p>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          Use any supported UPI app to complete the payment.
-                        </p>
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+                {/* Left: Scan & Pay QR Card */}
+                <div className="lg:col-span-5">
+                  <Card className="p-4 bg-card border-border/60 rounded-xl shadow-2xs h-full flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <CreditCard className="h-4 w-4 text-primary shrink-0" />
+                        <div>
+                          <h3 className="text-xs font-bold text-foreground font-lora">Scan & Pay via UPI</h3>
+                          <p className="text-[11px] text-muted-foreground">
+                            Scan with GPay, PhonePe, Paytm, or BHIM
+                          </p>
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="mt-4 rounded-2xl bg-background/80 p-4 shadow-sm">
-                      <div className="mx-auto flex w-full justify-center">
+                      <div className="mt-3 rounded-xl bg-muted/40 p-3 border border-border/40 flex items-center justify-center">
                         <UPIQR
                           upiId={paymentInfo!.upiId}
                           upiName={paymentInfo!.upiName}
-                          size={200}
+                          size={170}
                         />
                       </div>
                     </div>
 
-                    <div className="mt-3 rounded-xl bg-background/80 px-3 py-3 md:px-4 md:py-3">
-                      <p className="text-sm leading-6 text-muted-foreground">
-                        After completing payment, submit the exact amount and UTR reference from
-                        your UPI app.
+                    <div className="mt-3 rounded-lg bg-muted/30 p-2.5 border border-border/40">
+                      <p className="text-[11px] leading-relaxed text-muted-foreground">
+                        After transferring, submit the exact amount & UTR reference below.
                       </p>
                     </div>
                   </Card>
                 </div>
 
-                <div className="space-y-5 md:space-y-6 lg:col-span-8">
-                  <Card className="card-settings p-5 md:p-6">
-                    <div className="space-y-1">
-                      <h3 className="text-base font-semibold tracking-tight text-foreground">
-                        Submit transaction details
+                {/* Right: Submit UTR Form & Instructions */}
+                <div className="space-y-4 lg:col-span-7">
+                  <Card className="p-4 bg-card border-border/60 rounded-xl shadow-2xs">
+                    <div className="space-y-0.5">
+                      <h3 className="text-xs font-bold text-foreground font-lora">
+                        Submit Payment Verification
                       </h3>
-                      <p className="text-sm text-muted-foreground">
-                        Use the same amount and UTR from your successful payment.
+                      <p className="text-[11px] text-muted-foreground">
+                        Enter amount and 12-digit UTR reference number
                       </p>
                     </div>
 
-                    <form onSubmit={handleVerifyPayment} className="mt-5 space-y-5">
-                      <div className="grid gap-5 md:grid-cols-2">
-                        <div className="space-y-2">
+                    <form onSubmit={handleVerifyPayment} className="mt-3.5 space-y-3.5">
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="space-y-1.5">
                           <Label
                             htmlFor="utr-amount"
-                            className="text-sm font-semibold text-foreground"
+                            className="text-xs font-semibold text-foreground"
                           >
-                            Amount paid
+                            Amount Paid (₹)
                           </Label>
 
                           <Input
@@ -447,7 +448,7 @@ export default function WalletClient({
                             max={50000}
                             step={1}
                             placeholder="e.g. 100"
-                            className="input font-semibold"
+                            className="h-9 text-xs font-mono font-semibold"
                             value={utrAmount}
                             onChange={(e) => {
                               setUtrAmount(e.target.value);
@@ -456,25 +457,21 @@ export default function WalletClient({
                             disabled={submitting}
                             required
                           />
-
-                          <p className="text-xs leading-5 text-muted-foreground">
-                            Enter the exact amount transferred through UPI.
-                          </p>
                         </div>
 
-                        <div className="space-y-2">
+                        <div className="space-y-1.5">
                           <Label
                             htmlFor="utr-number"
-                            className="text-sm font-semibold text-foreground"
+                            className="text-xs font-semibold text-foreground"
                           >
-                            UTR / UPI reference number
+                            UTR / Reference Number
                           </Label>
 
                           <Input
                             id="utr-number"
                             type="text"
                             placeholder="e.g. 412345678901"
-                            className="input font-mono font-semibold uppercase"
+                            className="h-9 text-xs font-mono font-semibold uppercase"
                             value={utrNumber}
                             onChange={(e) => {
                               setUtrNumber(
@@ -486,39 +483,35 @@ export default function WalletClient({
                             disabled={submitting}
                             required
                           />
-
-                          <p className="text-xs leading-5 text-muted-foreground">
-                            Copy the transaction reference from Paytm, GPay, PhonePe, or BHIM.
-                          </p>
                         </div>
                       </div>
 
                       {formError ? (
-                        <div className="flex items-start gap-2.5 rounded-xl bg-destructive/10 p-3.5 text-sm text-destructive">
-                          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                          <span className="font-medium leading-6">{formError}</span>
+                        <div className="flex items-center gap-2 rounded-lg bg-destructive/10 p-2.5 text-xs text-destructive">
+                          <AlertCircle className="h-4 w-4 shrink-0" />
+                          <span className="font-medium">{formError}</span>
                         </div>
                       ) : null}
 
-                      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <p className="max-w-sm text-xs leading-5 text-muted-foreground">
-                          Funds are credited after verification. Each UTR can only be used once.
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-1">
+                        <p className="text-[10px] text-muted-foreground">
+                          Each UTR can only be verified once.
                         </p>
 
                         <Button
                           type="submit"
                           disabled={submitting}
-                          className="h-11 rounded-xl px-5 font-semibold w-full sm:w-auto sm:min-w-[220px]"
+                          className="h-9 px-4 font-semibold text-xs rounded-lg w-full sm:w-auto"
                         >
                           {submitting ? (
                             <>
-                              <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-                              Verifying payment...
+                              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                              Verifying...
                             </>
                           ) : (
                             <>
-                              <CheckCircle2 className="mr-1.5 h-4 w-4" />
-                              Verify payment
+                              <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
+                              Verify Payment
                             </>
                           )}
                         </Button>
@@ -527,18 +520,16 @@ export default function WalletClient({
                   </Card>
 
                   {paymentInfo?.pageContent ? (
-                    <Card className="card-settings p-5 md:p-6">
-                      <div className="space-y-1">
-                        <h3 className="text-base font-semibold tracking-tight text-foreground">
-                          Payment instructions
+                    <Card className="p-4 bg-card border-border/60 rounded-xl shadow-2xs">
+                      <div className="flex items-center gap-2 mb-2">
+                        <CreditCard className="h-4 w-4 text-primary shrink-0" />
+                        <h3 className="text-xs font-bold text-foreground font-lora">
+                          How to Add Funds Step-by-Step
                         </h3>
-                        <p className="text-sm text-muted-foreground">
-                          Follow the steps carefully before submitting your transaction details.
-                        </p>
                       </div>
 
-                      <div className="mt-4 rounded-2xl bg-background/80 p-4 shadow-sm">
-                        <div className="prose prose-sm max-w-none text-muted-foreground prose-headings:text-foreground prose-strong:text-foreground prose-a:text-primary">
+                      <div className="rounded-lg bg-muted/30 p-3.5 border border-border/40">
+                        <div className="prose prose-xs max-w-none text-muted-foreground prose-headings:text-foreground prose-strong:text-foreground prose-a:text-primary">
                           <ReactMarkdown remarkPlugins={[remarkGfm]}>
                             {paymentInfo.pageContent}
                           </ReactMarkdown>
