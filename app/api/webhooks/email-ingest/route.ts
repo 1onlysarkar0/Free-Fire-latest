@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db/drizzle";
 import { paymentEmailInbox } from "@/db/schema";
+import { simpleParser } from "mailparser";
 import {
   getPaymentConfig,
   hashUTR,
@@ -9,6 +10,7 @@ import {
   extractAmount,
   stripHtml,
   normalizeUTR,
+  isCreditTransaction,
 } from "@/lib/payment";
 
 export async function POST(request: NextRequest) {
@@ -24,15 +26,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. Parse Incoming Email Payload
+    // 2. Parse Incoming Payload from Cloudflare Worker
     const payload = await request.json();
-    const { from, subject, body, html, text } = payload;
+    const { from, to, subject, raw, body, html, text } = payload;
 
-    const senderEmail = (typeof from === "string" ? from : from?.address || "")
+    let senderEmail = (typeof from === "string" ? from : from?.address || "")
       .trim()
       .toLowerCase();
 
-    // 3. Load Payment Configuration
+    let fullContent = `${subject || ""} ${text || body || ""} ${typeof html === "string" ? stripHtml(html) : ""}`;
+
+    // 3. Robust MIME Parsing for raw email string if provided
+    if (raw && typeof raw === "string" && raw.length > 0) {
+      try {
+        const parsedMime = await simpleParser(raw, {
+          skipImageLinks: true,
+          skipHtmlToText: true,
+        });
+
+        if (parsedMime.from?.value?.[0]?.address) {
+          senderEmail = parsedMime.from.value[0].address.trim().toLowerCase();
+        }
+
+        const mimeSubject = parsedMime.subject || "";
+        const mimeText = parsedMime.text || "";
+        const mimeHtml = typeof parsedMime.html === "string" ? stripHtml(parsedMime.html) : "";
+
+        fullContent = `${mimeSubject} ${mimeText} ${mimeHtml} ${raw}`;
+      } catch (parseErr) {
+        console.warn("[EmailWebhookIngest] Raw MIME parsing fallback:", parseErr);
+        fullContent = `${fullContent} ${raw}`;
+      }
+    }
+
+    // 4. Load Payment Configuration
     const config = await getPaymentConfig();
     if (!config || !config.enabled) {
       return NextResponse.json(
@@ -41,11 +68,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 4. Combine Full Email Text
-    const emailSubject = subject || "";
-    const emailHtmlText = typeof html === "string" ? stripHtml(html) : "";
-    const emailRawText = text || body || "";
-    const fullContent = `${emailSubject} ${emailRawText} ${emailHtmlText}`;
+    // 5. Verify Credit / Receive Transaction Type (Ignore Outgoing Debit/Paid Emails)
+    if (!isCreditTransaction(fullContent)) {
+      return NextResponse.json(
+        {
+          success: true,
+          message: "Ignored outgoing DEBIT / PAID payment notification email",
+        },
+        { status: 200 }
+      );
+    }
 
     // 5. Verify UPI Name if Configured
     if (config.upiName) {

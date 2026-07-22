@@ -2,27 +2,29 @@
 
 import Link from "next/link";
 import { format } from "date-fns";
+import { useState } from "react";
 import {
   Bell,
-  Coins,
   Trophy,
   Swords,
   Sparkles,
   Wallet,
-  ArrowRight,
+  ArrowUpRight,
   User,
   Gamepad2,
   Calendar,
   Settings,
   CreditCard,
   Play,
-  CheckCircle,
+  Copy,
+  Check,
+  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { H3, H4, Muted } from "@/components/ui/typography";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 import type { UserTournamentItem } from "@/lib/user-data";
 
 interface DashboardClientProps {
@@ -46,213 +48,250 @@ export default function DashboardClient({
   stats,
   recentTournaments,
 }: DashboardClientProps) {
+  const [copiedUid, setCopiedUid] = useState(false);
+
+  const handleCopyUid = () => {
+    if (!user.uid) return;
+    navigator.clipboard.writeText(user.uid);
+    setCopiedUid(true);
+    toast.success("UID copied to clipboard");
+    setTimeout(() => setCopiedUid(false), 2000);
+  };
+
   return (
-    <div className="w-full min-w-0 space-y-8 pb-8">
-      
-      {/* Immersive Greeting Card */}
-      <Card className="relative overflow-hidden border border-primary/20 bg-gradient-to-br from-primary/10 via-background to-background p-6 rounded-2xl shadow-sm">
-        <div className="absolute top-0 right-0 h-40 w-40 bg-primary/5 rounded-full blur-3xl -mr-10 -mt-10" />
-        
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-          <div className="space-y-3">
-            <H3 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-lora border-none pb-0 mt-0">
-              Welcome back, {user.name}!
-            </H3>
+    <div className="w-full min-w-0 space-y-5 pb-6 text-foreground font-ibm">
+      {/* Ultra-Compact User Header */}
+      <Card className="p-4 sm:p-5 rounded-2xl border border-border/40 bg-card/80 backdrop-blur-sm shadow-3xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 text-primary font-bold flex items-center justify-center text-sm shrink-0">
+              {user.name.substring(0, 2).toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h1 className="text-base sm:text-lg font-bold tracking-tight text-foreground truncate font-lora">
+                  {user.name}
+                </h1>
+                <Badge variant="outline" className="text-[10px] font-mono px-2 py-0 h-4 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10">
+                  Active Player
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground truncate flex items-center gap-1.5 mt-0.5">
+                <Gamepad2 className="w-3.5 h-3.5 shrink-0 text-muted-foreground/70" />
+                <span>IGN: <strong className="text-foreground font-medium">{user.gameName || "Not Set"}</strong></span>
+              </p>
+            </div>
           </div>
 
-          {/* Game Credentials Display */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <div className="bg-card border border-border px-4 py-3 rounded-xl flex items-center gap-3 shadow-3xs">
-              <Gamepad2 className="w-5 h-5 text-foreground shrink-0" />
-              <div>
-                <Muted className="text-[10px] uppercase font-bold tracking-wider">In-Game Name</Muted>
-                <p className="text-xs font-bold text-foreground font-ibm">{user.gameName || "Not Set"}</p>
-              </div>
-            </div>
-
-            <div className="bg-card border border-border px-4 py-3 rounded-xl flex items-center gap-3 shadow-3xs">
-              <User className="w-5 h-5 text-foreground shrink-0" />
-              <div>
-                <Muted className="text-[10px] uppercase font-bold tracking-wider">Free Fire UID</Muted>
-                <p className="text-xs font-bold text-foreground font-mono">{user.uid || "Not Set"}</p>
-              </div>
-            </div>
+          {/* Micro UID Card & Quick Edit */}
+          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+            <button
+              onClick={handleCopyUid}
+              disabled={!user.uid}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border/50 bg-secondary/50 hover:bg-secondary text-xs font-mono transition-colors"
+              title="Click to copy UID"
+            >
+              <User className="w-3.5 h-3.5 text-muted-foreground" />
+              <span>UID: {user.uid || "Not Set"}</span>
+              {copiedUid ? (
+                <Check className="w-3 h-3 text-emerald-500 ml-0.5" />
+              ) : (
+                <Copy className="w-3 h-3 text-muted-foreground/60 ml-0.5" />
+              )}
+            </button>
+            <Button asChild variant="ghost" size="icon" className="h-8 w-8 rounded-xl border border-border/40">
+              <Link href="/dashboard/settings" title="Account Settings">
+                <Settings className="w-4 h-4 text-muted-foreground" />
+              </Link>
+            </Button>
           </div>
         </div>
       </Card>
 
-      {/* Bento Grid Stats Section */}
-      <div className="space-y-3">
-        <h3 className="text-base font-bold font-lora tracking-tight text-foreground">Account Stats Overview</h3>
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          
-          {/* Wallet Balance Card */}
-          <Card className="card-widget p-5 flex flex-col justify-between group hover:border-primary/20 transition-all duration-300 bg-card">
-            <div className="flex items-start justify-between gap-3">
-              <div className="space-y-1">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Wallet Balance
-                </p>
-                <p className="text-3xl font-extrabold tracking-tight text-foreground font-ibm flex items-baseline gap-1">
-                  {stats.balance} <span className="text-xs font-normal text-muted-foreground">Coins</span>
-                </p>
-              </div>
-              <Wallet className="h-5 w-5 text-foreground shrink-0" />
-            </div>
-            <div className="mt-4 pt-4 border-t border-border/40 flex items-center justify-between">
-              <Link 
-                href="/dashboard/wallet" 
-                className="text-xs font-bold text-primary hover:text-primary/90 flex items-center gap-1 group-hover:translate-x-0.5 transition-transform"
-              >
-                Deposit / Withdraw <ArrowRight className="w-3 h-3" />
-              </Link>
-            </div>
-          </Card>
+      {/* Bento Grid Metrics Overview */}
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+        {/* Wallet Balance Tile */}
+        <Card className="p-4 rounded-2xl border border-border/40 bg-card hover:border-primary/30 transition-all shadow-3xs flex flex-col justify-between">
+          <div className="flex items-start justify-between gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              Balance
+            </span>
+            <Wallet className="h-4 w-4 text-primary shrink-0" />
+          </div>
+          <div className="mt-2">
+            <p className="text-xl sm:text-2xl font-extrabold tracking-tight text-foreground font-mono tabular-nums">
+              ₹{stats.balance}
+            </p>
+            <Link
+              href="/dashboard/wallet"
+              className="text-[11px] font-semibold text-primary hover:underline inline-flex items-center gap-0.5 mt-1"
+            >
+              Manage Wallet <ArrowUpRight className="w-3 h-3" />
+            </Link>
+          </div>
+        </Card>
 
-          {/* Total Winnings Card */}
-          <Card className="card-widget p-5 flex flex-col justify-between hover:border-yellow-500/20 transition-all duration-300 bg-card">
-            <div className="flex items-start justify-between gap-3">
-              <div className="space-y-1">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Total Winnings
-                </p>
-                <p className="text-3xl font-extrabold tracking-tight text-yellow-600 font-ibm flex items-baseline gap-1">
-                  {stats.totalWinnings} <span className="text-xs font-normal text-muted-foreground">Coins</span>
-                </p>
-              </div>
-              <Sparkles className="h-5 w-5 text-foreground shrink-0" />
-            </div>
-            <div className="mt-4 pt-4 border-t border-border/40">
-              <Muted className="text-[10px] leading-relaxed">
-                Accumulated rewards credited from tournaments won.
-              </Muted>
-            </div>
-          </Card>
+        {/* Total Winnings Tile */}
+        <Card className="p-4 rounded-2xl border border-border/40 bg-card hover:border-amber-500/30 transition-all shadow-3xs flex flex-col justify-between">
+          <div className="flex items-start justify-between gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              Total Winnings
+            </span>
+            <Sparkles className="h-4 w-4 text-amber-500 shrink-0" />
+          </div>
+          <div className="mt-2">
+            <p className="text-xl sm:text-2xl font-extrabold tracking-tight text-amber-600 dark:text-amber-400 font-mono tabular-nums">
+              ₹{stats.totalWinnings}
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-1 truncate">
+              Tournament Prizes
+            </p>
+          </div>
+        </Card>
 
-          {/* Tournaments Joined Card */}
-          <Card className="card-widget p-5 flex flex-col justify-between hover:border-blue-500/20 transition-all duration-300 bg-card">
-            <div className="flex items-start justify-between gap-3">
-              <div className="space-y-1">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Tournaments
-                </p>
-                <p className="text-3xl font-extrabold tracking-tight text-blue-600 font-ibm">
-                  {stats.joinedCount}
-                </p>
-              </div>
-              <Swords className="h-5 w-5 text-foreground shrink-0" />
-            </div>
-            <div className="mt-4 pt-4 border-t border-border/40">
-              <Link 
-                href="/dashboard/my-tournaments" 
-                className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1"
-              >
-                View Registered <ArrowRight className="w-3 h-3" />
-              </Link>
-            </div>
-          </Card>
+        {/* Joined Tournaments Tile */}
+        <Card className="p-4 rounded-2xl border border-border/40 bg-card hover:border-blue-500/30 transition-all shadow-3xs flex flex-col justify-between">
+          <div className="flex items-start justify-between gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              Matches Joined
+            </span>
+            <Swords className="h-4 w-4 text-blue-500 shrink-0" />
+          </div>
+          <div className="mt-2">
+            <p className="text-xl sm:text-2xl font-extrabold tracking-tight text-blue-600 dark:text-blue-400 font-mono tabular-nums">
+              {stats.joinedCount}
+            </p>
+            <Link
+              href="/dashboard/my-tournaments"
+              className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-0.5 mt-1"
+            >
+              View Activity <ArrowUpRight className="w-3 h-3" />
+            </Link>
+          </div>
+        </Card>
 
-          {/* Championship Wins Card */}
-          <Card className="card-widget p-5 flex flex-col justify-between hover:border-emerald-500/20 transition-all duration-300 bg-card">
-            <div className="flex items-start justify-between gap-3">
-              <div className="space-y-1">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Championships
-                </p>
-                <p className="text-3xl font-extrabold tracking-tight text-emerald-600 font-ibm">
-                  {stats.winsCount}
-                </p>
-              </div>
-              <Trophy className="h-5 w-5 text-foreground shrink-0" />
-            </div>
-            <div className="mt-4 pt-4 border-t border-border/40">
-              <Muted className="text-[10px] leading-relaxed">
-                Ranked 1st place victories in completed match lists.
-              </Muted>
-            </div>
-          </Card>
-
-        </div>
+        {/* Championship Wins Tile */}
+        <Card className="p-4 rounded-2xl border border-border/40 bg-card hover:border-emerald-500/30 transition-all shadow-3xs flex flex-col justify-between">
+          <div className="flex items-start justify-between gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              Victories
+            </span>
+            <Trophy className="h-4 w-4 text-emerald-500 shrink-0" />
+          </div>
+          <div className="mt-2">
+            <p className="text-xl sm:text-2xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400 font-mono tabular-nums">
+              {stats.winsCount}
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-1 truncate">
+              1st Place Trophies
+            </p>
+          </div>
+        </Card>
       </div>
 
-      {/* Quick Action Navigation Grid */}
-      <div className="space-y-3">
-        <h3 className="text-base font-bold font-lora tracking-tight text-foreground">Quick Action Panel</h3>
-        <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
-          
+      {/* Quick Action Horizontal Strip */}
+      <div className="space-y-2">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground px-0.5">
+          Quick Actions
+        </h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           <Link href="/tournaments" prefetch={true} className="group">
-            <Card className="p-4 bg-card border border-border rounded-xl transition-all duration-300 hover:shadow-md hover:border-primary/20 flex flex-col items-center justify-center text-center gap-2 h-28">
-              <Play className="w-5 h-5 text-foreground group-hover:scale-105 transition-transform shrink-0" />
-              <span className="text-xs font-bold text-foreground font-ibm">Browse Events</span>
+            <Card className="p-3.5 bg-card border border-border/40 hover:border-primary/40 rounded-xl transition-all flex items-center gap-3 hover:shadow-3xs">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <Play className="w-4 h-4 fill-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-foreground truncate">Browse Matches</p>
+                <p className="text-[10px] text-muted-foreground truncate">Explore Events</p>
+              </div>
             </Card>
           </Link>
 
           <Link href="/dashboard/wallet" prefetch={true} className="group">
-            <Card className="p-4 bg-card border border-border rounded-xl transition-all duration-300 hover:shadow-md hover:border-primary/20 flex flex-col items-center justify-center text-center gap-2 h-28">
-              <CreditCard className="w-5 h-5 text-foreground group-hover:scale-105 transition-transform shrink-0" />
-              <span className="text-xs font-bold text-foreground font-ibm">Deposit Coins</span>
+            <Card className="p-3.5 bg-card border border-border/40 hover:border-primary/40 rounded-xl transition-all flex items-center gap-3 hover:shadow-3xs">
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <CreditCard className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-foreground truncate">Deposit Funds</p>
+                <p className="text-[10px] text-muted-foreground truncate">UPI & Top-up</p>
+              </div>
             </Card>
           </Link>
 
           <Link href="/dashboard/notifications" prefetch={true} className="group">
-            <Card className="relative p-4 bg-card border border-border rounded-xl transition-all duration-300 hover:shadow-md hover:border-primary/20 flex flex-col items-center justify-center text-center gap-2 h-28">
+            <Card className="relative p-3.5 bg-card border border-border/40 hover:border-primary/40 rounded-xl transition-all flex items-center gap-3 hover:shadow-3xs">
               {stats.unreadNotifications > 0 && (
-                <span className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground ring-2 ring-card">
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
                   {stats.unreadNotifications > 9 ? "9+" : stats.unreadNotifications}
                 </span>
               )}
-              <Bell className="w-5 h-5 text-foreground group-hover:scale-105 transition-transform shrink-0" />
-              <span className="text-xs font-bold text-foreground font-ibm">Alerts Inbox</span>
+              <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <Bell className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-foreground truncate">Notifications</p>
+                <p className="text-[10px] text-muted-foreground truncate">Alerts Inbox</p>
+              </div>
             </Card>
           </Link>
 
-          <Link href="/dashboard/settings" prefetch={true} className="group">
-            <Card className="p-4 bg-card border border-border rounded-xl transition-all duration-300 hover:shadow-md hover:border-primary/20 flex flex-col items-center justify-center text-center gap-2 h-28">
-              <Settings className="w-5 h-5 text-foreground group-hover:scale-105 transition-transform shrink-0" />
-              <span className="text-xs font-bold text-foreground font-ibm">Edit Settings</span>
+          <Link href="/dashboard/invite" prefetch={true} className="group">
+            <Card className="p-3.5 bg-card border border-border/40 hover:border-primary/40 rounded-xl transition-all flex items-center gap-3 hover:shadow-3xs">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-foreground truncate">Invite & Earn</p>
+                <p className="text-[10px] text-muted-foreground truncate">Get Referral Bonus</p>
+              </div>
             </Card>
           </Link>
-
         </div>
       </div>
 
       {/* Active & Recent Registrations Section */}
-      <div className="space-y-4 pt-2">
-        <div className="flex items-center justify-between border-b pb-2">
-          <h3 className="text-base font-bold font-lora tracking-tight text-foreground">Recent Registrations</h3>
+      <div className="space-y-3 pt-2">
+        <div className="flex items-center justify-between px-0.5">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            Recent Registrations
+          </h2>
           {recentTournaments.length > 0 && (
-            <Link href="/dashboard/my-tournaments" className="text-xs font-bold text-primary hover:underline">
-              View all
+            <Link
+              href="/dashboard/my-tournaments"
+              className="text-xs font-semibold text-primary hover:underline inline-flex items-center gap-1"
+            >
+              View all <ChevronRight className="w-3.5 h-3.5" />
             </Link>
           )}
         </div>
 
         {recentTournaments.length === 0 ? (
-          <Card className="bg-card/40 border border-border/40 p-8 rounded-2xl text-center flex flex-col items-center justify-center">
-            <Swords className="h-8 w-8 text-muted-foreground/30 mb-3" />
+          <Card className="bg-card/60 border border-border/40 p-6 rounded-2xl text-center flex flex-col items-center justify-center">
+            <Swords className="h-7 w-7 text-muted-foreground/40 mb-2" />
             <p className="text-sm font-bold font-lora text-foreground">No tournaments joined yet</p>
-            <Muted className="text-xs max-w-sm mt-1 leading-5">
-              Get started by exploring upcoming live matches and registering with your coins.
-            </Muted>
-            <Button asChild className="mt-4 text-xs h-9" size="sm">
+            <p className="text-xs text-muted-foreground max-w-xs mt-1 leading-normal">
+              Explore upcoming matches and register using your wallet balance.
+            </p>
+            <Button asChild className="mt-3 text-xs h-8 px-4 rounded-xl" size="sm">
               <Link href="/tournaments" prefetch={true}>
-                Find Tournaments <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                Find Events <ArrowUpRight className="w-3.5 h-3.5 ml-1" />
               </Link>
             </Button>
           </Card>
         ) : (
-          <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+          <div className="grid gap-3 grid-cols-1 md:grid-cols-3">
             {recentTournaments.map((t) => (
-              <Card 
-                key={t.id} 
-                className="bg-card border border-border hover:border-primary/25 rounded-2xl overflow-hidden flex flex-col justify-between group hover:shadow-md transition-all duration-300"
+              <Card
+                key={t.id}
+                className="bg-card border border-border/40 hover:border-primary/30 rounded-2xl overflow-hidden flex flex-col justify-between group hover:shadow-3xs transition-all p-4 space-y-3"
               >
-                <div className="p-4 space-y-3">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between gap-2">
-                    <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10 text-[10px] font-bold uppercase shrink-0">
+                    <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-[10px] font-bold uppercase px-2 py-0 h-4">
                       {t.gameMode.replace(/_/g, " ")}
                     </Badge>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground shrink-0">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                       {t.teamFormat}
                     </span>
                   </div>
@@ -261,51 +300,30 @@ export default function DashboardClient({
                     {t.name}
                   </p>
 
-                  <div className="space-y-1.5 pt-1 text-xs text-muted-foreground font-ibm">
+                  <div className="space-y-1 text-xs text-muted-foreground">
                     <div className="flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-muted-foreground/75 shrink-0" />
+                      <Calendar className="w-3.5 h-3.5 text-muted-foreground/70 shrink-0" />
                       <span>{format(new Date(t.startTime), "PPp")}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <Trophy className="w-3.5 h-3.5 text-muted-foreground/75 shrink-0" />
-                      <span>Pool: <strong className="text-foreground">{t.prizePool} Coins</strong></span>
+                      <Trophy className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                      <span>Pool: <strong className="text-foreground font-mono">₹{t.prizePool}</strong></span>
                     </div>
                   </div>
                 </div>
 
-                <Link 
+                <Link
                   href={`/tournaments/${t.id}`}
-                  className="bg-muted/30 border-t border-border/30 px-4 py-3 flex items-center justify-between text-xs font-semibold text-muted-foreground hover:bg-primary/5 hover:text-primary transition-colors"
+                  className="pt-2 border-t border-border/30 flex items-center justify-between text-xs font-semibold text-primary hover:underline"
                 >
                   <span>Match Details</span>
-                  <ChevronRightIcon className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                  <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
               </Card>
             ))}
           </div>
         )}
       </div>
-
     </div>
-  );
-}
-
-// Simple internal icon component since ChevronRight is used in index UI
-function ChevronRightIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <path d="m9 18 6-6-6-6" />
-    </svg>
   );
 }

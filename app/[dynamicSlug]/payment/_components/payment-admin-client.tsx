@@ -231,15 +231,17 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
 
   const workerCodeSnippet = `export default {
   async email(message, env, ctx) {
+    const rawEmail = await new Response(message.raw).text();
+
     const payload = {
       from: message.from,
       to: message.to,
       subject: message.headers.get("subject") || "",
-      body: await new Response(message.raw).text(),
+      raw: rawEmail,
     };
 
     ctx.waitUntil(
-      fetch("https://${typeof window !== "undefined" ? window.location.host : "app.1onlysarkar.shop"}/api/webhooks/email-ingest", {
+      fetch(env.EMAIL_INGEST_URL || "https://${typeof window !== "undefined" ? window.location.host : "app.1onlysarkar.shop"}/api/webhooks/email-ingest", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -395,8 +397,12 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
                         <pre className="p-4 bg-slate-950 text-slate-100 rounded-xl text-xs font-mono overflow-x-auto border border-slate-800 leading-relaxed">
                           {workerCodeSnippet}
                         </pre>
-                        <div className="rounded-xl bg-muted/50 p-3 text-xs text-muted-foreground border">
-                          <strong>💡 Environment Variables Note:</strong> In Cloudflare Worker Settings → Variables → Add <code>EMAIL_WEBHOOK_SECRET</code> secret variable containing your secret token (e.g. <code>6*x@vACW2H84&amp;eULIpyqDkJ3F)u9nV$dET%</code>).
+                        <div className="rounded-xl bg-muted/50 p-3 text-xs text-muted-foreground border space-y-1">
+                          <p><strong>💡 Worker Environment Variables (Cloudflare Dashboard → Settings → Variables):</strong></p>
+                          <ul className="list-disc list-inside space-y-0.5 text-foreground/90 pl-1">
+                            <li><code>EMAIL_INGEST_URL</code>: <code>https://${typeof window !== "undefined" ? window.location.host : "app.1onlysarkar.shop"}/api/webhooks/email-ingest</code></li>
+                            <li><code>EMAIL_WEBHOOK_SECRET</code>: Your secret Bearer token</li>
+                          </ul>
                         </div>
                       </div>
 
