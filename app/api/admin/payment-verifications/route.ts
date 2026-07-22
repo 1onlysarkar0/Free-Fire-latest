@@ -6,6 +6,8 @@ import { eq, desc, count } from "drizzle-orm";
 
 // TODO: Cache Components adoption — restore export const dynamic = "force-dynamic";
 
+import { decryptPaymentPayload } from "@/lib/payment";
+
 export async function GET(request: NextRequest) {
   const adminUser = await requireAdminOrRole(request, "payment:view_verifications");
   if (adminUser instanceof Response) return adminUser;
@@ -37,11 +39,15 @@ export async function GET(request: NextRequest) {
     .limit(limit)
     .offset(offset);
 
-  const serialized = rows.map((r) => ({
-    ...r,
-    createdAt: r.createdAt.toISOString(),
-    verifiedAt: r.verifiedAt ? r.verifiedAt.toISOString() : null,
-  }));
+  const serialized = rows.map((r) => {
+    const decrypted = decryptPaymentPayload(r.utrNumber);
+    return {
+      ...r,
+      utrNumber: decrypted ? decrypted.utr : r.utrNumber,
+      createdAt: r.createdAt.toISOString(),
+      verifiedAt: r.verifiedAt ? r.verifiedAt.toISOString() : null,
+    };
+  });
 
   const [{ total }] = await db
     .select({ total: count() })

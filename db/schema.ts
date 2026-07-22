@@ -592,6 +592,7 @@ export const paymentConfig = pgTable("payment_config", {
   pageContent: text("page_content").notNull().default(""),
   enabled: boolean("enabled").notNull().default(false),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  lastSyncAt: timestamp("last_sync_at"),
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -604,7 +605,8 @@ export const paymentVerification = pgTable("payment_verification", {
   userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
   claimedAmount: integer("claimed_amount").notNull(),
   verifiedAmount: integer("verified_amount"),
-  utrNumber: text("utr_number").notNull(),
+  utrNumber: text("utr_number").notNull(), // Stores AES-256-GCM encrypted UTR string
+  utrHash: text("utr_hash"), // HMAC hash of UTR for O(1) duplicate checks
   status: text("status").notNull().default("pending"),
   emailMessageId: text("email_message_id"),
   emailSender: text("email_sender"),
@@ -615,7 +617,8 @@ export const paymentVerification = pgTable("payment_verification", {
 }, (t) => [
   index("pv_user_created_idx").on(t.userId, t.createdAt),
   index("pv_utr_idx").on(t.utrNumber),
-  uniqueIndex("pv_utr_verified_unique_idx").on(t.utrNumber).where(sql`status = 'verified'`),
+  index("pv_utr_hash_idx").on(t.utrHash),
+  uniqueIndex("pv_utr_verified_unique_idx").on(t.utrHash).where(sql`status = 'verified'`),
   index("pv_status_idx").on(t.status),
 ]);
 
