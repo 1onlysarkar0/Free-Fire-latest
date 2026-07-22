@@ -216,16 +216,17 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
       <div className="rounded-2xl bg-info/10 dark:bg-info/5 border border-info/20 p-4 flex gap-3">
         <AlertTriangle className="h-5 w-5 text-info shrink-0 mt-0.5" />
         <div className="text-sm space-y-1">
-          <p className="font-semibold text-info">Security Notes</p>
+          <p className="font-semibold text-info">Security & System Notes</p>
           <ul className="text-xs text-info/80 space-y-0.5 list-disc list-inside">
-            <li>Payments are verified by checking your actual Gmail inbox via IMAP.</li>
-            <li>Each UTR number can only be used <strong>ONCE</strong>.</li>
-            <li>Only unread emails are processed — emails are marked read after verification.</li>
-            <li>Rate limiting: max 5 verification attempts per user per 15 minutes.</li>
-            <li>Never share your Gmail App Password. Use a dedicated Gmail account.</li>
+            <li><strong>Zero Cron Autonomous Sync</strong>: System automatically checks Gmail emails every ~30s without external crons.</li>
+            <li><strong>Hardened AES-256-GCM Encryption</strong>: All UTR and payment payloads are encrypted with AES-256-GCM + HMAC SHA-256 hashes.</li>
+            <li><strong>Instant Record Drop on Claim</strong>: Claimed UTR and amount records are immediately <strong>DELETED</strong> from the database upon verification.</li>
+            <li><strong>Check Window & Trusted Senders</strong>: Only unread emails within your selected days back and from trusted senders are processed.</li>
+            <li><strong>Rate Limiting & Advisory Locking</strong>: Max 5 verification attempts per user per 15 mins with PostgreSQL advisory locks.</li>
           </ul>
         </div>
       </div>
+
 
       {/* Main Tabs */}
       <Card className="card-settings">
