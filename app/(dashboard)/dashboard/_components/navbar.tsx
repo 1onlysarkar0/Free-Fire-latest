@@ -84,7 +84,7 @@ export default function DashboardTopNav({
         {/* Mobile: Site Logo & Name */}
         <Link href={logoUrl} prefetch={true} className="flex md:hidden items-center gap-2 min-w-0">
           {logoSrc && (
-            <Image src={imgUrl(logoSrc)} alt={logoAlt} width={24} height={24} className="h-6 w-6 object-contain shrink-0" />
+            <Image src={imgUrl(logoSrc)} alt={logoAlt} width={24} height={24} className="h-6 w-6 object-contain shrink-0" priority suppressHydrationWarning />
           )}
           {siteName && (
             <span className="font-momo text-sm font-medium tracking-tight text-foreground truncate">

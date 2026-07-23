@@ -171,7 +171,7 @@ export default function AppSidebarShell({
         <SidebarHeader className="h-14 flex flex-row items-center justify-start border-b border-sidebar-border shrink-0 px-3 overflow-hidden">
           <Link href={logoUrl} prefetch={true} className={cn("flex items-center gap-2.5 min-w-0 w-full", collapsed && "justify-center")}>
             {logoSrc && (
-              <Image src={imgUrl(logoSrc)} alt={logoAlt} width={28} height={28} className="h-7 w-7 object-contain shrink-0" />
+              <Image src={imgUrl(logoSrc)} alt={logoAlt} width={28} height={28} className="h-7 w-7 object-contain shrink-0" priority suppressHydrationWarning />
             )}
             {!collapsed && (
               <>

@@ -46,6 +46,12 @@ export default function CacheBuster() {
 
         const stored = localStorage.getItem(STORAGE_KEY);
 
+        if (!stored) {
+          // First visit or fresh storage — initialize stored version silently without reloading
+          localStorage.setItem(STORAGE_KEY, version);
+          return;
+        }
+
         if (stored === version) {
           // Versions match — everything is up to date
           return;

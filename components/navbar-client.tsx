@@ -166,7 +166,7 @@ export const NavbarClient = ({
                 prefetch={true}
                 className="flex items-center gap-2.5 hover:opacity-90 transition-opacity shrink-0"
               >
-                <Image src={imgUrl(logo.src)} className="w-8 h-8" alt={logo.alt} width={32} height={32} priority suppressHydrationWarning />
+                <Image src={imgUrl(logo.src)} className="w-8 h-8 object-contain shrink-0" alt={logo.alt} width={32} height={32} priority suppressHydrationWarning />
               <span className="font-momo text-foreground text-[22px] font-normal tracking-tight">
                 {logo.title}
               </span>
@@ -187,12 +187,10 @@ export const NavbarClient = ({
 
           <div className="flex w-full items-center justify-between lg:hidden">
             <Link href={logo.url} prefetch={true} className="flex items-center gap-2 shrink-0">
-              <Image src={imgUrl(logo.src)} className="w-7 h-7" alt={logo.alt} width={28} height={28} priority suppressHydrationWarning />
-              {!isLoggedIn && (
-                <span className="font-momo text-foreground text-base sm:text-lg font-normal truncate max-w-[120px] sm:max-w-none">
-                  {logo.title}
-                </span>
-              )}
+              <Image src={imgUrl(logo.src)} className="w-7 h-7 object-contain shrink-0" alt={logo.alt} width={28} height={28} priority suppressHydrationWarning />
+              <span className="font-momo text-foreground text-base sm:text-lg font-normal truncate max-w-[120px] sm:max-w-none">
+                {logo.title}
+              </span>
             </Link>
 
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">

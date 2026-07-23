@@ -36,7 +36,7 @@ export default async function FooterSection() {
           prefetch={true}
           className="mx-auto flex items-center justify-center gap-2.5 hover:opacity-90 transition-opacity size-fit"
         >
-          <Image src={getImageUrl(logo.src, cacheVersion)} className="w-8 h-8 object-contain" alt={logo.alt} width={32} height={32} suppressHydrationWarning />
+          <Image src={getImageUrl(logo.src, cacheVersion)} className="w-8 h-8 object-contain shrink-0" alt={logo.alt} width={32} height={32} suppressHydrationWarning />
           <Large className="text-2xl font-normal tracking-tight font-momo text-foreground">
             {logo.title}
           </Large>

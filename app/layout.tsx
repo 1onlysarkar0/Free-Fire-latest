@@ -33,7 +33,7 @@ const ibmPlex = IBM_Plex_Sans({
 const momo = localFont({
   src: "../public/fonts/momotrustdisplay.ttf",
   variable: "--font-momo",
-  display: "swap",
+  display: "optional",
 });
 
 export const viewport: Viewport = {
