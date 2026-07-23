@@ -196,18 +196,23 @@ export function validateAmount(amount: number): boolean {
 
 export function extractUTR(text: string): string | null {
   const patterns = [
-    // Standard UPI & Ref Patterns
+    // Standard UPI & Ref & RRN Patterns
     /UPI\s*[/\\]\s*([A-Za-z0-9]{10,22})\s*[/\\]/i,
-    /UPI\s+Ref(?:erence)?(?:\s+No\.?)?[:\s]+([A-Za-z0-9]{10,22})/i,
-    /UTR[:\s#]+([A-Za-z0-9]{10,22})/i,
-    /Ref(?:erence)?\s*(?:No\.?|#)[:\s]+([A-Za-z0-9]{10,22})/i,
-    /Transaction\s*(?:ID|Id|Ref)[:\s#]+([A-Za-z0-9]{10,22})/i,
-    /Txn\s*(?:ID|Id)[:\s#]+([A-Za-z0-9]{10,22})/i,
-    // PhonePe & Paytm & GPay specific patterns
-    /PhonePe\s*(?:Ref|Txn|UTR)[:\s#]*([A-Za-z0-9]{10,22})/i,
-    /Paytm\s*(?:Ref|Txn|UTR)[:\s#]*([A-Za-z0-9]{10,22})/i,
-    /Google\s*Pay\s*(?:Ref|Txn|UTR)[:\s#]*([A-Za-z0-9]{10,22})/i,
-    /BharatPe\s*(?:Ref|Txn|UTR)[:\s#]*([A-Za-z0-9]{10,22})/i,
+    /UPI\s+Ref(?:erence)?(?:\s+No\.?)?[:\s/-]+([A-Za-z0-9]{10,22})/i,
+    /UTR[:\s#/-]+([A-Za-z0-9]{10,22})/i,
+    /RRN[:\s#/-]+([A-Za-z0-9]{10,22})/i,
+    /IMPS[:\s#/-]+(?:P2A|P2P)?[:\s#/-]*([A-Za-z0-9]{10,22})/i,
+    /Ref(?:erence)?\s*(?:No\.?|#)?[:\s/-]+([A-Za-z0-9]{10,22})/i,
+    /Bank\s+Ref(?:erence)?(?:\s+No\.?)?[:\s/-]+([A-Za-z0-9]{10,22})/i,
+    /Transaction\s*(?:ID|Id|Ref)[:\s#/-]+([A-Za-z0-9]{10,22})/i,
+    /Txn\s*(?:ID|Id|Ref)[:\s#/-]+([A-Za-z0-9]{10,22})/i,
+    // Provider specific patterns
+    /PhonePe\s*(?:Ref|Txn|UTR|RRN)[:\s#/-]*([A-Za-z0-9]{10,22})/i,
+    /Paytm\s*(?:Ref|Txn|UTR|RRN)[:\s#/-]*([A-Za-z0-9]{10,22})/i,
+    /Google\s*Pay\s*(?:Ref|Txn|UTR|RRN)[:\s#/-]*([A-Za-z0-9]{10,22})/i,
+    /BharatPe\s*(?:Ref|Txn|UTR|RRN)[:\s#/-]*([A-Za-z0-9]{10,22})/i,
+    /FamApp\s*(?:Ref|Txn|UTR|RRN)[:\s#/-]*([A-Za-z0-9]{10,22})/i,
+    /FamPay\s*(?:Ref|Txn|UTR|RRN)[:\s#/-]*([A-Za-z0-9]{10,22})/i,
     // Standard 12-digit numeric UTRs
     /\b([0-9]{12})\b/,
   ];
@@ -257,55 +262,52 @@ export function stripHtml(html: string): string {
 export function isCreditTransaction(text: string): boolean {
   const lower = text.toLowerCase();
 
-  // Strong Debit / Sent / Paid Indicators (If any match without a credit context, return false immediately)
-  const debitPhrases = [
-    "paid to",
-    "payment to",
-    "sent to",
-    "debited by",
-    "debited from",
-    "debited for",
-    "has been debited",
-    "successfully paid",
-    "transfer to",
-    "transferred to",
-    "money sent",
-    "withdrawn from",
-    "debit alert",
-    "payment sent",
-    "purchase at",
-    "spent on",
-  ];
-
   // Strong Credit / Received Indicators
   const creditPhrases = [
     "credited with",
     "credited to",
     "credited by",
     "has been credited",
+    "is credited",
     "received from",
     "received in",
     "received for",
+    "received a payment",
+    "received payment",
     "money received",
-    "received ₹",
-    "received rs",
     "payment received",
     "amount received",
     "deposit received",
+    "received ₹",
+    "received rs",
+    "received in your account",
+    "payment to your account",
     "credit alert",
+    "you've received",
+    "you have received",
+    "successfully received",
   ];
 
   const hasCredit = creditPhrases.some((phrase) => lower.includes(phrase));
-  const hasDebit = debitPhrases.some((phrase) => lower.includes(phrase));
+  if (hasCredit) {
+    return true;
+  }
 
-  if (hasDebit && !hasCredit) {
+  // Regex pattern for debit/outgoing transfers like "paid Rs 200 to", "sent Rs 100 to"
+  const isDebitPattern =
+    /\b(paid|sent|debited|transferred|transfer)\b.*?\b(to|from|for|by)\b/i.test(lower) ||
+    /\b(debited by|debited from|debited for|has been debited|successfully paid|money sent|withdrawn from|debit alert|spent on)\b/i.test(lower);
+
+  if (isDebitPattern) {
     return false;
   }
 
-  // Fallback standalone words if no compound phrase matched
-  if (!hasCredit) {
-    const isExplicitDebit = /\b(debited|debit)\b/i.test(lower) && !/\b(credited|credit)\b/i.test(lower);
-    if (isExplicitDebit) return false;
+  if (/\b(credited|credit|received)\b/i.test(lower)) {
+    return true;
+  }
+
+  if (/\b(debited|debit)\b/i.test(lower)) {
+    return false;
   }
 
   return true;

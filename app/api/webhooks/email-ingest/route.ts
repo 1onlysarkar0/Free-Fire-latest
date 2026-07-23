@@ -37,23 +37,32 @@ export async function POST(request: NextRequest) {
     const safeHtml = typeof html === "string" ? stripHtml(html) : "";
     const safeRaw = typeof raw === "string" ? raw : "";
 
-    let fullContent = `${safeSubject} ${safeText} ${safeHtml}`.trim();
+    let bodyContent = `${safeSubject} ${safeText} ${safeHtml}`.trim();
 
     if (safeRaw) {
       try {
-        const parsedMime = await simpleParser(safeRaw);
+        const parsedMime = await simpleParser(safeRaw, {
+          skipImageLinks: true,
+          skipHtmlToText: true,
+        });
 
         const mimeSubject = parsedMime.subject || "";
         const mimeText = parsedMime.text || "";
         const mimeHtml = typeof parsedMime.html === "string" ? stripHtml(parsedMime.html) : "";
 
-        fullContent = `${mimeSubject} ${mimeText} ${mimeHtml} ${safeRaw}`.trim();
-      } catch {
-        fullContent = `${fullContent} ${safeRaw}`.trim();
+        const parsedContent = `${mimeSubject} ${mimeText} ${mimeHtml}`.trim();
+        if (parsedContent.length > 0) {
+          bodyContent = parsedContent;
+        }
+      } catch (mimeErr) {
+        console.warn("[EmailWebhookIngest] MIME parse warning:", mimeErr);
       }
     }
 
-    if (!fullContent) {
+    // Clean body content (without raw SMTP headers)
+    const cleanContent = bodyContent || safeRaw;
+
+    if (!cleanContent) {
       return NextResponse.json(
         { success: false, error: "Empty or unparseable email body received" },
         { status: 400 }
@@ -68,32 +77,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!isCreditTransaction(fullContent)) {
+    // Filter out outgoing debit/paid emails
+    if (!isCreditTransaction(cleanContent)) {
       return NextResponse.json(
         { success: true, message: "Ignored outgoing debit/paid email" },
         { status: 200 }
       );
     }
 
-    if (config.upiName) {
-      const safeUpiName = config.upiName.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
-      const safeBody = fullContent.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
-      if (safeUpiName.length > 3 && !safeBody.includes(safeUpiName)) {
-        return NextResponse.json(
-          { success: false, error: "Email body does not match configured UPI name" },
-          { status: 422 }
-        );
-      }
-    }
+    // Extract UTR & Amount from clean body content FIRST (prevents raw SMTP headers like Received: ... id 202607231145 from corrupting UTR extraction)
+    let rawUTR = extractUTR(cleanContent);
+    let amount = extractAmount(cleanContent);
 
-    const rawUTR = extractUTR(fullContent);
-    const amount = extractAmount(fullContent);
+    // Fallback to fullContent (including raw headers) ONLY if clean body didn't yield both UTR & Amount
+    if ((!rawUTR || !amount) && safeRaw && safeRaw !== cleanContent) {
+      const fullContentWithRaw = `${cleanContent} ${safeRaw}`;
+      if (!rawUTR) rawUTR = extractUTR(fullContentWithRaw);
+      if (!amount) amount = extractAmount(fullContentWithRaw);
+    }
 
     if (!rawUTR || !amount) {
       return NextResponse.json(
         {
           success: false,
-          error: "Could not extract valid UTR or amount",
+          error: "Could not extract valid UTR or amount from payment email",
           extractedUTR: rawUTR,
           extractedAmount: amount,
         },
