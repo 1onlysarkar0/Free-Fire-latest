@@ -16,11 +16,6 @@ import { CircularTestimonials } from "@/components/ui/circular-testimonials";
 import { getHomepageFaqs } from "@/lib/content";
 import { LandingFaq } from "@/components/homepage/landing-faq";
 import { CtaSection } from "@/components/homepage/cta-section";
-import { connection } from "next/server";
-
-// Cache Components route opt-out
-export const instant = false;
-
 const onboardingFeatures = [
   {
     step: "Step 1",
@@ -84,7 +79,6 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  await connection();
   const [config, dbUsers, seoData, homeFaqs] = await Promise.all([
     getHeroConfig(),
     getTopPlayersForHomepage(),

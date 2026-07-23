@@ -99,13 +99,8 @@ export const CircularTestimonials = ({
     handleResize();
     window.addEventListener("resize", handleResize);
 
-    const timer = setTimeout(() => {
-      setInitialReady(true);
-    }, 50);
-
     return () => {
       window.removeEventListener("resize", handleResize);
-      clearTimeout(timer);
     };
   }, []);
 
@@ -151,7 +146,7 @@ export const CircularTestimonials = ({
     const isActive = index === activeIndex;
     const isLeft = (activeIndex - 1 + testimonialsLength) % testimonialsLength === index;
     const isRight = (activeIndex + 1) % testimonialsLength === index;
-    const transitionVal = initialReady ? "all 0.8s cubic-bezier(.4,2,.3,1)" : "none";
+    const transitionVal = "transform 0.5s ease-out, opacity 0.5s ease-out";
 
     if (isActive) {
       return {

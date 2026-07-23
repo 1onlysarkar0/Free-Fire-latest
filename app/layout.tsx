@@ -18,16 +18,12 @@ import { ChatbotProvider } from "@/components/chatbot/chatbot-context";
 import { ImageCacheProvider } from "@/components/image-cache-provider";
 import CacheBuster from "@/components/cache-buster";
 
-// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
-
-const lora = Lora({ subsets: ["latin"], variable: "--font-lora", display: "swap" });
+const lora = Lora({ subsets: ["latin"], variable: "--font-lora", display: "optional" });
 const ibmPlex = IBM_Plex_Sans({
   weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
   variable: "--font-ibm-plex",
-  display: "swap",
+  display: "optional",
 });
 
 const momo = localFont({

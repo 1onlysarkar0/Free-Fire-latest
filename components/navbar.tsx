@@ -7,21 +7,7 @@ import { getUserNotifications } from "@/lib/notifications";
 import type { Notification } from "@/components/notifications-bell";
 
 export async function Navbar() {
-  await connection();
-  const [config, session] = await Promise.all([
-    getNavbarConfig(),
-    auth.api.getSession({ headers: await headers() }).catch(() => null),
-  ]);
-
-
-  let initialNotifications: Notification[] = [];
-  let initialUnreadCount = 0;
-
-  if (session?.user) {
-    const data = await getUserNotifications(session.user.id).catch(() => ({ notifications: [], unreadCount: 0 }));
-    initialNotifications = data.notifications;
-    initialUnreadCount = data.unreadCount;
-  }
+  const config = await getNavbarConfig();
 
   return (
     <NavbarClient
@@ -29,9 +15,9 @@ export async function Navbar() {
       menu={config.menu}
       mobileExtraLinks={config.mobileExtraLinks}
       auth={config.auth}
-      initialIsLoggedIn={!!session?.user}
-      initialNotifications={initialNotifications}
-      initialUnreadCount={initialUnreadCount}
+      initialIsLoggedIn={false}
+      initialNotifications={[]}
+      initialUnreadCount={0}
     />
   );
 }

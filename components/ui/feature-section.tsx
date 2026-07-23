@@ -111,18 +111,13 @@ export function FeatureSteps({
                   key={index}
                   className="absolute inset-0 flex items-center justify-center p-2"
                   initial={false}
-                  animate={mounted ? {
+                  animate={{
                     opacity: isActive ? 1 : 0,
-                    y: isActive ? 0 : (index < currentFeature ? -100 : 100),
-                    rotateX: isActive ? 0 : (index < currentFeature ? 20 : -20),
-                    zIndex: isActive ? 10 : 0,
-                  } : {
-                    opacity: isActive ? 1 : 0,
-                    y: 0,
-                    rotateX: 0,
+                    y: isActive ? 0 : (index < currentFeature ? -50 : 50),
+                    rotateX: isActive ? 0 : (index < currentFeature ? 10 : -10),
                     zIndex: isActive ? 10 : 0,
                   }}
-                  transition={mounted ? { duration: 0.5, ease: "easeInOut" } : { duration: 0 }}
+                  transition={{ duration: 0.4, ease: "easeInOut" }}
                   style={{ pointerEvents: isActive ? "auto" : "none" }}
                 >
                   <div className="relative w-full h-full aspect-square flex items-center justify-center p-3">
@@ -132,7 +127,9 @@ export function FeatureSteps({
                       className="w-full h-full aspect-square object-contain transition-transform transform hover:scale-105 duration-700"
                       width={500}
                       height={500}
-                      priority={true}
+                      priority={index === 0}
+                      decoding="async"
+                      suppressHydrationWarning
                     />
                   </div>
                 </motion.div>
