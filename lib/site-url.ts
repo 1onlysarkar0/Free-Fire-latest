@@ -3,7 +3,13 @@ import { db } from "@/db/drizzle";
 import { siteConfig } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
+import { cacheLife, cacheTag } from "next/cache";
+import { CACHE_TAGS } from "@/lib/cache";
+
 export async function getSiteUrl(): Promise<string> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(CACHE_TAGS.siteConfig, "site-url");
   try {
     const [config] = await db
       .select({ siteUrl: siteConfig.siteUrl })
