@@ -229,43 +229,57 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
     }
   }
 
+  const [siteHost, setSiteHost] = useState("app.1onlysarkar.shop");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setSiteHost(window.location.host);
+    }
+  }, []);
+
   const workerCodeSnippet = `export default {
   async email(message, env, ctx) {
-    const ingestUrl = env.EMAIL_INGEST_URL;
+    const ingestUrl = env.EMAIL_INGEST_URL || "https://${siteHost}/api/webhooks/email-ingest";
     const secret = env.EMAIL_WEBHOOK_SECRET;
 
-    if (!ingestUrl) {
-      throw new Error("EMAIL_INGEST_URL is missing in Worker variables.");
-    }
-
     if (!secret) {
-      throw new Error("EMAIL_WEBHOOK_SECRET is missing in Worker variables.");
+      console.error("[EmailWorker] EMAIL_WEBHOOK_SECRET is missing in Worker variables.");
+      return;
     }
 
-    const rawEmail = await new Response(message.raw).text();
+    try {
+      const rawEmail = await new Response(message.raw).text();
 
-    const payload = {
-      from: message.from,
-      to: message.to,
-      subject: message.headers.get("subject") || "",
-      raw: rawEmail,
-      rcptTo: message.to,
-      mailFrom: message.from,
-      receivedAt: new Date().toISOString(),
-    };
+      const payload = {
+        from: message.from,
+        to: message.to,
+        subject: message.headers.get("subject") || "",
+        raw: rawEmail,
+        rcptTo: message.to,
+        mailFrom: message.from,
+        receivedAt: new Date().toISOString(),
+      };
 
-    ctx.waitUntil(
-      fetch(ingestUrl, {
+      console.log(\`[EmailWorker] Forwarding email from \${message.from} to \${ingestUrl}...\`);
+
+      const res = await fetch(ingestUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": \`Bearer \${secret}\`,
         },
         body: JSON.stringify(payload),
-      }).catch((err) => {
-        console.error("Email ingest webhook failed:", err);
-      })
-    );
+      });
+
+      const resText = await res.text();
+      console.log(\`[EmailWorker] Response HTTP \${res.status}: \${resText}\`);
+
+      if (!res.ok) {
+        console.error(\`[EmailWorker] Webhook failed with status \${res.status}: \${resText}\`);
+      }
+    } catch (err) {
+      console.error("[EmailWorker] Error processing email in worker:", err);
+    }
   },
 };`;
 
@@ -416,7 +430,7 @@ export default function PaymentAdminClient({ initialConfig, canEdit, canViewLogs
                         <div className="rounded-xl bg-muted/50 p-3 text-xs text-muted-foreground border space-y-1">
                           <p><strong>💡 Worker Environment Variables (Cloudflare Dashboard → Settings → Variables):</strong></p>
                           <ul className="list-disc list-inside space-y-0.5 text-foreground/90 pl-1">
-                            <li><code>EMAIL_INGEST_URL</code>: <code>https://${typeof window !== "undefined" ? window.location.host : "app.1onlysarkar.shop"}/api/webhooks/email-ingest</code></li>
+                            <li><code>EMAIL_INGEST_URL</code>: <code>https://${siteHost}/api/webhooks/email-ingest</code></li>
                             <li><code>EMAIL_WEBHOOK_SECRET</code>: Your secret Bearer token</li>
                           </ul>
                         </div>
